@@ -1,9 +1,6 @@
-// content_script.js - Clean, Efficient, Fully Fixed Version
-// - More patterns (30+ total, India-focused)
-// - False positive support (loads disabled from storage)
-// - Safe toast (guards against body null)
-// - Fire-and-forget vault save with .catch (no uncaught promises)
-// - No floating unmask (removed as requested)
+// content_script.js - Fully Fixed & Silent Vault Save
+// - No console warnings on context invalidated (common on Gemini/ChatGPT)
+// - Masking/toast always work
 
 console.log("🛡️ Secret Sanitizer content script LOADED successfully!");
 
@@ -15,7 +12,7 @@ const CONFIG = {
   maxVaultEntries: 50
 };
 
-// All patterns
+// All patterns (30+ India-focused)
 const ALL_PATTERNS = [
   [/AKIA[0-9A-Z]{16}/gi, "AWS_KEY"],
   [/ASIA[0-9A-Z]{16}/gi, "AWS_TEMP_KEY"],
@@ -49,16 +46,13 @@ const ALL_PATTERNS = [
 
 let SECRET_PATTERNS = ALL_PATTERNS;
 
-// Load disabled patterns (async, non-blocking)
+// Load disabled patterns
 (async () => {
   try {
     const { disabledPatterns = [] } = await chrome.storage.local.get("disabledPatterns");
     const disabled = new Set(disabledPatterns);
     SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
-    console.log(`🛡️ ${SECRET_PATTERNS.length}/${ALL_PATTERNS.length} patterns enabled`);
-  } catch (err) {
-    console.warn("🛡️ Failed to load disabled patterns - using all");
-  }
+  } catch (_) {}
 })();
 
 // Entropy
@@ -113,7 +107,7 @@ function sanitizeText(text) {
   return { maskedText, replacements };
 }
 
-// Vault save (safe)
+// Vault save - silent on failure
 async function saveToVault(traceId, replacements) {
   const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
   const data = { replacements, expires };
@@ -142,17 +136,14 @@ async function saveToVault(traceId, replacements) {
     }
 
     await chrome.storage.local.set({ vault, stats });
-  } catch (err) {
-    console.warn("🛡️ Vault save failed:", err.message || err);
+  } catch (_) {
+    // Silent - common on Gemini/ChatGPT context reloads
   }
 }
 
-// Safe toast (guards body null)
+// Safe toast
 function showToast(message) {
-  if (!document.body) {
-    console.warn("🛡️ Toast skipped - document.body not ready");
-    return;
-  }
+  if (!document.body) return;
 
   const toast = document.createElement("div");
   toast.textContent = message;
@@ -195,8 +186,8 @@ document.addEventListener("paste", (e) => {
 
   const traceId = crypto.randomUUID();
 
-  // Fire-and-forget with catch (no uncaught promises)
-  saveToVault(traceId, replacements).catch(err => console.warn("🛡️ Vault save rejected:", err));
+  // Silent save
+  saveToVault(traceId, replacements);
 
   const insertMaskedText = (text) => {
     try {
@@ -221,7 +212,6 @@ document.addEventListener("paste", (e) => {
 
   if (insertMaskedText(maskedText)) {
     document.activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-    console.log(`🛡️ Blocked ${replacements.length} secrets! TraceID: ${traceId}`);
     showToast(`🛡️ Blocked ${replacements.length} secrets!`);
   } else {
     showToast("⚠️ Insertion failed!");

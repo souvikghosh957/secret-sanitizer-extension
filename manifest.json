@@ -2,14 +2,15 @@
   "manifest_version": 3,
   "name": "Secret Sanitizer",
   "version": "1.0.0",
-  "description": "Automatically masks secrets & Indian PII before pasting into AI chats. 100% private.",
+  "description": "Masks secrets & Indian PII before pasting into AI chats. 100% private, customizable.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
   "permissions": [
-    "storage"  // For saving vault and stats
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "*://chatgpt.com/*",
@@ -18,6 +19,9 @@
     "*://grok.x.ai/*",
     "*://gemini.google.com/*",
     "*://www.perplexity.ai/*"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
   ],
   "content_scripts": [
     {
@@ -34,7 +38,6 @@
     }
   ],
   "action": {
-    "default_popup": "popup/popup.html",
-    "default_title": "Secret Sanitizer"
+    "default_popup": "popup/popup.html"
   }
 }
