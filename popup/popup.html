@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Sanitizer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ Secret Sanitizer</h1>
+    <p>100% private • Active on AI chat sites</p>
+    
+    <section class="stats">
+      <h2>Stats</h2>
+      <p>Total secrets blocked: <span id="total">0</span></p>
+      <p>Today: <span id="today">0</span></p>
+    </section>
+    
+    <section class="unmask">
+      <h2>Unmask AI Response</h2>
+      <p>Paste the AI response with placeholders here:</p>
+      <textarea id="inputText" placeholder="Paste text like: Use [AADHAAR_0] here..."></textarea>
+      <button id="unmaskBtn">Unmask</button>
+      <pre id="output" class="hidden"></pre>
+    </section>
+    
+    <section class="recent">
+      <h2>Recent Sanitizations</h2>
+      <ul id="recentList"></ul>
+    </section>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
