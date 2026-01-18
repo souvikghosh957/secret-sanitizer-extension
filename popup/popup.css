@@ -132,13 +132,8 @@ textarea {
   border-radius: 8px;
   margin-top: 12px;
   font-size: 0.9em;
+  white-space: pre-wrap;
   border: 1px solid #c0e6c0;
-  
-  /* The Fix: */
-  white-space: pre-wrap;       /* Respects new lines from the source */
-  word-break: break-all;       /* Forces a break at any character to prevent spill */
-  overflow-wrap: break-word;   /* Extra safety for modern browsers */
-  font-family: 'Courier New', Courier, monospace; /* Optional: makes secrets easier to read */
 }
 
 .hidden {
