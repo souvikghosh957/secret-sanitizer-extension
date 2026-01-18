@@ -1,6 +1,8 @@
 // popup.js - All patterns ENABLED by default
 // User can disable (uncheck) any they don't want
 // Safe but powerful: Core secrets masked out-of-box, user can opt-out
+// Fixed custom sites: Explicit permission request + grok.com in defaults
+// Cleaner, concise alerts
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🛡️ Secret Sanitizer popup opened");
@@ -96,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const div = document.createElement("div");
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
-            checkbox.checked = !disabled.has(label);  // Checked = ENABLED
+            checkbox.checked = !disabled.has(label);
             checkbox.id = `toggle-${label}`;
 
             const lbl = document.createElement("label");
@@ -144,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
           const url = new URL(urlStr.startsWith("http") ? urlStr : "https://" + urlStr);
-          const host = url.host;  // Includes port if present (e.g., localhost:3000)
+          const host = url.host;
 
           if (host && !customSites.includes(host)) {
             customSites.push(host);
@@ -159,7 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Save all settings
+    // Save all settings - with explicit permission request + cleaner alerts
     const saveSettingsBtn = document.getElementById("saveSettings");
     if (saveSettingsBtn) {
       saveSettingsBtn.addEventListener("click", async () => {
@@ -171,6 +173,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         await chrome.storage.local.set({ disabledPatterns: newDisabled, customSites });
 
         try {
+          // Request permission for custom sites
+          if (customSites.length > 0) {
+            const origins = customSites.map(s => `*://${s}/*`);
+            const granted = await chrome.permissions.request({ origins });
+            if (!granted) {
+              alert("Permission denied for custom sites.\nSanitizing won't work on them until granted.");
+            }
+          }
+
+          // Unregister and re-register
           await chrome.scripting.unregisterContentScripts();
 
           const defaultMatches = [
@@ -178,6 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             "*://chat.openai.com/*",
             "*://claude.ai/*",
             "*://grok.x.ai/*",
+            "*://grok.com/*",
             "*://gemini.google.com/*",
             "*://www.perplexity.ai/*"
           ];
@@ -191,9 +204,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             runAt: "document_idle"
           }]);
 
-          alert("All settings saved! Refresh pages for site changes.");
+          alert("Settings saved!\nRefresh pages to apply changes.");
         } catch (err) {
-          alert("Patterns saved, but sites update failed: " + err.message);
+          alert("Patterns saved.\nSites update failed: " + err.message);
         }
       });
     }

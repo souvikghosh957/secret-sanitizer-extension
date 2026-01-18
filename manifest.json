@@ -17,8 +17,15 @@
     "*://chat.openai.com/*",
     "*://claude.ai/*",
     "*://grok.x.ai/*",
+    "*://grok.com/*",
     "*://gemini.google.com/*",
-    "*://www.perplexity.ai/*"
+    "*://www.perplexity.ai/*",
+    "*://chat.deepseek.com/*", 
+    "*://chat.mistral.ai/*", 
+    "*://chat.groq.com/*",   
+    "*://poe.com/*",          
+    "*://huggingface.co/chat/*", 
+    "*://you.com/*" 
   ],
   "optional_host_permissions": [
     "*://*/*"
@@ -30,8 +37,15 @@
         "*://chat.openai.com/*",
         "*://claude.ai/*",
         "*://grok.x.ai/*",
+        "*://grok.com/*",
         "*://gemini.google.com/*",
-        "*://www.perplexity.ai/*"
+        "*://www.perplexity.ai/*",
+        "*://chat.deepseek.com/*", 
+        "*://chat.mistral.ai/*", 
+        "*://chat.groq.com/*",
+        "*://poe.com/*", 
+        "*://huggingface.co/chat/*",
+        "*://you.com/*"
       ],
       "js": ["content_script.js"],
       "run_at": "document_idle"
