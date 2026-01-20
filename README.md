@@ -2,7 +2,11 @@
 
 **Never leak Aadhaar, PAN, API keys, or secrets when pasting into AI chats again.**
 
-Secret Sanitizer is a 100% private Chrome extension that automatically masks sensitive data before it reaches ChatGPT, Claude, Grok, Gemini, Perplexity, and any custom AI chat site.
+Secret Sanitizer is a **100% private Chrome extension** that automatically masks sensitive data before it reaches ChatGPT, Claude, Grok, Gemini, Perplexity, DeepSeek, and any custom AI chat site.
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Coming%20Soon-blue)](https://chromewebstore.google.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/souvikghosh957/secret-sanitizer-extension?style=social)](https://github.com/souvikghosh957/secret-sanitizer-extension)
 
 ### Features
 - 🔒 **Instant Masking** — Secrets replaced with placeholders on paste + toast feedback.
@@ -13,19 +17,21 @@ Secret Sanitizer is a 100% private Chrome extension that automatically masks sen
 - 🔐 **100% Local** — No data leaves your device.
 
 ### Screenshots
-<img width="816" height="1296" alt="Secret Sanitization In Action" src="https://github.com/user-attachments/assets/483f0654-73e5-4911-bcc9-8a64b7b4f2bc" />
+<img width="816" height="1296" alt="Secret Sanitization In Action" src="https://github.com/user-attachments/assets/517f6d14-320e-4b96-bc1f-9ffa029d65f4" />
 
 ### How to Install (Early Testers)
-1. Download the latest release ZIP from [Releases](https://github.com/souvikghosh957/secret-sanitizer-extension/releases).
-2. Unzip the file.
-3. Go to `chrome://extensions/`.
-4. Enable **Developer mode** (top-right).
-5. Click **Load unpacked** → Select the unzipped folder.
-6. Done! It works on default sites (ChatGPT, Claude, Grok, etc.).
+1. Clone the repo:  
+   `git clone https://github.com/souvikghosh957/secret-sanitizer-extension.git`
 
-### Contribute / Feedback
-Found a bug? Want new patterns or sites?  
-→ Open an issue or PR on GitHub.  
+2. Go to `chrome://extensions/`
+3. Enable **Developer mode** (top-right)
+4. Click **Load unpacked** → select the cloned folder
+
+Done! It works on all default AI chat sites (ChatGPT, Claude, Grok, Gemini, etc.).
+
+### Contributing / Feedback
+Found a bug? Want new patterns/sites?  
+→ Open an issue or submit a PR!  
 → DM me on X: [@souvik_ghosh975](https://x.com/souvik_ghosh975)
 
 **Star the repo if useful!** ⭐
