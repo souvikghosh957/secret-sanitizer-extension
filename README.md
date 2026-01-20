@@ -17,15 +17,21 @@ Secret Sanitizer is a **100% private Chrome extension** that automatically masks
 - 🔐 **100% Local** — No data leaves your device.
 
 ### Screenshots
-<img width="816" height="1296" alt="Secret Sanitization In Action" src="https://github.com/user-attachments/assets/517f6d14-320e-4b96-bc1f-9ffa029d65f4" />
+<img width="816" height="1296" alt="Secret Sanitization In Action" src="https://github.com/user-attachments/assets/17e1c4f5-1781-4595-9852-dc1594b86e82" />
 
 ### How to Install (Early Testers)
-1. Clone the repo:  
+1. **Download from Releases** (Recommended for easy setup):
+   - Go to [Releases](https://github.com/souvikghosh957/secret-sanitizer-extension/releases/tag/v1.0.0)
+   - Download the ZIP or TAR.GZ file (secret-sanitizer-v1.0.0.zip or .tar.gz).
+   - Unzip/untar the file.
+
+2. **Clone the Repo** (For developers):
    `git clone https://github.com/souvikghosh957/secret-sanitizer-extension.git`
 
-2. Go to `chrome://extensions/`
-3. Enable **Developer mode** (top-right)
-4. Click **Load unpacked** → select the cloned folder
+3. Load in Chrome:
+   - Go to `chrome://extensions/`
+   - Enable **Developer mode** (top-right)
+   - Click **Load unpacked** → select the unzipped/cloned folder
 
 Done! It works on all default AI chat sites (ChatGPT, Claude, Grok, Gemini, etc.).
 
