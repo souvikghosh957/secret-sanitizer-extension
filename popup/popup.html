@@ -12,6 +12,9 @@
     <header class="header">
       <h1><i class="fas fa-shield-alt"></i> Secret Sanitizer</h1>
       <p class="subtitle">100% private • Active on AI chat sites</p>
+      <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+      </button>
     </header>
 
     <nav class="tabs">
@@ -26,16 +29,35 @@
         <p>Today: <strong id="today">0</strong></p>
       </section>
 
+      <section class="section test-mode">
+        <h2 class="section-title"><i class="fas fa-flask"></i> Test Mode</h2>
+        <p class="section-desc">Preview what gets masked before pasting</p>
+        <textarea id="testInput" placeholder="Paste text here to test masking..."></textarea>
+        <button id="testBtn" class="test-btn"><i class="fas fa-vial"></i> Test Sanitization</button>
+        <pre id="testOutput" class="hidden"></pre>
+      </section>
+
       <section class="section unmask">
         <h2 class="section-title"><i class="fas fa-key"></i> Unmask AI Response</h2>
         <textarea id="inputText" placeholder="Paste response with placeholders..."></textarea>
-        <button id="unmaskBtn">Unmask</button>
+        <button id="unmaskBtn"><i class="fas fa-unlock"></i> Unmask</button>
         <pre id="output" class="hidden"></pre>
       </section>
 
       <section class="section recent">
         <h2 class="section-title"><i class="fas fa-history"></i> Recent Sanitizations</h2>
+        <input type="text" id="vaultSearch" placeholder="🔍 Search vault..." class="search-input" style="margin-bottom: 12px;">
         <ul id="recentList"></ul>
+      </section>
+      
+      <section class="section quick-actions">
+        <h2 class="section-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
+        <div class="button-group">
+          <button id="quickTest" class="secondary-btn" title="Ctrl+T"><i class="fas fa-vial"></i> Test</button>
+          <button id="quickUnmask" class="secondary-btn" title="Ctrl+U"><i class="fas fa-unlock"></i> Unmask</button>
+          <button id="quickClear" class="secondary-btn" title="Ctrl+D"><i class="fas fa-eraser"></i> Clear</button>
+        </div>
+        <small class="hint">Use keyboard shortcuts for faster access</small>
       </section>
     </div>
 
@@ -51,12 +73,52 @@
         <ul id="siteList" class="site-list"></ul>
       </section>
 
-      <!-- False Positive Controls second -->
+      <!-- Security Settings -->
+      <section class="section security">
+        <h2 class="section-title"><i class="fas fa-lock"></i> Security</h2>
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="useEncryption" checked>
+            <span>Encrypt stored secrets</span>
+          </label>
+          <small>Protect secrets with encryption (recommended)</small>
+        </div>
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="autoDarkMode" checked>
+            <span>Auto dark mode</span>
+          </label>
+          <small>Match system appearance preference</small>
+        </div>
+        <div class="setting-item">
+          <button id="clearVault" class="secondary-btn"><i class="fas fa-eraser"></i> Delete Secrets</button>
+          <small>Remove all stored secrets from vault</small>
+        </div>
+      </section>
+
+      <!-- Pattern Statistics -->
+      <section class="section pattern-stats">
+        <h2 class="section-title"><i class="fas fa-chart-line"></i> Pattern Statistics</h2>
+        <p class="section-desc">See which patterns catch the most secrets</p>
+        <div id="patternStats" class="stats-list"></div>
+      </section>
+
+      <!-- False Positive Controls -->
       <section class="section false-positives">
-        <h2 class="section-title"><i class="fas fa-ban"></i> False Positive Controls</h2>
+        <h2 class="section-title"><i class="fas fa-ban"></i> Pattern Controls</h2>
         <p class="section-desc">Disable patterns that trigger too often</p>
         <input type="text" id="patternSearch" placeholder="🔍 Search patterns..." class="search-input">
         <div id="patternToggles" class="toggles-list"></div>
+      </section>
+
+      <!-- Export/Import -->
+      <section class="section import-export">
+        <h2 class="section-title"><i class="fas fa-download"></i> Backup & Restore</h2>
+        <div class="button-group">
+          <button id="exportSettings" class="export-btn"><i class="fas fa-file-export"></i> Export Settings</button>
+          <button id="importSettings" class="import-btn"><i class="fas fa-file-import"></i> Import Settings</button>
+          <input type="file" id="importFile" accept=".json" style="display: none;">
+        </div>
       </section>
 
       <button id="saveSettings" class="save-btn"><i class="fas fa-save"></i> Save All Settings</button>

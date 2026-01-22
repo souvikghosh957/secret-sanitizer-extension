@@ -1,6 +1,8 @@
-// content_script.js - Fully Fixed & Silent Vault Save
-// - No console warnings on context invalidated (common on Gemini/ChatGPT)
-// - Masking/toast always work
+// content_script.js - Ultra-Optimized Secret Sanitizer
+// - Pre-compiled regex patterns
+// - Smart caching and early exits
+// - Performance metrics
+// - Zero-lag paste handling
 
 console.log("🛡️ Secret Sanitizer content script LOADED successfully!");
 
@@ -9,50 +11,131 @@ const CONFIG = {
   minEntropyLength: 12,
   entropyThreshold: 4.0,
   vaultTTLMinutes: 15,
-  maxVaultEntries: 50
+  maxVaultEntries: 50,
+  cacheSize: 100, // Cache last N text samples
+  minTextLength: 10 // Skip processing very short text
 };
 
-// All patterns (30+ India-focused)
+// Performance cache
+const patternCache = new Map();
+const encryptionKeyCache = { key: null, timestamp: 0, ttl: 300000 }; // 5 min cache
+
+// Enhanced patterns with comprehensive test secret detection
 const ALL_PATTERNS = [
-  [/AKIA[0-9A-Z]{16}/gi, "AWS_KEY"],
-  [/ASIA[0-9A-Z]{16}/gi, "AWS_TEMP_KEY"],
-  [/[ghp|gho|ghu|ghs|ghr]_[A-Za-z0-9]{36}/g, "GITHUB_TOKEN"],
-  [/eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, "JWT"],
-  [/(mongodb|postgres|mysql|redis):\/\/[^:\s]+:[^@\s]+@/gi, "DB_CONN"],
-  [/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "CREDIT_CARD"],
-  [/[2-9]\d{3}\s?\d{4}\s?\d{4}\s?\d{4}/g, "AADHAAR"],
-  [/[A-Z]{5}\d{4}[A-Z]{1}/g, "PAN"],
-  [/[6-9]\d{9}/g, "INDIAN_PHONE"],
-  [/\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/gi, "GSTIN"],
-  [/[A-Z]{4}0[A-Z0-9]{6}/gi, "IFSC"],
-  [/[\w\.-]+@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)/gi, "UPI_ID"],
-  [/[\w\.-]+@upi/gi, "UPI_ID_GENERIC"],
-  [/[A-Z]{2}[0-9]{2}\s?[0-9]{4}\s?[0-9]{7}/gi, "DRIVING_LICENSE"],
-  [/[A-Z]{3}[0-9]{7}/gi, "VOTER_ID"],
+  // AWS Keys (including test/example keys)
+  [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
+  [/\bASIA[0-9A-Z]{16}\b/gi, "AWS_TEMP_KEY"],
+  [/\b[A-Za-z0-9/+=]{40}\b/g, "AWS_SECRET_KEY"], // AWS Secret Access Key (40 chars base64)
+  
+  // GitHub Tokens
+  [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
+  
+  // JWT Tokens
+  [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
+  
+  // Database Connections
+  [/(mongodb|postgres|mysql|redis):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
+  
+  // Credit Cards (including test cards)
+  [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
+  
+  // Stripe Keys (live and test)
+  [/\bsk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_KEY"],
+  [/\bsk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_KEY"],
+  [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
+  [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
+  
+  // Twilio
+  [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
+  [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi, "TWILIO_AUTH_TOKEN"],
+  
+  // Firebase
+  [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
+  
+  // Razorpay (live and test)
+  [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
+  [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
+  [/\brzp_test_[A-Za-z0-9]{32,}\b/gi, "RAZORPAY_TEST_SECRET"],
+  
+  // Paytm patterns
+  [/\bpaytm[_\s-]?(?:key|secret|token)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_KEY"],
+  [/\b(?:merchant[_\s-]?key|merchant[_\s-]?id)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_MERCHANT"],
+  
+  // Indian PII
+  [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
+  [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
+  [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
+  [/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}\b/gi, "GSTIN"],
+  [/\b[A-Z]{4}0[A-Z0-9]{6}\b/gi, "IFSC"],
+  [/\b[\w\.-]+@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)\b/gi, "UPI_ID"],
+  [/\b[\w\.-]+@upi\b/gi, "UPI_ID_GENERIC"],
+  // UPI Test IDs
+  [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
+  [/\b[\w\.-]+@(?:razorpay|payu|paytm)\b/gi, "PAYMENT_UPI_ID"],
+  [/\b[A-Z]{2}[0-9]{2}[\s-]?[0-9]{4}[\s-]?[0-9]{7}\b/gi, "DRIVING_LICENSE"],
+  [/\b[A-Z]{3}[0-9]{7}\b/gi, "VOTER_ID"],
   [/\b\d{9,18}\b/g, "BANK_ACCOUNT"],
-  [/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "EMAIL"],
-  [/sk_live_[A-Za-z0-9]{24}/gi, "STRIPE_KEY"],
-  [/pk_live_[A-Za-z0-9]{24}/gi, "STRIPE_PUB_KEY"],
-  [/rzp_live_[A-Za-z0-9]{14}/gi, "RAZORPAY_KEY"],
-  [/(password|passwd|pwd)[\s:=]+['"]?[A-Za-z0-9!@#$%^&*]{8,}['"]?/gi, "PASSWORD_HINT"],
-  [/[A-PR-V][1-9]\d{6}/gi, "PASSPORT"],
-  [/^[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}$/gi, "VEHICLE_REG"],
-  [/openai_[A-Za-z0-9]{48}/gi, "OPENAI_KEY"],
-  [/gsk_[A-Za-z0-9]{48}/gi, "GROK_KEY"],
-  [/AIza[0-9A-Za-z\-_]{35}/g, "GOOGLE_API_KEY"],
-  [/(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}/gi, "BEARER_TOKEN"],
-  [/npm_[A-Za-z0-9]{36}/g, "NPM_TOKEN"]
+  [/\b[A-PR-V][1-9]\d{6}\b/gi, "PASSPORT"],
+  [/\b[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}\b/gi, "VEHICLE_REG"],
+  
+  // OTP Codes (6-digit codes in suspicious contexts)
+  [/(?:otp|pin|code|verification)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
+  [/\b(?:enter|your|the)[\s]+(?:otp|pin|code)[\s:]+(\d{4,8})\b/gi, "OTP_CODE"],
+  
+  // Email (only in suspicious contexts - near passwords/secrets)
+  [/(?:password|passwd|pwd|secret|key|token|api)[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
+  
+  // Password hints
+  [/(?:password|passwd|pwd)[\s:=]+['"]?[A-Za-z0-9!@#$%^&*]{8,}['"]?/gi, "PASSWORD_HINT"],
+  
+  // API Keys
+  [/\bopenai_[A-Za-z0-9]{48,}\b/gi, "OPENAI_KEY"],
+  [/\bgsk_[A-Za-z0-9]{48,}\b/gi, "GROK_KEY"],
+  [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
+  [/\b(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
+  [/\bnpm_[A-Za-z0-9]{36,}\b/g, "NPM_TOKEN"],
+  
+  // API Key format patterns (catches API_KEY="value", API_KEY='value', API_KEY=value)
+  [/(?:api[_-]?key|apikey|api_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "API_KEY_FORMAT"],
+  [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
+  [/(?:access[_-]?key|accesskey|access_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "ACCESS_KEY_FORMAT"],
+  
+  // Private Keys (RSA, EC, etc.)
+  [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
+  [/-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----/gi, "PGP_PRIVATE_KEY"],
+  
+  // Generic patterns
+  [/\bsk-[A-Za-z0-9]{32,}\b/gi, "GENERIC_SECRET_KEY"],
+  // Long random strings in quotes (catches values like "54671we345rrtt412919287edrtwq3")
+  [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
+  // Standalone long random strings (40+ chars are likely secrets, 64+ very likely)
+  [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
+  // Base64-like strings (common in secrets)
+  [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, "BASE64_SECRET"]
 ];
 
 let SECRET_PATTERNS = ALL_PATTERNS;
+let COMPILED_PATTERNS = [];
 
-// Load disabled patterns
+// Pre-compile patterns for performance
+function compilePatterns(patterns) {
+  return patterns.map(([pattern, label]) => ({
+    regex: pattern instanceof RegExp ? pattern : new RegExp(pattern.source || pattern, pattern.flags || 'gi'),
+    label,
+    compiled: true
+  }));
+}
+
+// Load disabled patterns and compile
 (async () => {
   try {
     const { disabledPatterns = [] } = await chrome.storage.local.get("disabledPatterns");
     const disabled = new Set(disabledPatterns);
     SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
-  } catch (_) {}
+    COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
+  } catch (_) {
+    COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
+  }
 })();
 
 // Entropy
@@ -72,42 +155,272 @@ function calculateEntropy(str) {
 function findHighEntropySecrets(text) {
   const candidates = [];
   const words = text.split(/\s+|[\"'`()[\]{},;]/);
+  const seen = new Set();
+  
   for (let word of words) {
     const clean = word.replace(/[^A-Za-z0-9!@#$%^&*_\-=+]/g, "");
-    if (clean.length >= CONFIG.minEntropyLength && calculateEntropy(clean) >= CONFIG.entropyThreshold) {
-      const start = text.indexOf(clean);
-      if (start !== -1) candidates.push({ secret: clean, start, end: start + clean.length });
+    if (clean.length >= CONFIG.minEntropyLength && 
+        calculateEntropy(clean) >= CONFIG.entropyThreshold &&
+        !seen.has(clean)) {
+      seen.add(clean);
+      // Find all occurrences in text
+      let start = 0;
+      while ((start = text.indexOf(clean, start)) !== -1) {
+        // Skip if already masked (contains bracket nearby)
+        const context = text.substring(Math.max(0, start - 2), Math.min(text.length, start + clean.length + 2));
+        if (!context.includes('[') && !context.includes(']')) {
+          candidates.push({ secret: clean, start, end: start + clean.length });
+        }
+        start += clean.length;
+      }
     }
   }
-  return candidates;
+  // Remove overlapping candidates (keep first occurrence)
+  return candidates.sort((a, b) => a.start - b.start)
+    .filter((cand, idx, arr) => {
+      if (idx === 0) return true;
+      const prev = arr[idx - 1];
+      return cand.start >= prev.end;
+    });
 }
 
-// Sanitize
+// Fast range overlap check using sorted array
+function hasOverlap(ranges, start, end) {
+  // Binary search would be better, but linear is fast enough for small arrays
+  for (const r of ranges) {
+    if (start < r.end && end > r.start) return true;
+  }
+  return false;
+}
+
+// Optimized sanitize with caching and early exits
 function sanitizeText(text) {
+  if (!text || text.length < CONFIG.minTextLength) {
+    return { maskedText: text, replacements: [] };
+  }
+  
+  // Check cache (simple hash)
+  const textHash = text.length + text.charCodeAt(0) + text.charCodeAt(text.length - 1);
+  const cacheKey = `${textHash}_${text.length}`;
+  if (patternCache.has(cacheKey)) {
+    const cached = patternCache.get(cacheKey);
+    if (cached.text === text) return cached.result;
+  }
+  
   let maskedText = text;
   const replacements = [];
+  const maskedRanges = []; // Sorted by start position
 
-  for (const [pattern, label] of SECRET_PATTERNS) {
-    const matches = [...maskedText.matchAll(pattern)];
-    for (const match of matches) {
+  // Pattern-based matching (using pre-compiled patterns)
+  for (const { regex, label } of COMPILED_PATTERNS) {
+    let match;
+    while ((match = regex.exec(maskedText)) !== null) {
       const original = match[0];
+      const start = match.index;
+      const end = start + original.length;
+      
+      // Fast overlap check
+      if (hasOverlap(maskedRanges, start, end)) {
+        // Reset lastIndex if global flag to avoid infinite loop
+        if (!regex.global) break;
+        continue;
+      }
+      
       const placeholder = `[${label}_${replacements.length}]`;
-      maskedText = maskedText.replace(original, placeholder);
+      maskedText = maskedText.substring(0, start) + placeholder + maskedText.substring(end);
       replacements.push([placeholder, original]);
+      
+      // Insert range in sorted order
+      maskedRanges.push({ start, end: start + placeholder.length });
+      maskedRanges.sort((a, b) => a.start - b.start);
+      
+      // Adjust regex lastIndex for next iteration
+      if (regex.global) {
+        regex.lastIndex = start + placeholder.length;
+      } else {
+        break;
+      }
+    }
+    // Reset regex for next pattern
+    if (regex.global) regex.lastIndex = 0;
+  }
+
+  // Entropy-based detection (only if patterns didn't catch everything)
+  if (replacements.length === 0 || maskedText.length > text.length * 0.5) {
+    const entropySecrets = findHighEntropySecrets(maskedText);
+    for (const { secret, start, end } of entropySecrets) {
+      if (!hasOverlap(maskedRanges, start, end)) {
+        const placeholder = `[ENTROPY_${replacements.length}]`;
+        maskedText = maskedText.slice(0, start) + placeholder + maskedText.slice(end);
+        replacements.push([placeholder, secret]);
+        maskedRanges.push({ start, end: start + placeholder.length });
+        maskedRanges.sort((a, b) => a.start - b.start);
+      }
     }
   }
 
-  const entropySecrets = findHighEntropySecrets(maskedText);
-  for (const { secret, start, end } of entropySecrets) {
-    const placeholder = `[ENTROPY_${replacements.length}]`;
-    maskedText = maskedText.slice(0, start) + placeholder + maskedText.slice(end);
-    replacements.push([placeholder, secret]);
+  const result = { maskedText, replacements };
+  
+  // Track pattern statistics (async, don't block)
+  if (replacements.length > 0) {
+    chrome.storage.local.get("patternStats").then(({ patternStats = {} }) => {
+      // Extract pattern labels from replacements
+      replacements.forEach(([placeholder]) => {
+        const match = placeholder.match(/\[(\w+)_/);
+        if (match) {
+          const patternLabel = match[1];
+          patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
+        }
+      });
+      chrome.storage.local.set({ patternStats });
+    }).catch(() => {}); // Silent fail
   }
-
-  return { maskedText, replacements };
+  
+  // Cache result (limit cache size)
+  if (patternCache.size > CONFIG.cacheSize) {
+    const firstKey = patternCache.keys().next().value;
+    patternCache.delete(firstKey);
+  }
+  patternCache.set(cacheKey, { text, result });
+  
+  return result;
 }
 
-// Vault save - silent on failure
+// Web Crypto API encryption for vault (AES-GCM) with caching
+// Derives key from extension ID for consistent encryption
+async function getEncryptionKey() {
+  try {
+    const now = Date.now();
+    // Use cached key if available and not expired
+    if (encryptionKeyCache.key && (now - encryptionKeyCache.timestamp) < encryptionKeyCache.ttl) {
+      return encryptionKeyCache.key;
+    }
+    
+    // Use extension ID as salt (consistent per installation)
+    const extensionId = chrome.runtime.id;
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(extensionId + "secret-sanitizer-vault-key"),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+    );
+    
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: new TextEncoder().encode(extensionId),
+        iterations: 100000,
+        hash: "SHA-256"
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+    
+    // Cache the key
+    encryptionKeyCache.key = key;
+    encryptionKeyCache.timestamp = now;
+    
+    return key;
+  } catch (err) {
+    console.error("Key derivation error:", err);
+    return null;
+  }
+}
+
+async function encryptData(data) {
+  try {
+    const { useEncryption = true } = await chrome.storage.local.get("useEncryption");
+    if (!useEncryption) return { encrypted: false, data };
+    
+    const key = await getEncryptionKey();
+    if (!key) {
+      // Fallback to base64 if crypto fails
+      const json = JSON.stringify(data);
+      return { encrypted: false, data: btoa(unescape(encodeURIComponent(json))) };
+    }
+    
+    const json = JSON.stringify(data);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(json);
+    
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encoded
+    );
+    
+    // Combine IV and encrypted data
+    const combined = new Uint8Array(iv.length + encrypted.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(encrypted), iv.length);
+    
+    // Convert to base64 for storage
+    const base64 = btoa(String.fromCharCode(...combined));
+    return { encrypted: true, data: base64 };
+  } catch (err) {
+    console.error("Encryption error:", err);
+    // Fallback to base64
+    const json = JSON.stringify(data);
+    return { encrypted: false, data: btoa(unescape(encodeURIComponent(json))) };
+  }
+}
+
+async function decryptData(encryptedData) {
+  try {
+    const { useEncryption = true } = await chrome.storage.local.get("useEncryption");
+    if (!useEncryption) {
+      // Handle old format
+      if (typeof encryptedData === 'string' && encryptedData.startsWith('[')) {
+        return encryptedData;
+      }
+      if (typeof encryptedData === 'object' && encryptedData.encrypted === false) {
+        const decoded = decodeURIComponent(escape(atob(encryptedData.data)));
+        return JSON.parse(decoded);
+      }
+      return encryptedData;
+    }
+    
+    // Handle new encrypted format
+    if (typeof encryptedData === 'object' && encryptedData.encrypted === true) {
+      const key = await getEncryptionKey();
+      if (!key) {
+        // Fallback
+        const decoded = decodeURIComponent(escape(atob(encryptedData.data)));
+        return JSON.parse(decoded);
+      }
+      
+      const combined = Uint8Array.from(atob(encryptedData.data), c => c.charCodeAt(0));
+      const iv = combined.slice(0, 12);
+      const encrypted = combined.slice(12);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encrypted
+      );
+      
+      const json = new TextDecoder().decode(decrypted);
+      return JSON.parse(json);
+    }
+    
+    // Handle old base64 format (backward compatibility)
+    if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
+      const decoded = decodeURIComponent(escape(atob(encryptedData)));
+      return JSON.parse(decoded);
+    }
+    
+    return encryptedData;
+  } catch (err) {
+    console.error("Decryption error:", err);
+    // Try as plain data (backward compatibility)
+    return encryptedData;
+  }
+}
+
+// Vault save - silent on failure with encryption
 async function saveToVault(traceId, replacements) {
   const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
   const data = { replacements, expires };
@@ -117,7 +430,7 @@ async function saveToVault(traceId, replacements) {
 
     const now = Date.now();
     Object.keys(vault).forEach(key => {
-      if (vault[key].expires < now) delete vault[key];
+      if (vault[key] && vault[key].expires < now) delete vault[key];
     });
 
     const today = new Date().toDateString();
@@ -128,10 +441,16 @@ async function saveToVault(traceId, replacements) {
     stats.totalBlocked += replacements.length;
     stats.todayBlocked += replacements.length;
 
-    vault[traceId] = data;
+    // Encrypt replacements before storing
+    const encryptedResult = await encryptData(replacements);
+    vault[traceId] = { 
+      replacements: encryptedResult.data, 
+      expires, 
+      encrypted: encryptedResult.encrypted 
+    };
 
     if (Object.keys(vault).length > CONFIG.maxVaultEntries) {
-      const keys = Object.keys(vault).sort((a, b) => vault[a].expires - vault[b].expires);
+      const keys = Object.keys(vault).sort((a, b) => (vault[a]?.expires || 0) - (vault[b]?.expires || 0));
       delete vault[keys[0]];
     }
 
@@ -141,42 +460,79 @@ async function saveToVault(traceId, replacements) {
   }
 }
 
-// Safe toast
-function showToast(message) {
+// Enhanced toast with animations
+function showToast(message, type = "success") {
   if (!document.body) return;
 
+  // Remove existing toasts
+  document.querySelectorAll(".secret-sanitizer-toast").forEach(t => t.remove());
+
   const toast = document.createElement("div");
+  toast.className = "secret-sanitizer-toast";
   toast.textContent = message;
+  
+  const colors = {
+    success: { bg: "#28a745", icon: "✓" },
+    warning: { bg: "#ffc107", icon: "⚠" },
+    error: { bg: "#dc3545", icon: "✕" }
+  };
+  
+  const style = colors[type] || colors.success;
+  
   Object.assign(toast.style, {
     position: "fixed",
     bottom: "20px",
     right: "20px",
-    background: "#28a745",
+    background: style.bg,
     color: "white",
-    padding: "12px 20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-    zIndex: "10000",
-    fontFamily: "system-ui, sans-serif",
+    padding: "14px 24px",
+    borderRadius: "12px",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+    zIndex: "2147483647",
+    fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "14px",
+    fontWeight: "500",
     opacity: "0",
-    transition: "opacity 0.4s ease",
-    maxWidth: "300px",
-    wordWrap: "break-word"
+    transform: "translateY(20px)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    maxWidth: "320px",
+    wordWrap: "break-word",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
   });
 
+  const icon = document.createElement("span");
+  icon.textContent = style.icon;
+  icon.style.fontSize = "18px";
+  toast.insertBefore(icon, toast.firstChild);
+
   document.body.appendChild(toast);
-  setTimeout(() => toast.style.opacity = "1", 100);
+  
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+  });
+  
   setTimeout(() => {
     toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 400);
-  }, 4000);
+    toast.style.transform = "translateY(20px)";
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
 }
 
-// Paste handler
+// Optimized paste handler with performance tracking
 document.addEventListener("paste", (e) => {
+  const startTime = performance.now();
   const clipboardText = (e.clipboardData || window.clipboardData).getData("text");
-  if (!clipboardText) return;
+  if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
+
+  // Fast path: quick check if text looks like it might contain secrets
+  const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|eyJ|sk_(live|test)|pk_(live|test)|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|success@|failure@|test@/i.test(clipboardText);
+  if (!quickCheck && clipboardText.length < 50) {
+    // Very short text without obvious patterns - skip processing
+    return;
+  }
 
   const { maskedText, replacements } = sanitizeText(clipboardText);
   if (replacements.length === 0) return;
@@ -185,35 +541,63 @@ document.addEventListener("paste", (e) => {
   e.stopImmediatePropagation();
 
   const traceId = crypto.randomUUID();
+  const processTime = performance.now() - startTime;
 
-  // Silent save
-  saveToVault(traceId, replacements);
+  // Async save (don't block UI)
+  saveToVault(traceId, replacements).catch(() => {});
 
+  // Optimized text insertion
   const insertMaskedText = (text) => {
+    const target = document.activeElement;
+    if (!target) return false;
+    
     try {
-      if (document.queryCommandSupported('insertText') && document.execCommand('insertText', false, text)) return true;
+      // Try modern API first (faster)
+      if (target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
+        const start = target.selectionStart || 0;
+        const end = target.selectionEnd || 0;
+        const value = target.value || target.textContent || '';
+        const newValue = value.substring(0, start) + text + value.substring(end);
+        
+        if (target.value !== undefined) {
+          target.value = newValue;
+          target.setSelectionRange(start + text.length, start + text.length);
+        } else {
+          target.textContent = newValue;
+        }
+        
+        // Dispatch input event
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      }
     } catch (_) {}
 
+    // Fallback to execCommand
+    try {
+      if (document.queryCommandSupported('insertText')) {
+        document.execCommand('insertText', false, text);
+        return true;
+      }
+    } catch (_) {}
+
+    // Last resort: Selection API
     try {
       const sel = window.getSelection();
-      let range = sel.rangeCount > 0 ? sel.getRangeAt(0) : document.createRange();
-      range.selectNodeContents(document.activeElement);
-      range.collapse(false);
-      range.deleteContents();
-      range.insertNode(document.createTextNode(text));
-      range.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(range);
-      return true;
-    } catch (_) {
-      return false;
-    }
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(text));
+        range.collapse(false);
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
   };
 
   if (insertMaskedText(maskedText)) {
-    document.activeElement.dispatchEvent(new Event('input', { bubbles: true }));
-    showToast(`🛡️ Blocked ${replacements.length} secrets!`);
+    showToast(`Blocked ${replacements.length} secret${replacements.length > 1 ? 's' : ''}`, "success");
   } else {
-    showToast("⚠️ Insertion failed!");
+    showToast("Insertion failed! Try pasting again.", "error");
   }
 }, true);

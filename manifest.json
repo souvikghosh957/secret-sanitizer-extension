@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Secret Sanitizer",
-  "version": "1.0.0",
-  "description": "Masks secrets & Indian PII before pasting into AI chats. 100% private, customizable.",
+  "version": "2.0.0",
+  "description": "Masks secrets & Indian PII before pasting into AI chats. 100% private, encrypted vault, customizable patterns.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -10,8 +10,13 @@
   },
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "alarms",
+    "contextMenus"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "host_permissions": [
     "*://chatgpt.com/*",
     "*://chat.openai.com/*",
