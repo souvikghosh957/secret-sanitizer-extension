@@ -1,45 +1,67 @@
-# Secret Sanitizer 🛡️
+<p align="center">
+  <img src="icons/icon-128.png" width="96" alt="Secret Sanitizer Logo" />
+</p>
 
-**Never leak Aadhaar, PAN, API keys, or secrets when pasting into AI chats again.**
+<h1 align="center">Secret Sanitizer</h1>
 
-Secret Sanitizer is a **100% private Chrome extension** that automatically masks sensitive data before it reaches ChatGPT, Claude, Grok, Gemini, Perplexity, DeepSeek, and any custom AI chat site.
+<p align="center">
+  <strong>Private. Local. Secure.</strong><br>
+  Prevent accidental secret leaks when pasting into AI chats.
+</p>
 
-[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Coming%20Soon-blue)](https://chromewebstore.google.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/souvikghosh957/secret-sanitizer-extension?style=social)](https://github.com/souvikghosh957/secret-sanitizer-extension)
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank">
+    <img src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" alt="Chrome Web Store" height="58"/>
+  </a>
+</p>
 
-### Features
-- 🔒 **Instant Masking** — Secrets replaced with placeholders on paste + toast feedback.
-- 🔓 **Safe Unmasking** — Reveal originals from AI responses.
-- 📊 **Stats & History** — Track total/today blocked secrets.
-- 🌐 **Custom Sites** — Add any domain (e.g., new AI tools).
-- ⚙️ **Full Control** — Enable/disable patterns (Aadhaar, PAN, API keys, etc.).
-- 🔐 **100% Local** — No data leaves your device.
+<p align="center">
+  <a href="https://github.com/souvikghosh957/secret-sanitizer-extension/stargazers">
+    <img src="https://img.shields.io/github/stars/souvikghosh957/secret-sanitizer-extension?style=social" alt="Stars"/>
+  </a>
+  <a href="https://x.com/souvik_ghosh975">
+    <img src="https://img.shields.io/twitter/follow/souvik_ghosh975?style=social&logo=x" alt="Follow on X"/>
+  </a>
+  <a href="https://github.com/souvikghosh957/secret-sanitizer-extension/releases">
+    <img src="https://img.shields.io/github/v/release/souvikghosh957/secret-sanitizer-extension?label=Release" alt="Release"/>
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT"/>
+  </a>
+</p>
 
-### Screenshots
-<img width="816" height="1296" alt="Secret Sanitization In Action" src="https://github.com/user-attachments/assets/17e1c4f5-1781-4595-9852-dc1594b86e82" />
+---
 
-### How to Install (Early Testers)
-1. **Download from Releases** (Recommended for easy setup):
-   - Go to [Releases](https://github.com/souvikghosh957/secret-sanitizer-extension/releases/tag/v1.0.0)
-   - Download the ZIP or TAR.GZ file (secret-sanitizer-v1.0.0.zip or .tar.gz).
-   - Unzip/untar the file.
+<p align="center">
+  <em>Automatically masks API keys, passwords, tokens, Aadhaar, PAN, and other sensitive data — entirely locally — before it reaches ChatGPT, Claude, Grok, Gemini, Perplexity, DeepSeek, or any custom site.</em><br>
+  <strong>No servers • No tracking • Fully offline</strong>
+</p>
 
-2. **Clone the Repo** (For developers):
-   `git clone https://github.com/souvikghosh957/secret-sanitizer-extension.git`
+<p align="center">
+  <img width="950" height="620" alt="image" src="https://github.com/user-attachments/assets/9953535a-1427-4807-9439-6b1c009d34b0" />
+</p>
 
-3. Load in Chrome:
-   - Go to `chrome://extensions/`
-   - Enable **Developer mode** (top-right)
-   - Click **Load unpacked** → select the unzipped/cloned folder
+### Key Features
+- Instant masking on paste with toast feedback
+- Safe unmasking from a secure local vault
+- Test Mode – preview masking before pasting
+- Stats, history, and pattern leaderboard
+- Custom sites with automatic permission handling
+- Granular pattern controls
+- Optional vault encryption
+- Clean dark mode and keyboard shortcuts
 
-Done! It works on all default AI chat sites (ChatGPT, Claude, Grok, Gemini, etc.).
+### v2.0.0 Highlights
+- Premium popup redesign with smooth animations
+- Pattern statistics and controls
+- Backup and restore settings
+- Encryption toggle
+- Improved vault search and notifications
 
-### Contributing / Feedback
-Found a bug? Want new patterns/sites?  
-→ Open an issue or submit a PR!  
-→ DM me on X: [@souvik_ghosh975](https://x.com/souvik_ghosh975)
+### Installation
 
-**Star the repo if useful!** ⭐
+**Recommended** → [Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/[REPLACE_WITH_YOUR_EXTENSION_ID]) (one-click install)
 
-Coming soon to Chrome Web Store.
+**Developer / Sideloading**
+```bash
+git clone https://github.com/souvikghosh957/secret-sanitizer-extension.git
