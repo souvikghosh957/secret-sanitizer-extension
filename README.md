@@ -60,7 +60,7 @@
 
 ### Installation
 
-**Recommended** → [Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/9953535a-1427-4807-9439-6b1c009d34b0) (one-click install)
+**Recommended** → [Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja) (one-click install)
 
 **Developer / Sideloading**
 ```bash
