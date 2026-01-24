@@ -38,7 +38,7 @@
 </p>
 
 <p align="center">
-  <img width="950" height="620" alt="image" src="https://github.com/user-attachments/assets/9953535a-1427-4807-9439-6b1c009d34b0" />
+ <img width="950" height="600" alt="Gemini_Generated_Image_9w9u069w9u069w9u" src="https://github.com/user-attachments/assets/549d4c14-4cc0-429d-ae43-c5e3177c53ba" />
 </p>
 
 ### Key Features
