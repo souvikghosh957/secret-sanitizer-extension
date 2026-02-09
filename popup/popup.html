@@ -11,11 +11,59 @@
   <div class="container">
     <header class="header">
       <h1><i class="fas fa-shield-alt"></i> Secret Sanitizer</h1>
-      <h2 class="subtitle">Private, local protection for AI chats</h2>
-      <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">
-        <i class="fas fa-moon"></i>
-      </button>
+      <div class="site-status" id="siteStatus">
+        <span class="status-dot"></span>
+        <span class="status-text">Checking...</span>
+      </div>
+      <div class="header-actions">
+        <button id="showWelcome" class="header-btn" title="About">
+          <i class="fas fa-info"></i>
+        </button>
+        <button id="darkModeToggle" class="header-btn" title="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
     </header>
+
+    <!-- First-run Welcome Overlay -->
+    <div id="welcomeOverlay" class="welcome-overlay hidden">
+      <div class="welcome-content">
+        <div class="welcome-logo">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <h1 class="welcome-title">Secret Sanitizer</h1>
+        <p class="welcome-subtitle">Protect sensitive data when pasting into AI chats</p>
+
+        <div class="welcome-example">
+          <div class="example-step">
+            <div class="example-label">You paste</div>
+            <div class="example-code example-before">
+              OPENAI_KEY = "<span class="code-secret">sk-proj-aBc123xYz789</span>"
+            </div>
+          </div>
+
+          <div class="example-arrow">
+            <i class="fas fa-arrow-down"></i>
+          </div>
+
+          <div class="example-step">
+            <div class="example-label">AI sees</div>
+            <div class="example-code example-after">
+              OPENAI_KEY = "<span class="code-masked">[OPENAI_KEY_0]</span>"
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-points">
+          <div class="point"><i class="fas fa-laptop"></i> 100% local</div>
+          <div class="point"><i class="fas fa-bolt"></i> Instant</div>
+          <div class="point"><i class="fas fa-undo"></i> Reversible</div>
+        </div>
+
+        <button id="welcomeStart" class="welcome-btn">Get Started</button>
+      </div>
+    </div>
 
     <nav class="tabs">
       <button class="tab-btn active" data-tab="main"><i class="fas fa-home"></i> Main</button>

@@ -124,11 +124,111 @@ document.addEventListener("DOMContentLoaded", async () => {
       customSites = [],
       darkMode = null,
       autoDarkMode = true,
-      useEncryption = true
+      useEncryption = true,
+      hasSeenWelcome = false
     } = await chrome.storage.local.get([
       "vault", "stats", "disabledPatterns", "customSites",
-      "darkMode", "autoDarkMode", "useEncryption"
+      "darkMode", "autoDarkMode", "useEncryption", "hasSeenWelcome"
     ]);
+
+    // ==================== SITE STATUS INDICATOR ====================
+
+    const defaultSites = [
+      "chatgpt.com", "chat.openai.com", "claude.ai", "grok.x.ai", "grok.com",
+      "gemini.google.com", "www.perplexity.ai", "chat.deepseek.com",
+      "chat.mistral.ai", "chat.groq.com", "poe.com", "huggingface.co", "you.com"
+    ];
+
+    const allProtectedSites = [...defaultSites, ...customSites];
+    const siteStatus = document.getElementById("siteStatus");
+
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.url && siteStatus) {
+        const url = new URL(tab.url);
+        const hostname = url.hostname;
+        const isProtected = allProtectedSites.some(site =>
+          hostname === site || hostname.endsWith('.' + site)
+        );
+
+        if (isProtected) {
+          siteStatus.className = "site-status active";
+          siteStatus.innerHTML = `
+            <span class="status-dot"></span>
+            <span class="status-text">Active on ${hostname}</span>
+          `;
+        } else if (url.protocol.startsWith("http")) {
+          siteStatus.className = "site-status inactive clickable";
+          siteStatus.innerHTML = `
+            <span class="status-dot"></span>
+            <span class="status-text">Not active on ${hostname.slice(0,20)}${hostname.length > 20 ? '...' : ''}</span>
+          `;
+          siteStatus.title = "Click to enable on this site";
+          siteStatus.addEventListener("click", () => {
+            document.querySelector('[data-tab="settings"]').click();
+            setTimeout(() => {
+              document.querySelector('[data-accordion="sites"]')?.click();
+              const input = document.getElementById("newSite");
+              if (input) {
+                input.value = hostname;
+                input.focus();
+              }
+            }, 100);
+          });
+        } else {
+          siteStatus.className = "site-status inactive";
+          siteStatus.innerHTML = `
+            <span class="status-dot"></span>
+            <span class="status-text">Not a web page</span>
+          `;
+        }
+      }
+    } catch (e) {
+      if (siteStatus) {
+        siteStatus.className = "site-status inactive";
+        siteStatus.innerHTML = `
+          <span class="status-dot"></span>
+          <span class="status-text">Status unavailable</span>
+        `;
+      }
+    }
+
+    // ==================== FIRST-RUN WELCOME ====================
+
+    const welcomeOverlay = document.getElementById("welcomeOverlay");
+    const welcomeStartBtn = document.getElementById("welcomeStart");
+
+    if (!hasSeenWelcome && welcomeOverlay) {
+      welcomeOverlay.classList.remove("hidden");
+
+      // Animate the demo after a short delay
+      setTimeout(() => {
+        const demoOutput = document.getElementById("demoOutput");
+        if (demoOutput) {
+          demoOutput.style.animation = "fadeIn 0.5s ease-out";
+        }
+      }, 500);
+    }
+
+    if (welcomeStartBtn) {
+      welcomeStartBtn.addEventListener("click", async () => {
+        await chrome.storage.local.set({ hasSeenWelcome: true });
+        welcomeOverlay.style.animation = "welcomeFadeOut 0.2s ease-out forwards";
+        setTimeout(() => {
+          welcomeOverlay.classList.add("hidden");
+          welcomeOverlay.style.animation = "";
+        }, 200);
+      });
+    }
+
+    // Show welcome screen again
+    const showWelcomeBtn = document.getElementById("showWelcome");
+    if (showWelcomeBtn && welcomeOverlay) {
+      showWelcomeBtn.addEventListener("click", () => {
+        welcomeOverlay.classList.remove("hidden");
+        welcomeOverlay.style.animation = "welcomeFade 0.3s ease-out";
+      });
+    }
 
     const disabled = new Set(disabledPatterns);
     const now = Date.now();

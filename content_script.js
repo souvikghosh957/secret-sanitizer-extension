@@ -16,6 +16,15 @@ const CONFIG = {
   minTextLength: 10 // Skip processing very short text
 };
 
+// Check if extension context is still valid
+function isExtensionContextValid() {
+  try {
+    return !!(chrome && chrome.runtime && chrome.runtime.id);
+  } catch (_) {
+    return false;
+  }
+}
+
 // Performance cache
 const patternCache = new Map();
 const encryptionKeyCache = { key: null, timestamp: 0, ttl: 300000 }; // 5 min cache
@@ -129,10 +138,14 @@ function compilePatterns(patterns) {
 // Load disabled patterns and compile
 (async () => {
   try {
-    const { disabledPatterns = [] } = await chrome.storage.local.get("disabledPatterns");
-    const disabled = new Set(disabledPatterns);
-    SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
-    COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
+    if (isExtensionContextValid()) {
+      const { disabledPatterns = [] } = await chrome.storage.local.get("disabledPatterns");
+      const disabled = new Set(disabledPatterns);
+      SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
+      COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
+    } else {
+      COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
+    }
   } catch (_) {
     COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
   }
@@ -260,20 +273,23 @@ function sanitizeText(text) {
   }
 
   const result = { maskedText, replacements };
-  
+
   // Track pattern statistics (async, don't block)
-  if (replacements.length > 0) {
-    chrome.storage.local.get("patternStats").then(({ patternStats = {} }) => {
-      // Extract pattern labels from replacements
-      replacements.forEach(([placeholder]) => {
-        const match = placeholder.match(/\[(\w+)_/);
-        if (match) {
-          const patternLabel = match[1];
-          patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
-        }
-      });
-      chrome.storage.local.set({ patternStats });
-    }).catch(() => {}); // Silent fail
+  if (replacements.length > 0 && isExtensionContextValid()) {
+    try {
+      chrome.storage.local.get("patternStats").then(({ patternStats = {} }) => {
+        if (!isExtensionContextValid()) return;
+        // Extract pattern labels from replacements
+        replacements.forEach(([placeholder]) => {
+          const match = placeholder.match(/\[(\w+)_/);
+          if (match) {
+            const patternLabel = match[1];
+            patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
+          }
+        });
+        chrome.storage.local.set({ patternStats }).catch(() => {});
+      }).catch(() => {}); // Silent fail
+    } catch (_) {} // Extension context invalidated
   }
   
   // Cache result (limit cache size)
@@ -290,14 +306,17 @@ function sanitizeText(text) {
 // Derives key from extension ID for consistent encryption
 async function getEncryptionKey() {
   try {
+    if (!isExtensionContextValid()) return null;
+
     const now = Date.now();
     // Use cached key if available and not expired
     if (encryptionKeyCache.key && (now - encryptionKeyCache.timestamp) < encryptionKeyCache.ttl) {
       return encryptionKeyCache.key;
     }
-    
+
     // Use extension ID as salt (consistent per installation)
     const extensionId = chrome.runtime.id;
+    if (!extensionId) return null;
     const keyMaterial = await crypto.subtle.importKey(
       "raw",
       new TextEncoder().encode(extensionId + "secret-sanitizer-vault-key"),
@@ -422,10 +441,13 @@ async function decryptData(encryptedData) {
 
 // Vault save - silent on failure with encryption
 async function saveToVault(traceId, replacements) {
+  if (!isExtensionContextValid()) return;
+
   const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
   const data = { replacements, expires };
 
   try {
+    if (!isExtensionContextValid()) return;
     const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await chrome.storage.local.get(["vault", "stats"]);
 
     const now = Date.now();
@@ -460,65 +482,203 @@ async function saveToVault(traceId, replacements) {
   }
 }
 
-// Enhanced toast with animations
+// Simple toast for basic messages
 function showToast(message, type = "success") {
   if (!document.body) return;
-
-  // Remove existing toasts
   document.querySelectorAll(".secret-sanitizer-toast").forEach(t => t.remove());
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-toast";
-  toast.textContent = message;
-  
+
   const colors = {
-    success: { bg: "#28a745", icon: "✓" },
-    warning: { bg: "#ffc107", icon: "⚠" },
-    error: { bg: "#dc3545", icon: "✕" }
+    success: { bg: "#10b981", icon: "✓" },
+    warning: { bg: "#f59e0b", icon: "⚠" },
+    error: { bg: "#ef4444", icon: "✕" },
+    info: { bg: "#0ea5e9", icon: "ℹ" }
   };
-  
   const style = colors[type] || colors.success;
-  
+
   Object.assign(toast.style, {
     position: "fixed",
     bottom: "20px",
     right: "20px",
     background: style.bg,
     color: "white",
-    padding: "14px 24px",
-    borderRadius: "12px",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+    padding: "12px 18px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
     zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "500",
     opacity: "0",
-    transform: "translateY(20px)",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    maxWidth: "320px",
-    wordWrap: "break-word",
+    transform: "translateY(16px)",
+    transition: "all 0.25s ease-out",
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "8px"
   });
 
-  const icon = document.createElement("span");
-  icon.textContent = style.icon;
-  icon.style.fontSize = "18px";
-  toast.insertBefore(icon, toast.firstChild);
-
+  toast.innerHTML = `<span style="font-size:15px">${style.icon}</span><span>${message}</span>`;
   document.body.appendChild(toast);
-  
+
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
     toast.style.transform = "translateY(0)";
   });
-  
+
   setTimeout(() => {
     toast.style.opacity = "0";
-    toast.style.transform = "translateY(20px)";
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
+    toast.style.transform = "translateY(16px)";
+    setTimeout(() => toast.remove(), 250);
+  }, 3000);
+}
+
+// Smart toast with secret types and Undo
+function showSmartToast(secretTypes, onUndo) {
+  if (!document.body) return;
+  document.querySelectorAll(".secret-sanitizer-toast").forEach(t => t.remove());
+
+  const toast = document.createElement("div");
+  toast.className = "secret-sanitizer-toast";
+
+  // Get unique secret types (without the _0, _1 suffix)
+  const types = [...new Set(secretTypes.map(t => t.replace(/_\d+$/, '')))];
+  const typeDisplay = types.slice(0, 2).join(", ") + (types.length > 2 ? ` +${types.length - 2}` : "");
+
+  Object.assign(toast.style, {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    background: "#1e293b",
+    color: "#f1f5f9",
+    padding: "0",
+    borderRadius: "12px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+    zIndex: "2147483647",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontSize: "13px",
+    opacity: "0",
+    transform: "translateY(16px)",
+    transition: "all 0.25s ease-out",
+    overflow: "hidden",
+    maxWidth: "340px"
+  });
+
+  // Main content
+  const content = document.createElement("div");
+  Object.assign(content.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "14px 16px"
+  });
+
+  // Shield icon
+  const icon = document.createElement("div");
+  Object.assign(icon.style, {
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    background: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    flexShrink: "0"
+  });
+  icon.textContent = "🛡️";
+
+  // Text content
+  const textWrap = document.createElement("div");
+  Object.assign(textWrap.style, {
+    flex: "1",
+    minWidth: "0"
+  });
+
+  const title = document.createElement("div");
+  Object.assign(title.style, {
+    fontWeight: "600",
+    fontSize: "13px",
+    marginBottom: "2px"
+  });
+  title.textContent = `Protected ${secretTypes.length} secret${secretTypes.length > 1 ? 's' : ''}`;
+
+  const subtitle = document.createElement("div");
+  Object.assign(subtitle.style, {
+    fontSize: "11px",
+    color: "#94a3b8",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  });
+  subtitle.textContent = typeDisplay;
+
+  textWrap.appendChild(title);
+  textWrap.appendChild(subtitle);
+
+  content.appendChild(icon);
+  content.appendChild(textWrap);
+
+  // Undo button (if callback provided)
+  if (onUndo) {
+    const undoBtn = document.createElement("button");
+    Object.assign(undoBtn.style, {
+      background: "rgba(255,255,255,0.1)",
+      border: "none",
+      color: "#94a3b8",
+      padding: "6px 12px",
+      borderRadius: "6px",
+      fontSize: "12px",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "all 0.15s ease",
+      flexShrink: "0"
+    });
+    undoBtn.textContent = "Undo";
+    undoBtn.onmouseenter = () => {
+      undoBtn.style.background = "rgba(255,255,255,0.15)";
+      undoBtn.style.color = "#f1f5f9";
+    };
+    undoBtn.onmouseleave = () => {
+      undoBtn.style.background = "rgba(255,255,255,0.1)";
+      undoBtn.style.color = "#94a3b8";
+    };
+    undoBtn.onclick = (e) => {
+      e.stopPropagation();
+      onUndo();
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(16px)";
+      setTimeout(() => {
+        toast.remove();
+        showToast("Restored original text", "info");
+      }, 200);
+    };
+    content.appendChild(undoBtn);
+  }
+
+  toast.appendChild(content);
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+  });
+
+  // Auto-dismiss after 5 seconds (longer to allow undo)
+  const dismissTimeout = setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(16px)";
+    setTimeout(() => toast.remove(), 250);
+  }, 5000);
+
+  // Clear timeout if manually dismissed
+  toast.addEventListener("click", () => {
+    clearTimeout(dismissTimeout);
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(16px)";
+    setTimeout(() => toast.remove(), 250);
+  });
 }
 
 // Optimized paste handler with performance tracking
@@ -542,38 +702,41 @@ document.addEventListener("paste", (e) => {
   e.stopImmediatePropagation();
 
   const traceId = crypto.randomUUID();
-  const processTime = performance.now() - startTime;
+  const target = document.activeElement;
 
   // Async save (don't block UI)
   saveToVault(traceId, replacements).catch(() => {});
 
+  // Track insertion position for undo
+  let insertionStart = 0;
+  let insertionEnd = 0;
+
   // Optimized text insertion
-  const insertMaskedText = (text) => {
-    const target = document.activeElement;
-    if (!target) return false;
-    
+  const insertText = (text, element) => {
+    if (!element) return false;
+
     try {
-      // Try modern API first (faster)
-      if (target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-        const start = target.selectionStart || 0;
-        const end = target.selectionEnd || 0;
-        const value = target.value || target.textContent || '';
+      if (element.isContentEditable || element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+        const start = element.selectionStart || 0;
+        const end = element.selectionEnd || 0;
+        const value = element.value || element.textContent || '';
         const newValue = value.substring(0, start) + text + value.substring(end);
-        
-        if (target.value !== undefined) {
-          target.value = newValue;
-          target.setSelectionRange(start + text.length, start + text.length);
+
+        insertionStart = start;
+        insertionEnd = start + text.length;
+
+        if (element.value !== undefined) {
+          element.value = newValue;
+          element.setSelectionRange(insertionEnd, insertionEnd);
         } else {
-          target.textContent = newValue;
+          element.textContent = newValue;
         }
-        
-        // Dispatch input event
-        target.dispatchEvent(new Event('input', { bubbles: true }));
+
+        element.dispatchEvent(new Event('input', { bubbles: true }));
         return true;
       }
     } catch (_) {}
 
-    // Fallback to execCommand
     try {
       if (document.queryCommandSupported('insertText')) {
         document.execCommand('insertText', false, text);
@@ -581,7 +744,6 @@ document.addEventListener("paste", (e) => {
       }
     } catch (_) {}
 
-    // Last resort: Selection API
     try {
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
@@ -596,8 +758,38 @@ document.addEventListener("paste", (e) => {
     return false;
   };
 
-  if (insertMaskedText(maskedText)) {
-    showToast(`Blocked ${replacements.length} secret${replacements.length > 1 ? 's' : ''}`, "success");
+  if (insertText(maskedText, target)) {
+    // Extract secret types from placeholders (e.g., [OPENAI_KEY_0] -> OPENAI_KEY)
+    // Uses same regex pattern as patternStats tracking for consistency
+    const secretTypes = replacements.map(([placeholder]) => {
+      const match = placeholder.match(/\[(\w+)_/);
+      return match ? match[1] : placeholder.replace(/[\[\]]/g, '');
+    });
+
+    // Undo function - replaces masked text with original
+    const handleUndo = () => {
+      try {
+        if (target && (target.value !== undefined || target.textContent !== undefined)) {
+          const currentValue = target.value !== undefined ? target.value : target.textContent;
+          const beforeInsert = currentValue.substring(0, insertionStart);
+          const afterInsert = currentValue.substring(insertionEnd);
+          const restoredValue = beforeInsert + clipboardText + afterInsert;
+
+          if (target.value !== undefined) {
+            target.value = restoredValue;
+            target.setSelectionRange(insertionStart + clipboardText.length, insertionStart + clipboardText.length);
+          } else {
+            target.textContent = restoredValue;
+          }
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          target.focus();
+        }
+      } catch (_) {
+        showToast("Couldn't restore text", "error");
+      }
+    };
+
+    showSmartToast(secretTypes, handleUndo);
   } else {
     showToast("Insertion failed! Try pasting again.", "error");
   }
