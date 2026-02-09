@@ -1,34 +1,48 @@
 // background.js - Service Worker for Secret Sanitizer
-// Handles periodic cleanup, badge updates, and context menu
+// Handles periodic cleanup, badge updates, context menu, weekly summary, and milestones
+
+// ==================== ALARMS ====================
 
 // Periodic vault cleanup (every 5 minutes)
 chrome.alarms.create("vaultCleanup", { periodInMinutes: 5 });
 
+// Weekly summary (check daily, show on Sundays)
+chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 }); // Daily check
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "vaultCleanup") {
-    try {
-      const { vault = {} } = await chrome.storage.local.get("vault");
-      const now = Date.now();
-      let cleaned = false;
-      
-      Object.keys(vault).forEach(key => {
-        if (vault[key] && vault[key].expires < now) {
-          delete vault[key];
-          cleaned = true;
-        }
-      });
-      
-      if (cleaned) {
-        await chrome.storage.local.set({ vault });
-        updateBadge();
-      }
-    } catch (err) {
-      console.error("Vault cleanup error:", err);
-    }
+    await cleanupVault();
+  } else if (alarm.name === "weeklySummary") {
+    await checkWeeklySummary();
   }
 });
 
-// Update badge with blocked count
+// ==================== VAULT CLEANUP ====================
+
+async function cleanupVault() {
+  try {
+    const { vault = {} } = await chrome.storage.local.get("vault");
+    const now = Date.now();
+    let cleaned = false;
+
+    Object.keys(vault).forEach(key => {
+      if (vault[key] && vault[key].expires < now) {
+        delete vault[key];
+        cleaned = true;
+      }
+    });
+
+    if (cleaned) {
+      await chrome.storage.local.set({ vault });
+      updateBadge();
+    }
+  } catch (err) {
+    console.error("Vault cleanup error:", err);
+  }
+}
+
+// ==================== BADGE ====================
+
 async function updateBadge() {
   try {
     const { stats = { todayBlocked: 0 } } = await chrome.storage.local.get("stats");
@@ -43,40 +57,210 @@ async function updateBadge() {
 // Initialize badge on startup
 updateBadge();
 
-// Listen for storage changes to update badge
+// Listen for storage changes to update badge and check milestones
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.stats) {
     updateBadge();
+    checkMilestones(changes.stats.newValue, changes.stats.oldValue);
   }
 });
 
-// Context menu for quick access (simplified - just opens popup)
+// ==================== MILESTONES ====================
+
+const MILESTONES = [100, 500, 1000, 5000, 10000, 50000, 100000];
+
+async function checkMilestones(newStats, oldStats) {
+  if (!newStats || !oldStats) return;
+
+  const newTotal = newStats.totalBlocked || 0;
+  const oldTotal = oldStats.totalBlocked || 0;
+
+  for (const milestone of MILESTONES) {
+    if (oldTotal < milestone && newTotal >= milestone) {
+      // Milestone reached! Notify all tabs
+      notifyMilestone(milestone, newTotal);
+      break;
+    }
+  }
+}
+
+async function notifyMilestone(milestone, total) {
+  try {
+    // Send message to all active tabs to show celebration
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: "milestone",
+          milestone,
+          total
+        }).catch(() => {}); // Ignore errors for tabs without content script
+      }
+    }
+  } catch (err) {
+    console.error("Milestone notification error:", err);
+  }
+}
+
+// ==================== WEEKLY SUMMARY ====================
+
+async function checkWeeklySummary() {
+  try {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday
+
+    // Only show on Sunday
+    if (dayOfWeek !== 0) return;
+
+    const { weeklyStats = { weekStart: null, weekBlocked: 0 }, stats = {} } =
+      await chrome.storage.local.get(["weeklyStats", "stats"]);
+
+    const currentWeekStart = getWeekStart(now);
+
+    // If it's a new week and we have data from last week
+    if (weeklyStats.weekStart && weeklyStats.weekStart !== currentWeekStart && weeklyStats.weekBlocked > 0) {
+      // Show notification
+      await showWeeklyNotification(weeklyStats.weekBlocked, stats.totalBlocked || 0);
+
+      // Reset weekly stats
+      await chrome.storage.local.set({
+        weeklyStats: { weekStart: currentWeekStart, weekBlocked: 0 }
+      });
+    } else if (!weeklyStats.weekStart) {
+      // Initialize weekly tracking
+      await chrome.storage.local.set({
+        weeklyStats: { weekStart: currentWeekStart, weekBlocked: 0 }
+      });
+    }
+  } catch (err) {
+    console.error("Weekly summary error:", err);
+  }
+}
+
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day;
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split('T')[0];
+}
+
+async function showWeeklyNotification(weekBlocked, totalBlocked) {
+  try {
+    await chrome.notifications.create("weekly-summary", {
+      type: "basic",
+      iconUrl: "icons/icon-128.png",
+      title: "Weekly Protection Report",
+      message: `This week you protected ${weekBlocked} secrets!\nTotal all-time: ${totalBlocked.toLocaleString()}`,
+      priority: 1
+    });
+  } catch (err) {
+    console.error("Notification error:", err);
+  }
+}
+
+// Update weekly stats when secrets are blocked
+chrome.storage.onChanged.addListener(async (changes) => {
+  if (changes.stats && changes.stats.newValue && changes.stats.oldValue) {
+    const diff = (changes.stats.newValue.totalBlocked || 0) - (changes.stats.oldValue.totalBlocked || 0);
+    if (diff > 0) {
+      try {
+        const { weeklyStats = { weekStart: getWeekStart(new Date()), weekBlocked: 0 } } =
+          await chrome.storage.local.get("weeklyStats");
+        weeklyStats.weekBlocked = (weeklyStats.weekBlocked || 0) + diff;
+        await chrome.storage.local.set({ weeklyStats });
+      } catch (err) {}
+    }
+  }
+});
+
+// ==================== CONTEXT MENU ====================
+
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "open-sanitizer",
-    title: "Open Secret Sanitizer",
-    contexts: ["page", "editable"]
+  // Remove existing menus first
+  chrome.contextMenus.removeAll(() => {
+    // Main menu
+    chrome.contextMenus.create({
+      id: "secret-sanitizer",
+      title: "Secret Sanitizer",
+      contexts: ["selection", "editable"]
+    });
+
+    // Sanitize selection
+    chrome.contextMenus.create({
+      id: "sanitize-selection",
+      parentId: "secret-sanitizer",
+      title: "Sanitize Selection",
+      contexts: ["selection"]
+    });
+
+    // Copy sanitized
+    chrome.contextMenus.create({
+      id: "copy-sanitized",
+      parentId: "secret-sanitizer",
+      title: "Copy Sanitized",
+      contexts: ["selection"]
+    });
+
+    // Separator
+    chrome.contextMenus.create({
+      id: "separator",
+      parentId: "secret-sanitizer",
+      type: "separator",
+      contexts: ["selection", "editable"]
+    });
+
+    // Open popup
+    chrome.contextMenus.create({
+      id: "open-popup",
+      parentId: "secret-sanitizer",
+      title: "Open Extension",
+      contexts: ["selection", "editable"]
+    });
   });
 });
 
-chrome.contextMenus.onClicked.addListener(() => {
-  chrome.action.openPopup();
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (!tab?.id) return;
+
+  switch (info.menuItemId) {
+    case "sanitize-selection":
+      chrome.tabs.sendMessage(tab.id, {
+        action: "sanitizeSelection",
+        text: info.selectionText
+      }).catch(() => {});
+      break;
+
+    case "copy-sanitized":
+      chrome.tabs.sendMessage(tab.id, {
+        action: "copySanitized",
+        text: info.selectionText
+      }).catch(() => {});
+      break;
+
+    case "open-popup":
+      chrome.action.openPopup();
+      break;
+  }
 });
 
-// Handle decryption requests from popup
+// ==================== MESSAGE HANDLER ====================
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "decrypt") {
     decryptVaultData(request.data).then(decrypted => {
       sendResponse({ decrypted });
     }).catch(err => {
       console.error("Decryption error:", err);
-      sendResponse({ decrypted: request.data }); // Return original on error
+      sendResponse({ decrypted: request.data });
     });
-    return true; // Async response
+    return true;
   }
 });
 
-// Decrypt vault data (same logic as content script)
+// ==================== DECRYPTION ====================
+
 async function decryptVaultData(encryptedData) {
   try {
     const { useEncryption = true } = await chrome.storage.local.get("useEncryption");
@@ -90,7 +274,7 @@ async function decryptVaultData(encryptedData) {
       }
       return encryptedData;
     }
-    
+
     if (typeof encryptedData === 'object' && encryptedData.encrypted === true) {
       const extensionId = chrome.runtime.id;
       const keyMaterial = await crypto.subtle.importKey(
@@ -100,7 +284,7 @@ async function decryptVaultData(encryptedData) {
         false,
         ["deriveBits", "deriveKey"]
       );
-      
+
       const key = await crypto.subtle.deriveKey(
         {
           name: "PBKDF2",
@@ -113,27 +297,27 @@ async function decryptVaultData(encryptedData) {
         false,
         ["encrypt", "decrypt"]
       );
-      
+
       const combined = Uint8Array.from(atob(encryptedData.data), c => c.charCodeAt(0));
       const iv = combined.slice(0, 12);
       const encrypted = combined.slice(12);
-      
+
       const decrypted = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: iv },
         key,
         encrypted
       );
-      
+
       const json = new TextDecoder().decode(decrypted);
       return JSON.parse(json);
     }
-    
+
     // Fallback for old format
     if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
       const decoded = decodeURIComponent(escape(atob(encryptedData)));
       return JSON.parse(decoded);
     }
-    
+
     return encryptedData;
   } catch (err) {
     console.error("Decryption error:", err);
