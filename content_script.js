@@ -891,7 +891,7 @@ function showMilestoneCelebration(milestone, total) {
     color: "#94a3b8",
     marginBottom: "20px"
   });
-  subtitle.textContent = "secrets protected all-time";
+  subtitle.textContent = "secrets safeguarded overall";
 
   // Close button
   const closeBtn = document.createElement("button");
