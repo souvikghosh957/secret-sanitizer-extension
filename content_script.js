@@ -19,10 +19,50 @@ const CONFIG = {
 // Check if extension context is still valid
 function isExtensionContextValid() {
   try {
-    return !!(chrome && chrome.runtime && chrome.runtime.id);
+    // Check all required chrome APIs exist and context is valid
+    if (!chrome || !chrome.runtime || !chrome.runtime.id) return false;
+    if (!chrome.storage || !chrome.storage.local) return false;
+    return true;
   } catch (_) {
     return false;
   }
+}
+
+// Safe wrapper for chrome.storage.local operations
+function safeStorageGet(keys) {
+  return new Promise((resolve) => {
+    try {
+      if (!isExtensionContextValid()) {
+        resolve({});
+        return;
+      }
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime.lastError) {
+          resolve({});
+        } else {
+          resolve(result || {});
+        }
+      });
+    } catch (_) {
+      resolve({});
+    }
+  });
+}
+
+function safeStorageSet(data) {
+  return new Promise((resolve) => {
+    try {
+      if (!isExtensionContextValid()) {
+        resolve();
+        return;
+      }
+      chrome.storage.local.set(data, () => {
+        resolve();
+      });
+    } catch (_) {
+      resolve();
+    }
+  });
 }
 
 // Performance cache
@@ -138,14 +178,10 @@ function compilePatterns(patterns) {
 // Load disabled patterns and compile
 (async () => {
   try {
-    if (isExtensionContextValid()) {
-      const { disabledPatterns = [] } = await chrome.storage.local.get("disabledPatterns");
-      const disabled = new Set(disabledPatterns);
-      SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
-      COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
-    } else {
-      COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
-    }
+    const { disabledPatterns = [] } = await safeStorageGet("disabledPatterns");
+    const disabled = new Set(disabledPatterns);
+    SECRET_PATTERNS = ALL_PATTERNS.filter(([, label]) => !disabled.has(label));
+    COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
   } catch (_) {
     COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
   }
@@ -275,21 +311,17 @@ function sanitizeText(text) {
   const result = { maskedText, replacements };
 
   // Track pattern statistics (async, don't block)
-  if (replacements.length > 0 && isExtensionContextValid()) {
-    try {
-      chrome.storage.local.get("patternStats").then(({ patternStats = {} }) => {
-        if (!isExtensionContextValid()) return;
-        // Extract pattern labels from replacements
-        replacements.forEach(([placeholder]) => {
-          const match = placeholder.match(/\[(\w+)_/);
-          if (match) {
-            const patternLabel = match[1];
-            patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
-          }
-        });
-        chrome.storage.local.set({ patternStats }).catch(() => {});
-      }).catch(() => {}); // Silent fail
-    } catch (_) {} // Extension context invalidated
+  if (replacements.length > 0) {
+    safeStorageGet("patternStats").then(({ patternStats = {} }) => {
+      replacements.forEach(([placeholder]) => {
+        const match = placeholder.match(/\[(\w+)_/);
+        if (match) {
+          const patternLabel = match[1];
+          patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
+        }
+      });
+      safeStorageSet({ patternStats });
+    });
   }
   
   // Cache result (limit cache size)
@@ -351,7 +383,7 @@ async function getEncryptionKey() {
 
 async function encryptData(data) {
   try {
-    const { useEncryption = true } = await chrome.storage.local.get("useEncryption");
+    const { useEncryption = true } = await safeStorageGet("useEncryption");
     if (!useEncryption) return { encrypted: false, data };
     
     const key = await getEncryptionKey();
@@ -389,7 +421,7 @@ async function encryptData(data) {
 
 async function decryptData(encryptedData) {
   try {
-    const { useEncryption = true } = await chrome.storage.local.get("useEncryption");
+    const { useEncryption = true } = await safeStorageGet("useEncryption");
     if (!useEncryption) {
       // Handle old format
       if (typeof encryptedData === 'string' && encryptedData.startsWith('[')) {
@@ -444,11 +476,9 @@ async function saveToVault(traceId, replacements) {
   if (!isExtensionContextValid()) return;
 
   const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
-  const data = { replacements, expires };
 
   try {
-    if (!isExtensionContextValid()) return;
-    const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await chrome.storage.local.get(["vault", "stats"]);
+    const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await safeStorageGet(["vault", "stats"]);
 
     const now = Date.now();
     Object.keys(vault).forEach(key => {
@@ -476,7 +506,7 @@ async function saveToVault(traceId, replacements) {
       delete vault[keys[0]];
     }
 
-    await chrome.storage.local.set({ vault, stats });
+    await safeStorageSet({ vault, stats });
   } catch (_) {
     // Silent - common on Gemini/ChatGPT context reloads
   }
