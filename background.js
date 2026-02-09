@@ -152,7 +152,7 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
       type: "basic",
       iconUrl: "icons/icon-128.png",
       title: "Weekly Protection Report",
-      message: `This week you protected ${weekBlocked} secrets!\nTotal all-time: ${totalBlocked.toLocaleString()}`,
+      message: `This week you protected ${weekBlocked} secrets!\nAll Time Protection: ${totalBlocked.toLocaleString()}`,
       priority: 1
     });
   } catch (err) {
@@ -172,76 +172,6 @@ chrome.storage.onChanged.addListener(async (changes) => {
         await chrome.storage.local.set({ weeklyStats });
       } catch (err) {}
     }
-  }
-});
-
-// ==================== CONTEXT MENU ====================
-
-chrome.runtime.onInstalled.addListener(() => {
-  // Remove existing menus first
-  chrome.contextMenus.removeAll(() => {
-    // Main menu
-    chrome.contextMenus.create({
-      id: "secret-sanitizer",
-      title: "Secret Sanitizer",
-      contexts: ["selection", "editable"]
-    });
-
-    // Sanitize selection
-    chrome.contextMenus.create({
-      id: "sanitize-selection",
-      parentId: "secret-sanitizer",
-      title: "Sanitize Selection",
-      contexts: ["selection"]
-    });
-
-    // Copy sanitized
-    chrome.contextMenus.create({
-      id: "copy-sanitized",
-      parentId: "secret-sanitizer",
-      title: "Copy Sanitized",
-      contexts: ["selection"]
-    });
-
-    // Separator
-    chrome.contextMenus.create({
-      id: "separator",
-      parentId: "secret-sanitizer",
-      type: "separator",
-      contexts: ["selection", "editable"]
-    });
-
-    // Open popup
-    chrome.contextMenus.create({
-      id: "open-popup",
-      parentId: "secret-sanitizer",
-      title: "Open Extension",
-      contexts: ["selection", "editable"]
-    });
-  });
-});
-
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (!tab?.id) return;
-
-  switch (info.menuItemId) {
-    case "sanitize-selection":
-      chrome.tabs.sendMessage(tab.id, {
-        action: "sanitizeSelection",
-        text: info.selectionText
-      }).catch(() => {});
-      break;
-
-    case "copy-sanitized":
-      chrome.tabs.sendMessage(tab.id, {
-        action: "copySanitized",
-        text: info.selectionText
-      }).catch(() => {});
-      break;
-
-    case "open-popup":
-      chrome.action.openPopup();
-      break;
   }
 });
 

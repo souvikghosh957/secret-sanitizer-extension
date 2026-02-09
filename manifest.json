@@ -12,8 +12,6 @@
     "storage",
     "scripting",
     "alarms",
-    "contextMenus",
-    "activeTab",
     "notifications"
   ],
   "background": {

@@ -956,60 +956,11 @@ function showMilestoneCelebration(milestone, total) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   try {
-    switch (request.action) {
-      case "milestone":
-        showMilestoneCelebration(request.milestone, request.total);
-        sendResponse({ success: true });
-        break;
-
-      case "sanitizeSelection":
-        if (request.text) {
-          const { maskedText, replacements } = sanitizeText(request.text);
-          if (replacements.length > 0) {
-            const traceId = crypto.randomUUID();
-            saveToVault(traceId, replacements).catch(() => {});
-
-            // Insert sanitized text at cursor or show toast
-            const target = document.activeElement;
-            if (target && (target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) {
-              document.execCommand('insertText', false, maskedText);
-              const secretTypes = replacements.map(([p]) => {
-                const match = p.match(/\[(\w+)_/);
-                return match ? match[1] : p.replace(/[\[\]]/g, '');
-              });
-              showSmartToast(secretTypes);
-            } else {
-              showToast(`Sanitized ${replacements.length} secret(s)`, "success");
-            }
-          } else {
-            showToast("No secrets found in selection", "info");
-          }
-        }
-        sendResponse({ success: true });
-        break;
-
-      case "copySanitized":
-        if (request.text) {
-          const { maskedText, replacements } = sanitizeText(request.text);
-          if (replacements.length > 0) {
-            const traceId = crypto.randomUUID();
-            saveToVault(traceId, replacements).catch(() => {});
-
-            navigator.clipboard.writeText(maskedText).then(() => {
-              showToast(`Copied sanitized text (${replacements.length} secret${replacements.length > 1 ? 's' : ''} masked)`, "success");
-            }).catch(() => {
-              showToast("Failed to copy to clipboard", "error");
-            });
-          } else {
-            navigator.clipboard.writeText(request.text);
-            showToast("Copied (no secrets found)", "info");
-          }
-        }
-        sendResponse({ success: true });
-        break;
-
-      default:
-        sendResponse({ success: false, error: "Unknown action" });
+    if (request.action === "milestone") {
+      showMilestoneCelebration(request.milestone, request.total);
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: "Unknown action" });
     }
   } catch (err) {
     console.error("Message handler error:", err);
