@@ -1,5 +1,5 @@
 // background.js - Service Worker for Secret Sanitizer
-// Handles periodic cleanup, badge updates, context menu, weekly summary, and milestones
+// Handles periodic cleanup, badge updates, weekly summary, and milestones
 
 // ==================== ALARMS ====================
 
