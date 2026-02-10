@@ -167,7 +167,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           siteStatus.addEventListener("click", () => {
             document.querySelector('[data-tab="settings"]').click();
             setTimeout(() => {
-              document.querySelector('[data-accordion="sites"]')?.click();
+              const sitesAccordion = document.getElementById("sitesAccordion");
+              if (sitesAccordion?.classList.contains("collapsed")) {
+                document.querySelector('[data-accordion="sites"]')?.click();
+              }
               const input = document.getElementById("newSite");
               if (input) {
                 input.value = hostname;
