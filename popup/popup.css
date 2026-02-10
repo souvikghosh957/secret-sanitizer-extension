@@ -386,12 +386,8 @@ body {
   border-radius: 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  transition: all 0.2s ease;
-}
-
-.point:hover {
-  border-color: var(--primary);
-  box-shadow: 0 2px 12px var(--primary-glow);
+  pointer-events: none;
+  user-select: none;
 }
 
 .point-icon {
