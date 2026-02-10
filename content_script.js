@@ -832,124 +832,90 @@ function showMilestoneCelebration(milestone, total) {
   const existing = document.getElementById("ss-milestone-toast");
   if (existing) existing.remove();
 
+  // Position above the secrets-detected toast if it exists
+  const secretsToast = document.querySelector('.secret-sanitizer-toast');
+  const bottomOffset = secretsToast ? secretsToast.offsetHeight + 32 : 20;
+
   const toast = document.createElement("div");
   toast.id = "ss-milestone-toast";
   Object.assign(toast.style, {
     position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%) scale(0.8)",
+    bottom: bottomOffset + "px",
+    right: "20px",
     background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
     color: "#f1f5f9",
-    padding: "32px 40px",
-    borderRadius: "20px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 0 80px rgba(14,165,233,0.2)",
+    padding: "14px 18px",
+    borderRadius: "12px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(14,165,233,0.15)",
     zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
-    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
     opacity: "0",
-    transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    border: "1px solid rgba(14,165,233,0.3)"
+    transform: "translateY(8px)",
+    transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+    maxWidth: "320px",
+    pointerEvents: "none"
   });
 
-  // Trophy/celebration icon
-  const iconWrap = document.createElement("div");
-  Object.assign(iconWrap.style, {
-    fontSize: "48px",
-    marginBottom: "16px",
-    animation: "ss-bounce 0.6s ease infinite alternate"
+  // Trophy icon with subtle glow
+  const icon = document.createElement("div");
+  Object.assign(icon.style, {
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, rgba(234,179,8,0.15) 0%, rgba(245,158,11,0.1) 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    flexShrink: "0"
   });
-  iconWrap.textContent = "🏆";
+  icon.textContent = "🏆";
 
-  // Title
-  const title = document.createElement("div");
-  Object.assign(title.style, {
-    fontSize: "24px",
+  // Text
+  const textWrap = document.createElement("div");
+  Object.assign(textWrap.style, { flex: "1", minWidth: "0" });
+
+  const count = document.createElement("div");
+  Object.assign(count.style, {
     fontWeight: "700",
-    marginBottom: "8px",
-    background: "linear-gradient(90deg, #0ea5e9, #06b6d4, #22d3ee)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text"
-  });
-  title.textContent = "Milestone Reached!";
-
-  // Number
-  const number = document.createElement("div");
-  Object.assign(number.style, {
-    fontSize: "40px",
-    fontWeight: "800",
-    marginBottom: "8px",
-    color: "#22d3ee"
-  });
-  number.textContent = milestone.toLocaleString();
-
-  // Subtitle
-  const subtitle = document.createElement("div");
-  Object.assign(subtitle.style, {
     fontSize: "14px",
-    color: "#94a3b8",
-    marginBottom: "20px"
+    letterSpacing: "-0.01em",
+    marginBottom: "1px"
   });
-  subtitle.textContent = "secrets safeguarded!";
+  count.innerHTML = `<span style="color:#fbbf24">${milestone.toLocaleString()}</span> <span style="color:#e2e8f0">secrets protected!</span>`;
 
-  // Close button
-  const closeBtn = document.createElement("button");
-  Object.assign(closeBtn.style, {
-    background: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
-    border: "none",
-    color: "#fff",
-    padding: "10px 24px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "transform 0.15s ease"
+  const sub = document.createElement("div");
+  Object.assign(sub.style, {
+    fontSize: "11px",
+    color: "#64748b",
+    fontWeight: "500"
   });
-  closeBtn.textContent = "Awesome!";
-  closeBtn.onmouseenter = () => closeBtn.style.transform = "scale(1.05)";
-  closeBtn.onmouseleave = () => closeBtn.style.transform = "scale(1)";
-  closeBtn.onclick = () => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translate(-50%, -50%) scale(0.8)";
-    setTimeout(() => toast.remove(), 300);
-  };
+  sub.textContent = "Milestone reached ✨";
 
-  toast.appendChild(iconWrap);
-  toast.appendChild(title);
-  toast.appendChild(number);
-  toast.appendChild(subtitle);
-  toast.appendChild(closeBtn);
+  textWrap.appendChild(count);
+  textWrap.appendChild(sub);
 
-  // Add keyframes for bounce animation
-  if (!document.getElementById("ss-milestone-styles")) {
-    const style = document.createElement("style");
-    style.id = "ss-milestone-styles";
-    style.textContent = `
-      @keyframes ss-bounce {
-        from { transform: translateY(0); }
-        to { transform: translateY(-8px); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
+  toast.appendChild(icon);
+  toast.appendChild(textWrap);
   document.body.appendChild(toast);
 
   // Animate in
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
-    toast.style.transform = "translate(-50%, -50%) scale(1)";
+    toast.style.transform = "translateY(0)";
   });
 
-  // Auto-dismiss after 8 seconds
+  // Auto-dismiss after 4 seconds
   setTimeout(() => {
     if (toast.parentNode) {
       toast.style.opacity = "0";
-      toast.style.transform = "translate(-50%, -50%) scale(0.8)";
+      toast.style.transform = "translateY(8px)";
       setTimeout(() => toast.remove(), 300);
     }
-  }, 8000);
+  }, 4000);
 }
 
 // ==================== MESSAGE HANDLERS ====================

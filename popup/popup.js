@@ -182,6 +182,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span class="status-text">Not a web page</span>
           `;
         }
+      } else if (siteStatus) {
+        siteStatus.className = "site-status inactive";
+        siteStatus.innerHTML = `
+          <span class="status-dot"></span>
+          <span class="status-text">Not a web page</span>
+        `;
       }
     } catch (e) {
       if (siteStatus) {

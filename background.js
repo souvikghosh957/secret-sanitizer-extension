@@ -86,16 +86,14 @@ async function checkMilestones(newStats, oldStats) {
 
 async function notifyMilestone(milestone, total) {
   try {
-    // Send message to all active tabs to show celebration
-    const tabs = await chrome.tabs.query({});
-    for (const tab of tabs) {
-      if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, {
-          action: "milestone",
-          milestone,
-          total
-        }).catch(() => {}); // Ignore errors for tabs without content script
-      }
+    // Only notify the active tab to avoid disrupting other work
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        action: "milestone",
+        milestone,
+        total
+      }).catch(() => {});
     }
   } catch (err) {
     console.error("Milestone notification error:", err);
