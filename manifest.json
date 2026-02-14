@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Secret Sanitizer",
   "version": "2.0.4",
-  "description": "Masks secrets & Indian PII before pasting into AI chats. 100% private, encrypted vault, customizable patterns.",
+  "description": "Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -21,16 +21,11 @@
     "*://chatgpt.com/*",
     "*://chat.openai.com/*",
     "*://claude.ai/*",
+    "*://gemini.google.com/*",
     "*://grok.x.ai/*",
     "*://grok.com/*",
-    "*://gemini.google.com/*",
-    "*://www.perplexity.ai/*",
-    "*://chat.deepseek.com/*", 
-    "*://chat.mistral.ai/*", 
-    "*://chat.groq.com/*",   
-    "*://poe.com/*",          
-    "*://huggingface.co/chat/*", 
-    "*://you.com/*" 
+    "*://chat.deepseek.com/*",
+    "*://www.perplexity.ai/*"
   ],
   "optional_host_permissions": [
     "*://*/*"
@@ -41,16 +36,11 @@
         "*://chatgpt.com/*",
         "*://chat.openai.com/*",
         "*://claude.ai/*",
+        "*://gemini.google.com/*",
         "*://grok.x.ai/*",
         "*://grok.com/*",
-        "*://gemini.google.com/*",
-        "*://www.perplexity.ai/*",
-        "*://chat.deepseek.com/*", 
-        "*://chat.mistral.ai/*", 
-        "*://chat.groq.com/*",
-        "*://poe.com/*", 
-        "*://huggingface.co/chat/*",
-        "*://you.com/*"
+        "*://chat.deepseek.com/*",
+        "*://www.perplexity.ai/*"
       ],
       "js": ["content_script.js"],
       "run_at": "document_idle"
