@@ -56,7 +56,7 @@ Instant protection on all major AI platforms:
 - Gemini
 - Perplexity
 - DeepSeek
-- + Any custom site you add (one-click permission setup)
+- Any custom site you add (one-click permission setup)
 
 ### Key Features
 - **Instant masking** on paste with elegant toast feedback
