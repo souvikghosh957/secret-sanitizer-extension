@@ -134,9 +134,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ==================== SITE STATUS INDICATOR ====================
 
     const defaultSites = [
-      "chatgpt.com", "chat.openai.com", "claude.ai", "grok.x.ai", "grok.com",
-      "gemini.google.com", "www.perplexity.ai", "chat.deepseek.com",
-      "chat.mistral.ai", "chat.groq.com", "poe.com", "huggingface.co", "you.com"
+      "chatgpt.com", "chat.openai.com", "claude.ai", "gemini.google.com",
+      "grok.x.ai", "grok.com", "chat.deepseek.com", "www.perplexity.ai"
     ];
 
     const allProtectedSites = [...defaultSites, ...customSites];
@@ -646,9 +645,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           "*://chatgpt.com/*",
           "*://chat.openai.com/*",
           "*://claude.ai/*",
+          "*://gemini.google.com/*",
           "*://grok.x.ai/*",
           "*://grok.com/*",
-          "*://gemini.google.com/*",
+          "*://chat.deepseek.com/*",
           "*://www.perplexity.ai/*"
         ];
 
