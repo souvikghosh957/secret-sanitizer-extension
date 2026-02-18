@@ -719,7 +719,7 @@ document.addEventListener("paste", (e) => {
 
   // Fast path: quick check if text looks like it might contain secrets
   // Includes: API keys, tokens, Indian PII (PAN, Aadhaar, Phone, UPI)
-  const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|eyJ|sk_(live|test)|pk_(live|test)|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|success@|failure@|test@|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|[6-9]\d{9}|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)/i.test(clipboardText);
+  const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|eyJ|sk_(live|test)|pk_(live|test)|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|password|passwd|pwd|success@|failure@|test@|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|[6-9]\d{9}|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)/i.test(clipboardText);
   if (!quickCheck && clipboardText.length < 50) {
     // Very short text without obvious patterns - skip processing
     return;
