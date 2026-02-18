@@ -57,11 +57,24 @@ async function updateBadge() {
 // Initialize badge on startup
 updateBadge();
 
-// Listen for storage changes to update badge and check milestones
-chrome.storage.onChanged.addListener((changes) => {
+// Listen for storage changes to update badge, check milestones, and track weekly stats
+chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.stats) {
     updateBadge();
     checkMilestones(changes.stats.newValue, changes.stats.oldValue);
+
+    // Update weekly stats
+    if (changes.stats.newValue && changes.stats.oldValue) {
+      const diff = (changes.stats.newValue.totalBlocked || 0) - (changes.stats.oldValue.totalBlocked || 0);
+      if (diff > 0) {
+        try {
+          const { weeklyStats = { weekStart: getWeekStart(new Date()), weekBlocked: 0 } } =
+            await chrome.storage.local.get("weeklyStats");
+          weeklyStats.weekBlocked = (weeklyStats.weekBlocked || 0) + diff;
+          await chrome.storage.local.set({ weeklyStats });
+        } catch (err) {}
+      }
+    }
   }
 });
 
@@ -158,21 +171,6 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
   }
 }
 
-// Update weekly stats when secrets are blocked
-chrome.storage.onChanged.addListener(async (changes) => {
-  if (changes.stats && changes.stats.newValue && changes.stats.oldValue) {
-    const diff = (changes.stats.newValue.totalBlocked || 0) - (changes.stats.oldValue.totalBlocked || 0);
-    if (diff > 0) {
-      try {
-        const { weeklyStats = { weekStart: getWeekStart(new Date()), weekBlocked: 0 } } =
-          await chrome.storage.local.get("weeklyStats");
-        weeklyStats.weekBlocked = (weeklyStats.weekBlocked || 0) + diff;
-        await chrome.storage.local.set({ weeklyStats });
-      } catch (err) {}
-    }
-  }
-});
-
 // ==================== MESSAGE HANDLER ====================
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -197,7 +195,7 @@ async function decryptVaultData(encryptedData) {
         return encryptedData;
       }
       if (typeof encryptedData === 'object' && encryptedData.encrypted === false) {
-        const decoded = decodeURIComponent(escape(atob(encryptedData.data)));
+        const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData.data), c => c.charCodeAt(0)));
         return JSON.parse(decoded);
       }
       return encryptedData;
@@ -242,7 +240,7 @@ async function decryptVaultData(encryptedData) {
 
     // Fallback for old format
     if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
-      const decoded = decodeURIComponent(escape(atob(encryptedData)));
+      const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0)));
       return JSON.parse(decoded);
     }
 

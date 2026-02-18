@@ -58,7 +58,7 @@ async function decryptData(encryptedData) {
   } catch (_) {
     try {
       if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
-        const decoded = decodeURIComponent(escape(atob(encryptedData)));
+        const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0)));
         return JSON.parse(decoded);
       }
     } catch (_) {}
@@ -118,8 +118,6 @@ function detectMode(text) {
 // ==================== MAIN ====================
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("Secret Sanitizer popup opened");
-
   try {
     const {
       vault = {},
@@ -352,8 +350,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           let unmasked = text;
           let replacedCount = 0;
 
+          const currentTime = Date.now();
           for (const entry of Object.values(vault)) {
-            if (!entry || entry.expires < now) continue;
+            if (!entry || entry.expires < currentTime) continue;
 
             let replacements = entry.replacements;
             if (entry.encrypted) {
@@ -752,7 +751,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
           const text = await file.text();
           const data = JSON.parse(text);
-          await chrome.storage.local.set(data);
+
+          // Only import known safe settings keys
+          const allowedKeys = ["disabledPatterns", "customSites", "useEncryption", "autoDarkMode", "darkMode"];
+          const safeData = {};
+          for (const key of allowedKeys) {
+            if (key in data) safeData[key] = data[key];
+          }
+
+          if (Object.keys(safeData).length === 0) {
+            showNotification("No valid settings found in file", "warning");
+            return;
+          }
+
+          await chrome.storage.local.set(safeData);
           showNotification("Settings imported!", "success");
           setTimeout(() => location.reload(), 1000);
         } catch (err) {

@@ -4,7 +4,7 @@
 // - Performance metrics
 // - Zero-lag paste handling
 
-console.log("🛡️ Secret Sanitizer content script LOADED successfully!");
+// Secret Sanitizer content script initialized
 
 // Config
 const CONFIG = {
@@ -390,7 +390,7 @@ async function encryptData(data) {
     if (!key) {
       // Fallback to base64 if crypto fails
       const json = JSON.stringify(data);
-      return { encrypted: false, data: btoa(unescape(encodeURIComponent(json))) };
+      return { encrypted: false, data: btoa(new TextEncoder().encode(json).reduce((s, b) => s + String.fromCharCode(b), '')) };
     }
     
     const json = JSON.stringify(data);
@@ -408,14 +408,19 @@ async function encryptData(data) {
     combined.set(iv, 0);
     combined.set(new Uint8Array(encrypted), iv.length);
     
-    // Convert to base64 for storage
-    const base64 = btoa(String.fromCharCode(...combined));
+    // Convert to base64 for storage (chunked to avoid stack overflow)
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < combined.length; i += chunkSize) {
+      binary += String.fromCharCode(...combined.subarray(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
     return { encrypted: true, data: base64 };
   } catch (err) {
     console.error("Encryption error:", err);
     // Fallback to base64
     const json = JSON.stringify(data);
-    return { encrypted: false, data: btoa(unescape(encodeURIComponent(json))) };
+    return { encrypted: false, data: btoa(new TextEncoder().encode(json).reduce((s, b) => s + String.fromCharCode(b), '')) };
   }
 }
 
@@ -428,7 +433,7 @@ async function decryptData(encryptedData) {
         return encryptedData;
       }
       if (typeof encryptedData === 'object' && encryptedData.encrypted === false) {
-        const decoded = decodeURIComponent(escape(atob(encryptedData.data)));
+        const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData.data), c => c.charCodeAt(0)));
         return JSON.parse(decoded);
       }
       return encryptedData;
@@ -439,7 +444,7 @@ async function decryptData(encryptedData) {
       const key = await getEncryptionKey();
       if (!key) {
         // Fallback
-        const decoded = decodeURIComponent(escape(atob(encryptedData.data)));
+        const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData.data), c => c.charCodeAt(0)));
         return JSON.parse(decoded);
       }
       
@@ -459,7 +464,7 @@ async function decryptData(encryptedData) {
     
     // Handle old base64 format (backward compatibility)
     if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
-      const decoded = decodeURIComponent(escape(atob(encryptedData)));
+      const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0)));
       return JSON.parse(decoded);
     }
     
