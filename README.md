@@ -66,7 +66,7 @@ Vault stores:   postgres://admin:s3cret@db.prod.internal:5432/myapp (local, encr
 5. A toast notification confirms what was blocked
 6. Originals are stored in a local encrypted vault you can access anytime
 
-**No servers. No fetch calls. No analytics. `grep -r "fetch\|XMLHttpRequest\|sendMessage" content_script.js` — go ahead, check.**
+**No servers. No fetch calls. No analytics. `grep -r "fetch\|XMLHttpRequest" content_script.js` — go ahead, check.**
 
 ---
 
