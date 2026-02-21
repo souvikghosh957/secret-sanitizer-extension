@@ -2,7 +2,7 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
-## [2.1.0] - 2025-12-XX
+## [2.1.0] - 2026-02-18
 
 ### Fixed
 - Bug fixes for Chrome Web Store release
@@ -10,13 +10,13 @@ All notable changes to Secret Sanitizer are documented here.
 ### Changed
 - Improved stability and reliability
 
-## [2.0.5] - 2025-12-XX
+## [2.0.5] - 2026-02-18
 
 ### Changed
 - Redesigned popup with dark luxury premium theme
 - Updated visual design for a premium security dashboard feel
 
-## [2.0.4] - 2025-11-XX
+## [2.0.4] - 2026-02-13
 
 ### Fixed
 - Fixed browsing history permission issue
@@ -25,7 +25,7 @@ All notable changes to Secret Sanitizer are documented here.
 ### Changed
 - Made welcome page feature points non-interactive
 
-## [2.0.3] - 2025-11-XX
+## [2.0.3] - 2026-02-10
 
 ### Added
 - Smart toast notifications with undo functionality
@@ -36,17 +36,17 @@ All notable changes to Secret Sanitizer are documented here.
 ### Removed
 - Context menu integration (simplified UX)
 
-## [2.0.2] - 2025-10-XX
+## [2.0.2] - 2026-02-06
 
 ### Fixed
 - Improved short message check for Indian PII patterns
 
-## [2.0.1] - 2025-10-XX
+## [2.0.1] - 2026-01-27
 
 ### Changed
 - Redesigned popup UI with hero stats and unified action area
 
-## [2.0.0] - 2025-10-XX
+## [2.0.0] - 2026-01-23
 
 ### Added
 - Encrypted local vault (AES-GCM with PBKDF2)
@@ -63,7 +63,7 @@ All notable changes to Secret Sanitizer are documented here.
 - Improved pattern matching with entropy-based detection
 - Better false positive handling
 
-## [1.0.0] - 2025-09-XX
+## [1.0.0] - 2026-01-17
 
 ### Added
 - Initial release
