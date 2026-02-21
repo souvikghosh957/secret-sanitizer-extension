@@ -112,7 +112,7 @@ Out-of-the-box protection for all major AI platforms:
 - **Granular pattern controls** — enable/disable individual detection patterns
 - **Backup & restore** — export/import your configuration
 - **Dark mode** + keyboard shortcuts
-- **38 KB total** — lightweight, no bloat
+- **~41 KB total** — lightweight, no bloat
 
 ---
 
