@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const EXAMPLES = {
       password: `Here's my database config:\npassword: SuperSecret123!\nPlease help me debug the connection.`,
       apikey: `I'm getting an error with this code:\nconst client = new OpenAI({ apiKey: "sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn" });\nWhat am I doing wrong?`,
-      full: `My .env file looks like this:\nOPENAI_KEY=sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn\nDB_URL=postgres://admin:P@ssw0rd123@db.example.com:5432/myapp\nSTRIPE_KEY=sk_test_51HG7dKLM4nOpQrStUvWxYz\npassword: MyS3cretP@ss!\nCan you review this for security issues?`
+      full: `My .env file looks like this:\nOPENAI_KEY=sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn\nDB_URL=postgres://admin:P@ssw0rd123@db.example.com:5432/myapp\npassword: MyS3cretP@ss!\nCan you review this for security issues?`
     };
 
     // Wire up "Try it" buttons
