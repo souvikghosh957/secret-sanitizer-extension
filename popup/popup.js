@@ -245,8 +245,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ==================== DARK MODE ====================
 
-    const shouldUseDarkMode = autoDarkMode && darkMode === null
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Dark mode by default — users can toggle to light if preferred
+    const shouldUseDarkMode = darkMode === null
+      ? true
       : darkMode === true;
 
     if (shouldUseDarkMode) {
@@ -320,6 +321,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       currentMode = mode;
     }
+
+    // Example snippets for "Try it" buttons
+    const EXAMPLES = {
+      password: `Here's my database config:\npassword: SuperSecret123!\nPlease help me debug the connection.`,
+      apikey: `I'm getting an error with this code:\nconst client = new OpenAI({ apiKey: "sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn" });\nWhat am I doing wrong?`,
+      full: `My .env file looks like this:\nOPENAI_KEY=sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn\nDB_URL=postgres://admin:P@ssw0rd123@db.example.com:5432/myapp\nSTRIPE_KEY=sk_test_51HG7dKLM4nOpQrStUvWxYz\npassword: MyS3cretP@ss!\nCan you review this for security issues?`
+    };
+
+    // Wire up "Try it" buttons
+    document.querySelectorAll('.try-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const example = EXAMPLES[btn.dataset.example];
+        if (example && actionInput) {
+          actionInput.value = example;
+          actionInput.dispatchEvent(new Event('input', { bubbles: true }));
+          actionInput.focus();
+          // Auto-click analyze after a brief moment
+          setTimeout(() => actionBtn?.click(), 150);
+        }
+      });
+    });
 
     // Auto-detect mode on input
     if (actionInput) {
@@ -492,6 +514,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (shouldUseDarkMode) {
         darkModeToggle.querySelector("i").className = "fas fa-sun";
       }
+    }
+
+    // ==================== SHARE BUTTON ====================
+
+    const shareBtn = document.getElementById("shareBtn");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", async () => {
+        const shareUrl = "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja";
+        const shareText = "Secret Sanitizer - Masks API keys, passwords & tokens before they reach AI chats. 100% local, zero tracking.";
+
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          showNotification("Link copied! Share it with others", "success");
+          // Visual feedback on the button
+          const icon = shareBtn.querySelector("i");
+          icon.className = "fas fa-check";
+          setTimeout(() => { icon.className = "fas fa-share-alt"; }, 2000);
+        } catch (_) {
+          // Fallback: open share dialog if available
+          try {
+            await navigator.share({ title: "Secret Sanitizer", text: shareText, url: shareUrl });
+          } catch (_) {
+            showNotification("Could not copy link", "warning");
+          }
+        }
+      });
     }
 
     // ==================== TAB SWITCHING ====================

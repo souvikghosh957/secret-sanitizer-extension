@@ -569,6 +569,56 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
+// Subtle "clean" toast - confirms extension is active even when no secrets found
+function showCleanToast() {
+  if (!document.body) return;
+  // Don't spam - throttle to once per 30 seconds
+  if (showCleanToast._lastShown && Date.now() - showCleanToast._lastShown < 30000) return;
+  showCleanToast._lastShown = Date.now();
+
+  document.querySelectorAll(".secret-sanitizer-clean-toast").forEach(t => t.remove());
+
+  const toast = document.createElement("div");
+  toast.className = "secret-sanitizer-clean-toast";
+
+  Object.assign(toast.style, {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    background: "rgba(30, 41, 59, 0.85)",
+    backdropFilter: "blur(8px)",
+    color: "#94a3b8",
+    padding: "10px 16px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    zIndex: "2147483647",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontSize: "12px",
+    fontWeight: "500",
+    opacity: "0",
+    transform: "translateY(12px)",
+    transition: "all 0.25s ease-out",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    pointerEvents: "none"
+  });
+
+  toast.innerHTML = `<span style="color:#34d399;font-size:13px">&#10003;</span><span>Scanned &mdash; no secrets found</span>`;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0)";
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(12px)";
+    setTimeout(() => toast.remove(), 250);
+  }, 1500);
+}
+
 // Smart toast with secret types and Undo
 function showSmartToast(secretTypes, onUndo) {
   if (!document.body) return;
@@ -731,7 +781,10 @@ document.addEventListener("paste", (e) => {
   }
 
   const { maskedText, replacements } = sanitizeText(clipboardText);
-  if (replacements.length === 0) return;
+  if (replacements.length === 0) {
+    showCleanToast();
+    return;
+  }
 
   e.preventDefault();
   e.stopImmediatePropagation();
@@ -825,10 +878,278 @@ document.addEventListener("paste", (e) => {
     };
 
     showSmartToast(secretTypes, handleUndo);
+
+    // Check if we should prompt for a review (delayed to not overlap)
+    setTimeout(() => checkReviewPrompt(), 6000);
   } else {
     showToast("Insertion failed! Try pasting again.", "error");
   }
 }, true);
+
+// ==================== REVIEW PROMPT ====================
+
+const REVIEW_MILESTONES = [10, 50, 100, 500, 1000, 5000, 10000];
+
+async function checkReviewPrompt() {
+  try {
+    const { stats = {}, reviewLastShownAt = 0 } = await safeStorageGet(["stats", "reviewLastShownAt"]);
+    const total = stats.totalBlocked || 0;
+
+    // Find the highest milestone the user has crossed
+    let currentMilestone = 0;
+    for (const m of REVIEW_MILESTONES) {
+      if (total >= m) currentMilestone = m;
+    }
+
+    // Don't show if below first milestone or already shown at this milestone
+    if (currentMilestone === 0) return;
+    if (reviewLastShownAt >= currentMilestone) return;
+
+    // Mark this milestone as shown before displaying
+    await safeStorageSet({ reviewLastShownAt: currentMilestone });
+    showReviewToast(currentMilestone, total);
+  } catch (_) {}
+}
+
+function showReviewToast(milestone, total) {
+  if (!document.body) return;
+  document.querySelectorAll(".secret-sanitizer-review-toast").forEach(t => t.remove());
+
+  // Inject keyframes once
+  if (!document.getElementById("ss-review-keyframes")) {
+    const style = document.createElement("style");
+    style.id = "ss-review-keyframes";
+    style.textContent = `
+      @keyframes ss-review-shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      @keyframes ss-review-glow {
+        0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.1), 0 0 20px rgba(251,191,36,0.05); }
+        50% { box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(251,191,36,0.2), 0 0 30px rgba(251,191,36,0.1); }
+      }
+      @keyframes ss-star-spin {
+        0% { transform: rotate(0deg) scale(1); }
+        25% { transform: rotate(10deg) scale(1.1); }
+        50% { transform: rotate(0deg) scale(1); }
+        75% { transform: rotate(-10deg) scale(1.05); }
+        100% { transform: rotate(0deg) scale(1); }
+      }
+`;
+    document.head.appendChild(style);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "secret-sanitizer-review-toast";
+
+  Object.assign(toast.style, {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    background: "linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+    color: "#f1f5f9",
+    padding: "0",
+    borderRadius: "16px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.1), 0 0 20px rgba(251,191,36,0.05)",
+    animation: "ss-review-glow 3s ease-in-out infinite",
+    zIndex: "2147483647",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontSize: "13px",
+    opacity: "0",
+    transform: "translateY(20px) scale(0.95)",
+    transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+    overflow: "hidden",
+    maxWidth: "340px",
+    backdropFilter: "blur(16px)"
+  });
+
+  // Top shimmer border
+  const shimmer = document.createElement("div");
+  Object.assign(shimmer.style, {
+    height: "2px",
+    background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.6), rgba(14,165,233,0.6), transparent)",
+    backgroundSize: "200% 100%",
+    animation: "ss-review-shimmer 3s linear infinite"
+  });
+
+  const content = document.createElement("div");
+  Object.assign(content.style, {
+    padding: "16px 18px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px"
+  });
+
+  // Header row with icon + text
+  const header = document.createElement("div");
+  Object.assign(header.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  });
+
+  const icon = document.createElement("div");
+  Object.assign(icon.style, {
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.08) 100%)",
+    border: "1px solid rgba(251,191,36,0.15)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    flexShrink: "0",
+    animation: "ss-star-spin 3s ease-in-out infinite"
+  });
+  icon.textContent = "\u2B50";
+
+  const textWrap = document.createElement("div");
+  Object.assign(textWrap.style, { flex: "1", minWidth: "0" });
+
+  const title = document.createElement("div");
+  Object.assign(title.style, {
+    fontWeight: "700",
+    fontSize: "14px",
+    letterSpacing: "-0.01em",
+    marginBottom: "2px"
+  });
+
+  const milestoneText = milestone >= 1000
+    ? `${(milestone / 1000).toLocaleString()}K`
+    : milestone.toLocaleString();
+  title.innerHTML = `<span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${milestoneText}</span> secrets protected`;
+
+  const sub = document.createElement("div");
+  Object.assign(sub.style, {
+    fontSize: "11px",
+    color: "#64748b",
+    fontWeight: "500",
+    lineHeight: "1.4"
+  });
+  sub.textContent = milestone >= 100
+    ? `Trusted with ${total.toLocaleString()} secrets. Help others stay safe.`
+    : "Loving it? A quick rating goes a long way.";
+
+  textWrap.appendChild(title);
+  textWrap.appendChild(sub);
+  header.appendChild(icon);
+  header.appendChild(textWrap);
+
+  // Close button
+  const closeBtn = document.createElement("button");
+  Object.assign(closeBtn.style, {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    width: "22px",
+    height: "22px",
+    borderRadius: "6px",
+    background: "rgba(255,255,255,0.06)",
+    border: "none",
+    color: "#475569",
+    fontSize: "11px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+    padding: "0",
+    lineHeight: "1"
+  });
+  closeBtn.textContent = "\u2715";
+  closeBtn.onmouseenter = () => { closeBtn.style.background = "rgba(255,255,255,0.12)"; closeBtn.style.color = "#94a3b8"; };
+  closeBtn.onmouseleave = () => { closeBtn.style.background = "rgba(255,255,255,0.06)"; closeBtn.style.color = "#475569"; };
+  closeBtn.addEventListener("click", () => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(16px) scale(0.95)";
+    setTimeout(() => toast.remove(), 300);
+  });
+
+  // Button row
+  const btnRow = document.createElement("div");
+  Object.assign(btnRow.style, {
+    display: "flex",
+    gap: "8px"
+  });
+
+  const rateBtn = document.createElement("a");
+  rateBtn.href = "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja/reviews";
+  rateBtn.target = "_blank";
+  rateBtn.rel = "noopener";
+  Object.assign(rateBtn.style, {
+    flex: "1",
+    padding: "10px 16px",
+    background: "linear-gradient(135deg, #f59e0b 0%, #eab308 50%, #f59e0b 100%)",
+    backgroundSize: "200% 200%",
+    color: "#0f172a",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "12px",
+    fontWeight: "700",
+    cursor: "pointer",
+    textAlign: "center",
+    textDecoration: "none",
+    transition: "all 0.25s ease",
+    position: "relative",
+    overflow: "hidden",
+    letterSpacing: "0.02em",
+    boxShadow: "0 4px 14px rgba(245,158,11,0.25)"
+  });
+  rateBtn.innerHTML = "\u2605 Rate on Chrome Store";
+  rateBtn.onmouseenter = () => { rateBtn.style.transform = "translateY(-1px)"; rateBtn.style.boxShadow = "0 6px 20px rgba(245,158,11,0.35)"; };
+  rateBtn.onmouseleave = () => { rateBtn.style.transform = "translateY(0)"; rateBtn.style.boxShadow = "0 4px 14px rgba(245,158,11,0.25)"; };
+  rateBtn.addEventListener("click", () => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  });
+
+  const laterBtn = document.createElement("button");
+  Object.assign(laterBtn.style, {
+    padding: "10px 16px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "#64748b",
+    borderRadius: "10px",
+    fontSize: "12px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  });
+  laterBtn.textContent = "Later";
+  laterBtn.onmouseenter = () => { laterBtn.style.background = "rgba(255,255,255,0.1)"; laterBtn.style.color = "#94a3b8"; };
+  laterBtn.onmouseleave = () => { laterBtn.style.background = "rgba(255,255,255,0.06)"; laterBtn.style.color = "#64748b"; };
+  laterBtn.addEventListener("click", () => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(16px) scale(0.95)";
+    setTimeout(() => toast.remove(), 300);
+  });
+
+  btnRow.appendChild(rateBtn);
+  btnRow.appendChild(laterBtn);
+
+  content.appendChild(header);
+  content.appendChild(btnRow);
+
+  toast.appendChild(shimmer);
+  toast.appendChild(content);
+  toast.appendChild(closeBtn);
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateY(0) scale(1)";
+  });
+
+  // Auto-dismiss after 20 seconds
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(16px) scale(0.95)";
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, 20000);
+}
 
 // ==================== MILESTONE CELEBRATION ====================
 
@@ -837,90 +1158,197 @@ function showMilestoneCelebration(milestone, total) {
   const existing = document.getElementById("ss-milestone-toast");
   if (existing) existing.remove();
 
+  // Inject keyframes once
+  if (!document.getElementById("ss-milestone-keyframes")) {
+    const style = document.createElement("style");
+    style.id = "ss-milestone-keyframes";
+    style.textContent = `
+      @keyframes ss-milestone-border {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      @keyframes ss-milestone-glow {
+        0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.06); }
+        50% { box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 40px rgba(14,165,233,0.15), inset 0 1px 0 rgba(255,255,255,0.08); }
+      }
+      @keyframes ss-trophy-bounce {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        15% { transform: scale(1.2) rotate(-8deg); }
+        30% { transform: scale(1.15) rotate(6deg); }
+        45% { transform: scale(1.1) rotate(-4deg); }
+        60% { transform: scale(1.05) rotate(2deg); }
+        75% { transform: scale(1.02) rotate(-1deg); }
+      }
+      @keyframes ss-count-up {
+        0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes ss-confetti-1 { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(-40px) translateX(15px) rotate(180deg); opacity: 0; } }
+      @keyframes ss-confetti-2 { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(-35px) translateX(-12px) rotate(-150deg); opacity: 0; } }
+      @keyframes ss-confetti-3 { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(-45px) translateX(8px) rotate(200deg); opacity: 0; } }
+    `;
+    document.head.appendChild(style);
+  }
+
   // Position above the secrets-detected toast if it exists
   const secretsToast = document.querySelector('.secret-sanitizer-toast');
   const bottomOffset = secretsToast ? secretsToast.offsetHeight + 32 : 20;
 
-  const toast = document.createElement("div");
-  toast.id = "ss-milestone-toast";
-  Object.assign(toast.style, {
+  // Outer wrapper for the gradient border effect
+  const wrapper = document.createElement("div");
+  wrapper.id = "ss-milestone-toast";
+  Object.assign(wrapper.style, {
     position: "fixed",
     bottom: bottomOffset + "px",
     right: "20px",
-    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-    color: "#f1f5f9",
-    padding: "14px 18px",
-    borderRadius: "12px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(14,165,233,0.15)",
+    padding: "1.5px",
+    borderRadius: "16px",
+    background: "linear-gradient(135deg, #0ea5e9, #06b6d4, #818cf8, #fbbf24, #0ea5e9)",
+    backgroundSize: "300% 300%",
+    animation: "ss-milestone-border 4s ease infinite, ss-milestone-glow 3s ease-in-out infinite",
     zIndex: "2147483647",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
     opacity: "0",
-    transform: "translateY(8px)",
-    transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
-    maxWidth: "320px",
+    transform: "translateY(12px) scale(0.9)",
+    transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+    maxWidth: "340px",
     pointerEvents: "none"
   });
 
-  // Trophy icon with subtle glow
+  const toast = document.createElement("div");
+  Object.assign(toast.style, {
+    background: "linear-gradient(145deg, #0f172a 0%, #1e293b 40%, #0f172a 100%)",
+    color: "#f1f5f9",
+    borderRadius: "15px",
+    padding: "18px 20px",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    position: "relative",
+    overflow: "hidden"
+  });
+
+  // Subtle radial glow behind the icon
+  const bgGlow = document.createElement("div");
+  Object.assign(bgGlow.style, {
+    position: "absolute",
+    top: "-20px",
+    left: "-10px",
+    width: "80px",
+    height: "80px",
+    background: "radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)",
+    pointerEvents: "none"
+  });
+
+  // Trophy icon with bounce
+  const iconWrap = document.createElement("div");
+  Object.assign(iconWrap.style, {
+    position: "relative",
+    flexShrink: "0"
+  });
+
   const icon = document.createElement("div");
   Object.assign(icon.style, {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg, rgba(234,179,8,0.15) 0%, rgba(245,158,11,0.1) 100%)",
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(6,182,212,0.1) 50%, rgba(129,140,248,0.08) 100%)",
+    border: "1px solid rgba(14,165,233,0.15)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px",
-    flexShrink: "0"
+    fontSize: "20px",
+    animation: "ss-trophy-bounce 1s ease-out"
   });
-  icon.textContent = "🏆";
+  icon.textContent = "\uD83C\uDFC6";
 
-  // Text
+  // Mini confetti particles
+  const confettiColors = ["#fbbf24", "#0ea5e9", "#818cf8"];
+  const confettiAnims = ["ss-confetti-1", "ss-confetti-2", "ss-confetti-3"];
+  for (let i = 0; i < 3; i++) {
+    const particle = document.createElement("div");
+    Object.assign(particle.style, {
+      position: "absolute",
+      width: "4px",
+      height: "4px",
+      borderRadius: "50%",
+      background: confettiColors[i],
+      top: "8px",
+      left: `${14 + i * 7}px`,
+      animation: `${confettiAnims[i]} 0.8s ease-out ${0.1 + i * 0.15}s forwards`,
+      opacity: "0",
+      pointerEvents: "none"
+    });
+    // Reset opacity for animation start
+    particle.style.opacity = "1";
+    iconWrap.appendChild(particle);
+  }
+
+  iconWrap.appendChild(icon);
+
+  // Text content
   const textWrap = document.createElement("div");
   Object.assign(textWrap.style, { flex: "1", minWidth: "0" });
 
   const count = document.createElement("div");
   Object.assign(count.style, {
-    fontWeight: "700",
-    fontSize: "14px",
-    letterSpacing: "-0.01em",
-    marginBottom: "1px"
+    fontWeight: "800",
+    fontSize: "16px",
+    letterSpacing: "-0.02em",
+    marginBottom: "3px",
+    animation: "ss-count-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both"
   });
-  count.innerHTML = `<span style="color:#fbbf24">${milestone.toLocaleString()}</span> <span style="color:#e2e8f0">secrets protected!</span>`;
+
+  const milestoneText = milestone >= 1000
+    ? `${(milestone / 1000).toLocaleString()}K`
+    : milestone.toLocaleString();
+  count.innerHTML = `<span style="background:linear-gradient(135deg,#38bdf8,#06b6d4,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${milestoneText}</span> <span style="color:#e2e8f0">secrets protected</span>`;
 
   const sub = document.createElement("div");
   Object.assign(sub.style, {
     fontSize: "11px",
     color: "#64748b",
-    fontWeight: "500"
+    fontWeight: "500",
+    animation: "ss-count-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both"
   });
-  sub.textContent = "Milestone reached ✨";
+
+  // Dynamic sub-text based on milestone tier
+  const subTexts = {
+    100: "Getting started!",
+    500: "Privacy champion",
+    1000: "Security pro",
+    5000: "Elite protector",
+    10000: "Legendary guardian",
+    50000: "Unstoppable force",
+    100000: "God-tier security"
+  };
+  const nearestSub = Object.keys(subTexts).reverse().find(k => milestone >= Number(k));
+  sub.textContent = nearestSub ? `Milestone \u2022 ${subTexts[nearestSub]}` : "Milestone reached";
 
   textWrap.appendChild(count);
   textWrap.appendChild(sub);
 
-  toast.appendChild(icon);
+  toast.appendChild(bgGlow);
+  toast.appendChild(iconWrap);
   toast.appendChild(textWrap);
-  document.body.appendChild(toast);
+  wrapper.appendChild(toast);
+  document.body.appendChild(wrapper);
 
   // Animate in
   requestAnimationFrame(() => {
-    toast.style.opacity = "1";
-    toast.style.transform = "translateY(0)";
+    wrapper.style.opacity = "1";
+    wrapper.style.transform = "translateY(0) scale(1)";
   });
 
-  // Auto-dismiss after 4 seconds
+  // Auto-dismiss after 5 seconds
   setTimeout(() => {
-    if (toast.parentNode) {
-      toast.style.opacity = "0";
-      toast.style.transform = "translateY(8px)";
-      setTimeout(() => toast.remove(), 300);
+    if (wrapper.parentNode) {
+      wrapper.style.opacity = "0";
+      wrapper.style.transform = "translateY(8px) scale(0.95)";
+      setTimeout(() => wrapper.remove(), 400);
     }
-  }, 4000);
+  }, 5000);
 }
 
 // ==================== MESSAGE HANDLERS ====================

@@ -23,6 +23,9 @@
           <i class="fas fa-moon"></i>
         </button>
       </div>
+      <button id="shareBtn" class="share-pill" title="Share with others">
+        <i class="fas fa-share-alt"></i> Share
+      </button>
     </header>
 
     <!-- First-run Welcome Overlay -->
@@ -99,7 +102,24 @@
       <section class="section action-area">
         <h2 class="section-title"><i class="fas fa-magic"></i> <span id="actionTitle">Test or Unmask</span></h2>
         <p class="section-desc" id="actionDesc">Paste text to test masking, or paste AI response with placeholders to unmask</p>
-        <textarea id="actionInput" placeholder="Paste text to test or unmask..."></textarea>
+        <div class="try-examples">
+          <div class="try-header">
+            <i class="fas fa-lightbulb"></i>
+            <span>Try with a sample to see it in action</span>
+          </div>
+          <div class="try-chips">
+            <button class="try-btn" data-example="password">
+              <i class="fas fa-key"></i> Password
+            </button>
+            <button class="try-btn" data-example="apikey">
+              <i class="fas fa-code"></i> API Key
+            </button>
+            <button class="try-btn" data-example="full">
+              <i class="fas fa-file-code"></i> .env file
+            </button>
+          </div>
+        </div>
+        <textarea id="actionInput" placeholder="Paste text here, or tap a sample above..."></textarea>
         <button id="actionBtn" class="action-btn">
           <i class="fas fa-vial" id="actionIcon"></i>
           <span id="actionBtnText">Analyze</span>

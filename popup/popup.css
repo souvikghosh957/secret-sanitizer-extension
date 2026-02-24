@@ -234,6 +234,38 @@ body.dark-mode .header {
   transform: translateY(-1px);
 }
 
+/* Share Pill Button */
+.share-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.72em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease-out;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.02em;
+}
+
+.share-pill i {
+  font-size: 0.9em;
+}
+
+.share-pill:hover {
+  background: rgba(255,255,255,0.25);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
 /* ============================== */
 /* WELCOME OVERLAY (INFO PAGE)    */
 /* ============================== */
@@ -846,6 +878,102 @@ body.dark-mode .hero-today strong {
 /* ==================== */
 .action-area {
   padding: 20px 24px 24px;
+}
+
+/* Try Examples */
+.try-examples {
+  margin-bottom: 14px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.3s ease-out;
+}
+
+.try-examples:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.try-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.try-header i {
+  color: var(--warning);
+  font-size: 1em;
+}
+
+.try-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.try-btn {
+  flex: 1;
+  padding: 9px 10px;
+  font-size: 0.75em;
+  font-weight: 600;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.try-btn i {
+  font-size: 0.95em;
+  color: var(--primary);
+  transition: all 0.2s ease;
+}
+
+.try-btn:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.try-btn:hover i {
+  color: white;
+}
+
+.try-btn:active {
+  transform: translateY(0);
+}
+
+body.dark-mode .try-examples {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .try-examples:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+}
+
+body.dark-mode .try-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .try-btn:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  border-color: var(--primary);
+  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.25);
 }
 
 .action-area textarea {
