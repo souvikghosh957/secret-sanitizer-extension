@@ -132,10 +132,10 @@ const ALL_PATTERNS = [
   [/\b(?:enter|your|the)[\s]+(?:otp|pin|code)[\s:]+(\d{4,8})\b/gi, "OTP_CODE"],
   
   // Email (only in suspicious contexts - near passwords/secrets)
-  [/(?:password|passwd|pwd|secret|key|token|api)[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
-  
+  [/(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
+
   // Password hints
-  [/(?:password|passwd|pwd)[\s:=]+['"]?[A-Za-z0-9!@#$%^&*]{8,}['"]?/gi, "PASSWORD_HINT"],
+  [/(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi, "PASSWORD_HINT"],
   
   // API Keys
   [/\bopenai_[A-Za-z0-9]{48,}\b/gi, "OPENAI_KEY"],
