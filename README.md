@@ -171,7 +171,7 @@ Works out of the box on every major AI chat:
 </p>
 
 <p align="center">
-  <img width="900" alt="image" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
+  <img width="900" alt="One-click unmask from the secure local vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
   <br><em>One-click unmask from the secure local vault</em>
 </p>
 
