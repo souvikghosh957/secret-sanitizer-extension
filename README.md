@@ -156,23 +156,23 @@ Works out of the box on every major AI chat:
 ## Screenshots
 
 <p align="center">
-  <img width="900" alt="Instant feedback when a secret is detected and masked" src="https://github.com/user-attachments/assets/bd44237c-8e5f-4480-8aa9-6e10bb07b1b0" />
+  <img width="900" alt="Instant feedback when a secret is detected and masked" src="https://github.com/user-attachments/assets/53c82a0b-75d0-467c-bd49-322ad0eab5d5" />
   <br><em>Instant feedback when a secret is detected and masked</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="Clean, animated popup with intuitive controls" src="https://github.com/user-attachments/assets/c0d21a79-7345-475c-bb98-17334625c6ba" />
+  <img width="900" alt="Clean, animated popup with intuitive controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
   <br><em>Clean, animated popup with intuitive controls</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="Secure vault with one-click unmask" src="https://github.com/user-attachments/assets/54e0bc4e-a02f-43f6-8693-f033528fec98" />
-  <br><em>One-click unmask from the secure local vault</em>
+  <img width="900" alt="Custom sites, pattern controls, and configuration export" src="https://github.com/user-attachments/assets/270e6b89-0e73-4e6f-ae8a-bbe2a7e56db7" />
+  <br><em>Custom sites, pattern controls, and configuration export</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="Stats dashboard and settings" src="https://github.com/user-attachments/assets/f52a86e3-8b6e-4edf-8b6a-aaf33f06422a" />
-  <br><em>Stats, custom sites, pattern controls, and configuration export</em>
+  <img width="900" alt="image" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
+  <br><em>One-click unmask from the secure local vault</em>
 </p>
 
 ---
