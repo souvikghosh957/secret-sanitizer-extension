@@ -69,24 +69,32 @@ async function decryptData(encryptedData) {
 // Test sanitization patterns
 function testSanitize(text) {
   const patterns = [
+    // Cloud & prefixed keys
     [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
-    [/\b[A-Za-z0-9/+=]{40}\b/g, "AWS_SECRET_KEY"],
+    [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
     [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
+    [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/g, "GITHUB_FINE_PAT"],
+    [/\bglpat-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TOKEN"],
     [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
     [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
     [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
-    [/\bopenai_[A-Za-z0-9]{48,}\b/gi, "OPENAI_KEY"],
+    [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
+    [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
+    [/\bsk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_KEY"],
     [/\bsk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_KEY"],
+    [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
     [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
     [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
     [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
+    [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/g, "SLACK_TOKEN"],
+    [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/g, "SENDGRID_KEY"],
     [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
     [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
     [/(?:otp|pin|code)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
     [/(?:password|passwd|pwd)[\s:=]+['"]?[A-Za-z0-9!@#$%^&*]{8,}['"]?/gi, "PASSWORD_HINT"],
-    [/(mongodb|postgres|mysql|redis):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
+    [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
     [/\b(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
-    [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
+    [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
     [/(?:api[_-]?key|apikey|api_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "API_KEY_FORMAT"],
     [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
     [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
@@ -325,7 +333,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Example snippets for "Try it" buttons
     const EXAMPLES = {
       password: `Here's my database config:\npassword: SuperSecret123!\nPlease help me debug the connection.`,
-      apikey: `I'm getting an error with this code:\nconst client = new OpenAI({ apiKey: "sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn" });\nWhat am I doing wrong?`,
+      apikey: `I'm getting an error with this code:\nconst stripe = require('stripe')('sk_live_4eC39HqLyjWDarjtT1zdp7dc');\nWhat am I doing wrong?`,
       full: `My .env file looks like this:\nOPENAI_KEY=sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn\nDB_URL=postgres://admin:P@ssw0rd123@db.example.com:5432/myapp\npassword: MyS3cretP@ss!\nCan you review this for security issues?`
     };
 
@@ -604,20 +612,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ==================== PATTERN TOGGLES (AUTO-SAVE) ====================
 
     const allLabels = [
-      "AWS_KEY","AWS_TEMP_KEY","AWS_SECRET_KEY",
-      "GITHUB_TOKEN","JWT","DB_CONN","CREDIT_CARD",
+      // Cloud
+      "AWS_KEY","AWS_TEMP_KEY","AZURE_SECRET","GOOGLE_API_KEY",
+      // VCS & CI/CD
+      "GITHUB_TOKEN","GITHUB_FINE_PAT","GITLAB_TOKEN","GITLAB_TRIGGER_TOKEN",
+      // Auth & Tokens
+      "JWT","BEARER_TOKEN","PASSWORD_HINT","OTP_CODE","EMAIL_IN_SECRET",
+      // Database
+      "DB_CONN",
+      // Credit Cards
+      "CREDIT_CARD",
+      // Payments
+      "STRIPE_KEY","STRIPE_TEST_KEY","STRIPE_PUB_KEY","STRIPE_TEST_PUB_KEY",
+      "SQUARE_ACCESS_TOKEN","SQUARE_SECRET",
+      "RAZORPAY_KEY","RAZORPAY_TEST_KEY",
+      "PAYTM_KEY","PAYTM_MERCHANT",
+      // Communication
+      "TWILIO_SID","TWILIO_AUTH_TOKEN",
+      "SLACK_TOKEN","DISCORD_WEBHOOK","TELEGRAM_BOT_TOKEN",
+      "SENDGRID_KEY","MAILGUN_KEY",
+      // AI & ML
+      "OPENAI_KEY","ANTHROPIC_KEY","GROQ_KEY","HUGGINGFACE_TOKEN",
+      // Cloud Platforms
+      "FIREBASE_KEY","HEROKU_API_KEY","VERCEL_TOKEN",
+      "DIGITALOCEAN_TOKEN","DIGITALOCEAN_REFRESH",
+      "SUPABASE_TOKEN","CLOUDFLARE_TOKEN","DATADOG_KEY",
+      // E-Commerce
+      "SHOPIFY_TOKEN",
+      // Package Registries
+      "NPM_TOKEN","PYPI_TOKEN",
+      // Indian PII
       "AADHAAR","PAN","INDIAN_PHONE","GSTIN","IFSC",
       "UPI_ID","UPI_ID_GENERIC","UPI_TEST_ID","PAYMENT_UPI_ID",
-      "DRIVING_LICENSE","VOTER_ID","BANK_ACCOUNT","EMAIL_IN_SECRET",
-      "STRIPE_KEY","STRIPE_TEST_KEY","STRIPE_PUB_KEY","STRIPE_TEST_PUB_KEY",
-      "TWILIO_SID","TWILIO_AUTH_TOKEN","FIREBASE_KEY",
-      "RAZORPAY_KEY","RAZORPAY_TEST_KEY","RAZORPAY_TEST_SECRET",
-      "PAYTM_KEY","PAYTM_MERCHANT",
-      "PASSWORD_HINT","OTP_CODE","PASSPORT","VEHICLE_REG",
-      "OPENAI_KEY","GROK_KEY","GOOGLE_API_KEY","BEARER_TOKEN","NPM_TOKEN",
-      "GENERIC_SECRET_KEY","LONG_RANDOM_STRING","BASE64_SECRET",
-      "API_KEY_FORMAT","SECRET_KEY_FORMAT","ACCESS_KEY_FORMAT",
-      "QUOTED_SECRET","PRIVATE_KEY","PGP_PRIVATE_KEY"
+      "DRIVING_LICENSE","VOTER_ID","PASSPORT","VEHICLE_REG",
+      // Key=Value Formats
+      "API_KEY_FORMAT","SECRET_KEY_FORMAT","ACCESS_KEY_FORMAT","AUTH_SECRET_FORMAT",
+      // Private Keys
+      "PRIVATE_KEY","SSH_PRIVATE_KEY","PGP_PRIVATE_KEY",
+      // Generic Fallbacks
+      "QUOTED_SECRET","LONG_RANDOM_STRING","BASE64_SECRET"
     ];
 
     const togglesDiv = document.getElementById("patternToggles");
