@@ -96,29 +96,32 @@ Works out of the box on every major AI chat:
 **Credentials & Tokens**
 - Passwords & password hints
 - Bearer tokens & JWTs
-- Basic auth headers
+- OTP codes & PINs
 - OAuth tokens & refresh tokens
 
-**API Keys**
-- AWS, GCP, Azure
-- OpenAI, Anthropic
-- Stripe, GitHub, GitLab
-- Slack, Twilio, SendGrid & more
+**API Keys & Platforms**
+- AWS, Google Cloud, Azure
+- OpenAI, Anthropic, Groq, HuggingFace
+- Stripe, Square, Razorpay, Paytm
+- GitHub, GitLab (PATs & trigger tokens)
+- Slack, Twilio, SendGrid, Mailgun
+- Discord webhooks, Telegram bot tokens
 
 </td>
 <td width="50%">
 
-**Infrastructure**
-- PostgreSQL, MySQL, MongoDB, Redis URLs
-- AWS Account IDs, ARNs, S3 URLs
-- Docker registry credentials
-- `.env` key-value pairs
+**Infrastructure & Cloud**
+- PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ URLs
+- Firebase, Vercel, DigitalOcean, Supabase
+- Heroku, Cloudflare, Datadog (contextual)
+- Shopify, NPM, PyPI tokens
+- `.env` key-value pairs (`API_KEY=`, `SECRET_KEY=`, etc.)
 
 **Private Data**
-- RSA, SSH, PGP private key blocks
-- Aadhaar numbers, PAN cards
-- High-entropy secrets
-- Base64-encoded credentials
+- RSA, SSH (OpenSSH), PGP private key blocks
+- Aadhaar, PAN, GSTIN, UPI IDs
+- Credit card numbers
+- High-entropy & base64-encoded secrets
 
 </td>
 </tr>
