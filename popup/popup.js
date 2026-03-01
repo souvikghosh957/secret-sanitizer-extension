@@ -333,6 +333,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Example snippets for "Try it" buttons
     const EXAMPLES = {
       password: `Here's my database config:\npassword: SuperSecret123!\nPlease help me debug the connection.`,
+      // Sample key from Stripe docs (https://docs.stripe.com/keys) — not a real secret
       apikey: `I'm getting an error with this code:\nconst stripe = require('stripe')('sk_live_4eC39HqLyjWDarjtT1zdp7dc');\nWhat am I doing wrong?`,
       full: `My .env file looks like this:\nOPENAI_KEY=sk-proj-aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmn\nDB_URL=postgres://admin:P@ssw0rd123@db.example.com:5432/myapp\npassword: MyS3cretP@ss!\nCan you review this for security issues?`
     };
