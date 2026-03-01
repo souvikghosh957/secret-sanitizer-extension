@@ -2,6 +2,31 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.1.2] - 2026-03-01
+
+### Added
+- 20+ new secret detection patterns: Slack, GitLab, Discord webhook, Telegram bot, SendGrid, Anthropic, HuggingFace, Square, Vercel, DigitalOcean, Supabase, Shopify, PyPI, SSH (OPENSSH) private keys, GitHub fine-grained PATs, and more
+- Contextual detection for Azure, Heroku, Datadog, Cloudflare, and Mailgun (requires keyword proximity to avoid false positives)
+- `AUTH_SECRET_FORMAT` pattern for `auth_token=`, `client_secret=`, `private_key=` env vars
+- AMQP/AMQPS protocol support in database connection detection
+
+### Fixed
+- OpenAI/Anthropic key mislabeling — `sk-ant-*` keys no longer detected as OpenAI
+- `quickCheck` fast-path now covers all new pattern prefixes (was silently skipping new patterns on short pastes)
+- Welcome page demo key updated to realistic Stripe example that actually triggers detection in test mode
+
+### Removed
+- Overly broad patterns that caused false positives: `AWS_SECRET_KEY` (matched any 40-char string), `BANK_ACCOUNT` (matched any 9-18 digit number), bare `MAILGUN_KEY`, `GENERIC_SECRET_KEY` (unreachable), `NUGET_KEY` (unverified prefix)
+- Duplicate `RAZORPAY_TEST_SECRET` pattern (already caught by `RAZORPAY_TEST_KEY`)
+
+### Changed
+- Groq key label corrected from `GROK_KEY` to `GROQ_KEY`
+- Slack token detection now includes `xoxe-` (expiring tokens)
+- Shopify token charset fixed from hex-only to full alphanumeric, added `shpua_` prefix
+- PyPI token minimum length raised from 16 to 50 to reduce false positives
+- Vercel token prefix corrected from `vercel_` to `vc[pcirka]_`
+- Pattern list reorganized: specific prefixed patterns first, contextual second, generic fallbacks last
+
 ## [2.1.0] - 2026-02-18
 
 ### Fixed
