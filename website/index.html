@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Sanitizer — Mask API Keys & Secrets Before They Reach AI Chats</title>
+  <meta name="description" content="Secret Sanitizer masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking. Your secrets never leave your machine.">
+  <meta name="keywords" content="secret sanitizer, API key protection, ChatGPT security, AI chat privacy, mask secrets, Chrome extension, open source security">
+  <link rel="canonical" href="https://secretsanitizer.com/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Secret Sanitizer — Your Secrets Never Leave Your Machine">
+  <meta property="og:description" content="Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.">
+  <meta property="og:url" content="https://secretsanitizer.com/">
+  <meta property="og:image" content="https://raw.githubusercontent.com/souvikghosh957/secret-sanitizer-extension/master/icons/icon-128.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Secret Sanitizer — Mask Secrets in AI Chats">
+  <meta name="twitter:description" content="Your secrets never leave your machine. 100% local Chrome extension.">
+  <meta name="twitter:creator" content="@souvik_ghosh975">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/souvikghosh957/secret-sanitizer-extension/master/icons/icon-128.png">
+  <meta name="theme-color" content="#060a14">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Secret Sanitizer",
+    "applicationCategory": "BrowserApplication",
+    "operatingSystem": "Chrome",
+    "description": "Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.",
+    "url": "https://secretsanitizer.com/",
+    "downloadUrl": "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja",
+    "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
+    "license": "https://opensource.org/licenses/MIT",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #0ea5e9;
+      --primary-glow: rgba(14, 165, 233, 0.25);
+      --accent: #06b6d4;
+      --accent-warm: #818cf8;
+      --bg: #060a14;
+      --bg-alt: #0b1120;
+      --bg-card: rgba(255, 255, 255, 0.035);
+      --text: #e8edf5;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border: rgba(255, 255, 255, 0.07);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --radius: 16px;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--accent); }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    .glass {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8, var(--accent), var(--accent-warm));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: var(--font);
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 4px 24px var(--primary-glow);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px var(--primary-glow); color: #fff; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--text); transform: translateY(-2px); }
+
+    /* ====================== HERO ====================== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 40px 0 60px;
+      overflow: hidden;
+    }
+
+    .hero::before, .hero::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      animation: drift 12s ease-in-out infinite;
+    }
+    .hero::before {
+      width: 500px; height: 500px;
+      background: rgba(14,165,233,0.12);
+      top: -150px; left: -100px;
+    }
+    .hero::after {
+      width: 400px; height: 400px;
+      background: rgba(129,140,248,0.08);
+      bottom: -100px; right: -80px;
+      animation-delay: -6s;
+      animation-direction: reverse;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero-left { text-align: left; }
+
+    .hero-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    .hero-logo-box {
+      display: inline-flex;
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 60%, var(--accent-warm) 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 32px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.12) inset;
+      animation: logoFloat 4s ease-in-out infinite;
+      position: relative;
+    }
+    .hero-logo-box::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(14,165,233,0.3), rgba(6,182,212,0.1), rgba(129,140,248,0.2));
+      z-index: -1;
+      animation: logoRing 4s ease-in-out infinite;
+    }
+    .hero-logo-icon { width: 28px; height: 28px; }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes logoRing {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.06); }
+    }
+
+    .hero-tagline {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      line-height: 1.55;
+    }
+
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+
+    .hero-meta {
+      display: flex;
+      gap: 20px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+    /* ===== LIVE DEMO ===== */
+    .demo-window {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(14,165,233,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .demo-titlebar {
+      background: #111827;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-dot.r { background: #ef4444; }
+    .demo-dot.y { background: #f59e0b; }
+    .demo-dot.g { background: #10b981; }
+    .demo-titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.02em;
+    }
+
+    .demo-body {
+      background: #0c1222;
+      padding: 24px;
+      min-height: 260px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.9;
+    }
+
+    .demo-line { margin-bottom: 4px; white-space: nowrap; overflow: hidden; }
+    .demo-key { color: var(--warning); }
+    .demo-masked { color: var(--error); font-weight: 600; }
+    .demo-comment { color: var(--text-dim); font-style: italic; font-size: 0.78rem; }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--primary);
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .demo-scan {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      margin: 12px 0;
+      opacity: 0;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease, opacity 0.2s;
+    }
+    .demo-scan.active { opacity: 1; transform: scaleX(1); }
+
+    .demo-toast {
+      margin-top: 16px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      font-weight: 500;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--success);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.4s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .demo-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ====================== SECTIONS ====================== */
+    .section {
+      padding: 72px 0;
+      position: relative;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    /* ===== FEATURES + PATTERNS ===== */
+    .features-section { background: var(--bg-alt); }
+
+    .features-top {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .feat {
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .feat:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.2); }
+    .feat-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .feat h3 { font-size: 0.88rem; margin-bottom: 4px; font-weight: 600; }
+    .feat p { font-size: 0.78rem; color: var(--text-muted); }
+
+    .patterns-strip {
+      margin-top: 36px;
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .pat-col h4 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pat-col ul { list-style: none; }
+    .pat-col li { font-size: 0.78rem; color: var(--text-muted); padding: 2px 0; }
+    .pat-col li::before { content: '\2713'; color: var(--success); margin-right: 6px; font-weight: 700; font-size: 0.7rem; }
+
+    .patterns-note {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+    .patterns-note strong { color: var(--primary); }
+
+    .platforms-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .plat-chip {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .plat-chip:hover { transform: translateY(-2px); border-color: rgba(14,165,233,0.25); }
+    .plat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    /* ===== WHO IS IT FOR ===== */
+    .audience-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .audience-chip {
+      padding: 10px 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .audience-chip .a-icon { font-size: 1.1rem; }
+
+    /* ===== TRUST ===== */
+    .trust-section { background: var(--bg); }
+
+    .trust-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .trust-card { padding: 20px; text-align: center; }
+    .trust-card .t-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .trust-card h3 { font-size: 0.88rem; margin-bottom: 4px; }
+    .trust-card p { font-size: 0.78rem; color: var(--text-muted); }
+
+    .esb-banner {
+      margin-top: 32px;
+      padding: 20px 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.04);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .esb-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .esb-banner h4 { font-size: 0.88rem; color: var(--warning); margin-bottom: 4px; }
+    .esb-banner p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* Video thumbnail */
+    .video-thumb {
+      display: block;
+      margin: 20px auto 0;
+      max-width: 680px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .video-thumb:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .play-btn {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+      transition: background 0.25s;
+    }
+    .video-thumb:hover .play-btn { background: rgba(0,0,0,0.2); }
+
+    /* ===== TESTIMONIALS ===== */
+    .testimonials-section { background: var(--bg-alt); overflow: hidden; }
+
+    .testimonials-track-wrapper {
+      position: relative;
+      margin-top: 28px;
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    }
+
+    .testimonials-track {
+      display: flex;
+      gap: 20px;
+      animation: scroll-left 35s linear infinite;
+      width: max-content;
+    }
+    .testimonials-track:hover { animation-play-state: paused; }
+
+    @keyframes scroll-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .test-card {
+      flex-shrink: 0;
+      width: 340px;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .test-quote {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+    .test-quote::before { content: '\201C'; font-size: 1.6rem; color: var(--primary); line-height: 0; vertical-align: -0.4em; margin-right: 2px; }
+
+    .test-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .test-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .test-name { font-weight: 600; font-size: 0.82rem; }
+    .test-handle { font-size: 0.72rem; color: var(--text-dim); }
+    .test-src { font-size: 0.68rem; color: var(--text-dim); opacity: 0.7; margin-left: auto; }
+
+    /* ===== CTA ===== */
+    .cta-block {
+      text-align: center;
+      padding: 56px 0 0;
+    }
+    .cta-block h2 { font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 10px; }
+    .cta-block p { color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      margin-top: 32px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .footer-links a { color: var(--text-muted); font-size: 0.85rem; }
+    .footer-links a:hover { color: var(--primary); }
+    .footer-credit { font-size: 0.78rem; color: var(--text-dim); }
+
+    /* ===== Scroll Animations ===== */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-up.vis { opacity: 1; transform: translateY(0); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-left { text-align: center; }
+      .hero-title { justify-content: center; }
+      .hero-buttons { justify-content: center; }
+      .hero-meta { justify-content: center; flex-wrap: wrap; }
+      .demo-window { max-width: 500px; margin: 0 auto; }
+    }
+
+    @media (max-width: 768px) {
+      .section { padding: 48px 0; }
+      .features-top { grid-template-columns: repeat(2, 1fr); }
+      .patterns-strip { grid-template-columns: repeat(2, 1fr); }
+      .trust-row { grid-template-columns: repeat(2, 1fr); }
+      .test-card { width: 290px; }
+    }
+
+    @media (max-width: 480px) {
+      .features-top { grid-template-columns: 1fr; }
+      .patterns-strip { grid-template-columns: 1fr; }
+      .trust-row { grid-template-columns: 1fr; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .demo-body { padding: 16px; font-size: 0.72rem; }
+      .test-card { width: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================== HERO ======================== -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+
+        <div class="hero-left">
+          <h1 class="hero-title">
+            <span class="hero-logo-box">
+              <svg class="hero-logo-icon" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm-1.06 13.54L7.4 12l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41-5.64 5.66z"/></svg>
+            </span>
+            <span class="gradient-text">Secret Sanitizer</span>
+          </h1>
+          <p class="hero-tagline">Masks API keys, passwords &amp; tokens <strong style="color:var(--text)">before</strong> they reach AI chats. Your secrets never leave your machine.</p>
+
+          <div class="hero-buttons">
+            <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+              Add to Chrome &mdash; Free
+            </a>
+            <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" class="btn btn-ghost" target="_blank" rel="noopener">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              GitHub
+            </a>
+          </div>
+
+          <div class="hero-meta">
+            <span>&#9889; 100% local</span>
+            <span>&#128215; Open source</span>
+            <span>&#129171; ~70 KB</span>
+            <span>&#128274; MIT licensed</span>
+          </div>
+        </div>
+
+        <!-- Live animated demo -->
+        <div class="demo-window">
+          <div class="demo-titlebar">
+            <div class="demo-dot r"></div>
+            <div class="demo-dot y"></div>
+            <div class="demo-dot g"></div>
+            <div class="demo-titlebar-text" id="demo-title">ChatGPT &mdash; paste intercepted</div>
+          </div>
+          <div class="demo-body" id="demo">
+            <div class="demo-line demo-comment" id="demo-comment">// You paste code containing secrets...</div>
+            <div id="demo-input"></div>
+            <div class="demo-scan" id="demo-scan"></div>
+            <div id="demo-output"></div>
+            <div class="demo-toast" id="demo-toast">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span id="toast-text"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <main>
+
+    <!-- ======================== FEATURES + PATTERNS + PLATFORMS ======================== -->
+    <section class="section features-section">
+      <div class="container fade-up">
+        <div style="text-align:center">
+          <span class="section-label">Features</span>
+          <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+        </div>
+
+        <div class="features-top">
+          <div class="feat glass">
+            <div class="feat-icon">&#9889;</div>
+            <h3>Instant Interception</h3>
+            <p>Catches secrets before they hit the input</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#128737;&#65039;</div>
+            <h3>Encrypted Vault</h3>
+            <p>AES-GCM encrypted, stored locally</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#127899;&#65039;</div>
+            <h3>Pattern Controls</h3>
+            <p>Toggle any pattern on/off, cleanly handles false positives</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#127760;</div>
+            <h3>Custom Sites</h3>
+            <p>Protect any domain, one click</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#128202;</div>
+            <h3>Stats Dashboard</h3>
+            <p>Track blocks per day with history</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#128300;</div>
+            <h3>Test Mode</h3>
+            <p>Preview masking before committing</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#128190;</div>
+            <h3>Backup &amp; Restore</h3>
+            <p>Export/import config as JSON</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon">&#128230;</div>
+            <h3>Zero Dependencies</h3>
+            <p>No libs, ~70 KB, fully open source</p>
+          </div>
+        </div>
+
+        <!-- Patterns -->
+        <div class="patterns-strip glass">
+          <div class="pat-col">
+            <h4>&#128273; Credentials</h4>
+            <ul>
+              <li>Passwords &amp; bearer tokens</li>
+              <li>JWTs, OTPs, OAuth tokens</li>
+              <li>.env key-value pairs</li>
+            </ul>
+          </div>
+          <div class="pat-col">
+            <h4>&#9729;&#65039; API Keys</h4>
+            <ul>
+              <li>AWS, GCP, Azure</li>
+              <li>OpenAI, Anthropic, Groq</li>
+              <li>Stripe, GitHub, Slack</li>
+            </ul>
+          </div>
+          <div class="pat-col">
+            <h4>&#127959;&#65039; Infrastructure</h4>
+            <ul>
+              <li>Postgres, MongoDB, Redis URLs</li>
+              <li>Firebase, Vercel, Supabase</li>
+              <li>NPM, PyPI, Shopify tokens</li>
+            </ul>
+          </div>
+          <div class="pat-col">
+            <h4>&#128272; Private Data</h4>
+            <ul>
+              <li>RSA, SSH, PGP private keys</li>
+              <li>Aadhaar, PAN, UPI, credit cards</li>
+              <li>High-entropy secrets</li>
+            </ul>
+          </div>
+        </div>
+        <p class="patterns-note"><strong>50+ patterns</strong> &mdash; toggle any on/off from the popup. No false-positive headaches.</p>
+
+        <!-- Platforms -->
+        <div style="text-align:center; margin-top:32px">
+          <span class="section-label">Works on</span>
+        </div>
+        <div class="platforms-inline">
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#10a37f"></span>ChatGPT</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#d97706"></span>Claude</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#4285f4"></span>Gemini</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#1d9bf0"></span>Grok</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#20808d"></span>Perplexity</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:#4d6bfe"></span>DeepSeek</div>
+          <div class="plat-chip glass"><span class="plat-dot" style="background:var(--accent-warm)"></span>Any site you add</div>
+        </div>
+
+        <!-- Who is it for -->
+        <div style="text-align:center; margin-top:36px">
+          <span class="section-label">Who is it for?</span>
+          <p style="font-size:0.9rem; color:var(--text-muted); margin-top:4px">Built for anyone who pastes into AI chats and values their privacy.</p>
+        </div>
+        <div class="audience-row">
+          <div class="audience-chip glass"><span class="a-icon">&#128187;</span> Developers &amp; engineers</div>
+          <div class="audience-chip glass"><span class="a-icon">&#128295;</span> Indie builders &amp; founders</div>
+          <div class="audience-chip glass"><span class="a-icon">&#128274;</span> Security-conscious users</div>
+          <div class="audience-chip glass"><span class="a-icon">&#128100;</span> Professionals handling sensitive data</div>
+          <div class="audience-chip glass"><span class="a-icon">&#128104;&#8205;&#128187;</span> Elderly &amp; new-to-AI users</div>
+          <div class="audience-chip glass"><span class="a-icon">&#127891;</span> Students &amp; educators</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== TRUST + ESB + VIDEO ======================== -->
+    <section class="section trust-section">
+      <div class="container fade-up">
+        <div style="text-align:center">
+          <span class="section-label">Trust &amp; Privacy</span>
+          <h2 class="section-title">Don't trust us &mdash; verify</h2>
+          <p class="section-sub" style="margin:0 auto">Every claim is independently auditable. Zero servers. Zero tracking.</p>
+        </div>
+
+        <div class="trust-row">
+          <div class="trust-card glass">
+            <div class="t-icon">&#128683;</div>
+            <h3>No Network Requests</h3>
+            <p>Zero outbound calls, ever</p>
+          </div>
+          <div class="trust-card glass">
+            <div class="t-icon">&#128268;</div>
+            <h3>Works Offline</h3>
+            <p>Disable Wi-Fi. It still works.</p>
+          </div>
+          <div class="trust-card glass">
+            <div class="t-icon">&#128269;</div>
+            <h3>No Tracking</h3>
+            <p>No analytics, telemetry, or cookies</p>
+          </div>
+          <div class="trust-card glass">
+            <div class="t-icon">&#128215;</div>
+            <h3>Fully Open Source</h3>
+            <p>MIT licensed. Read every line.</p>
+          </div>
+        </div>
+
+        <!-- ESB warning -->
+        <div class="esb-banner">
+          <div class="esb-icon">&#9432;</div>
+          <div>
+            <h4>Chrome "Enhanced Safe Browsing" warning</h4>
+            <p>You may see this warning during installation. It appears for <strong>most indie extensions</strong> &mdash; it simply means Google hasn't manually reviewed it yet, not that there's any issue. Secret Sanitizer is fully open source, makes zero network requests, and every line of code is <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">auditable on GitHub</a>.</p>
+          </div>
+        </div>
+
+        <!-- Video -->
+        <div style="text-align:center; margin-top:44px">
+          <span class="section-label">See it in action</span>
+          <h3 style="font-size:1.1rem; margin-bottom:4px">Watch the full demo</h3>
+        </div>
+        <a href="https://www.youtube.com/watch?v=Ee_cBZ5SJDw" target="_blank" rel="noopener" class="video-thumb glass" aria-label="Watch demo on YouTube">
+          <img src="https://img.youtube.com/vi/Ee_cBZ5SJDw/maxresdefault.jpg" alt="Secret Sanitizer demo video" loading="lazy">
+          <div class="play-btn">
+            <svg width="48" height="48" viewBox="0 0 68 48"><path d="M66.5 7.7s-.7-4.7-2.8-6.8C60.7-2 57.2-2 55.6-2.2 46.5-3 34-3 34-3s-12.5 0-21.6.8C10.8-2 7.3-2 4.3.9 2.2 3 1.5 7.7 1.5 7.7S.8 13.3.8 18.8v5.2c0 5.5.7 11.1.7 11.1s.7 4.7 2.8 6.8c3 2.9 6.9 2.8 8.6 3.1 6.3.6 26.1.8 26.1.8s12.5 0 21.6-.8c1.6-.2 5.1-.2 8.1-3.1 2.1-2.1 2.8-6.8 2.8-6.8s.7-5.5.7-11.1v-5.2c0-5.5-.7-11.1-.7-11.1z" fill="#FF0000"/><path d="M27 33V13l18 10z" fill="#fff"/></svg>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ======================== TESTIMONIALS ======================== -->
+    <section class="section testimonials-section">
+      <div class="container">
+        <div style="text-align:center" class="fade-up">
+          <span class="section-label">What people are saying</span>
+          <h2 class="section-title">Loved by developers &amp; users</h2>
+        </div>
+
+        <div class="testimonials-track-wrapper">
+          <div class="testimonials-track">
+            <!-- Card set 1 (original) -->
+            <div class="test-card">
+              <p class="test-quote">Nice build. Local-first + open source is exactly what security tools should aim for.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@aweoss</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src">&#120143;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AhsanFarooq4711</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src">&#120143;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Honestly, that is such a smart idea. Lately when I'm building, I feel naked with my API keys. Great job, I love it!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">A</div>
+                <div>
+                  <div class="test-name">Agitated-Ninja-7399</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Really cool project and could definitely save some people. I've gotten close with my .env, I hate to admit!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">C</div>
+                <div>
+                  <div class="test-name">Craig_301</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">This is genuinely useful. The number of times I've had that split-second panic after pasting something into ChatGPT is way too high. Love that it's fully local and open source. No way I'd trust a closed-source tool that scans my clipboard!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">A</div>
+                <div>
+                  <div class="test-name">AnyExit8486</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+            <!-- Card set 2 (duplicate for seamless scroll) -->
+            <div class="test-card">
+              <p class="test-quote">Nice build. Local-first + open source is exactly what security tools should aim for.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@aweoss</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src">&#120143;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AhsanFarooq4711</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src">&#120143;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Honestly, that is such a smart idea. Lately when I'm building, I feel naked with my API keys. Great job, I love it!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">A</div>
+                <div>
+                  <div class="test-name">Agitated-Ninja-7399</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Really cool project and could definitely save some people. I've gotten close with my .env, I hate to admit!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">C</div>
+                <div>
+                  <div class="test-name">Craig_301</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">This is genuinely useful. The number of times I've had that split-second panic after pasting something into ChatGPT is way too high. Love that it's fully local and open source. No way I'd trust a closed-source tool that scans my clipboard!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#ff4500,#ff6b35)">A</div>
+                <div>
+                  <div class="test-name">AnyExit8486</div>
+                  <div class="test-handle">on Reddit</div>
+                </div>
+                <span class="test-src">&#9673;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== CTA ======================== -->
+    <section class="section" style="background:var(--bg)">
+      <div class="container fade-up">
+        <div class="cta-block">
+          <h2 class="gradient-text">Stop leaking secrets today</h2>
+          <p>Free, open source, installs in 5 seconds.</p>
+          <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+          <p style="margin-top:12px"><a href="privacy.html" style="color:var(--text-dim);font-size:0.85rem">Privacy Policy &rarr;</a></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener">Chrome Web Store</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a></p>
+    </div>
+  </footer>
+
+  <script>
+  (function() {
+    // Scroll reveal
+    var fades = document.querySelectorAll('.fade-up');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); }
+        });
+      }, { threshold: 0.1 });
+      fades.forEach(function(f) { obs.observe(f); });
+    } else {
+      fades.forEach(function(f) { f.classList.add('vis'); });
+    }
+
+    // ======= Animated demo with authentic labels =======
+    var scenarios = [
+      {
+        title: 'ChatGPT \u2014 paste intercepted',
+        comment: '// You paste your .env into the chat...',
+        lines: [
+          'OPENAI_API_KEY=sk-proj-abc123xyz789def456ghi',
+          'STRIPE_SECRET_KEY=sk_live_51HG7dKLMn0pQrStUvWx',
+        ],
+        masked: [
+          { key: 'OPENAI_API_KEY=', label: '[OPENAI_KEY_0]' },
+          { key: 'STRIPE_SECRET_KEY=', label: '[STRIPE_KEY_0]' },
+        ],
+        toast: '2 secrets masked \u2014 originals saved to vault'
+      },
+      {
+        title: 'Claude \u2014 paste intercepted',
+        comment: '// You paste database config...',
+        lines: [
+          'DATABASE_URL=postgres://admin:s3cret@db.prod:5432/app',
+          'AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE',
+        ],
+        masked: [
+          { key: 'DATABASE_URL=', label: '[DB_CONN_0]' },
+          { key: 'AWS_ACCESS_KEY_ID=', label: '[AWS_KEY_0]' },
+        ],
+        toast: '2 secrets masked \u2014 originals saved to vault'
+      },
+      {
+        title: 'Gemini \u2014 paste intercepted',
+        comment: '// You paste tokens for debugging...',
+        lines: [
+          'ghp_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8',
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        ],
+        masked: [
+          { key: '', label: '[GITHUB_TOKEN_0]' },
+          { key: 'Bearer ', label: '[JWT_0]' },
+        ],
+        toast: '2 secrets masked \u2014 originals saved to vault'
+      },
+      {
+        title: 'ChatGPT \u2014 paste intercepted',
+        comment: '// You paste personal info for help...',
+        lines: [
+          'Card: 4532 0150 1234 5678',
+          'UPI: yourname@oksbi',
+        ],
+        masked: [
+          { key: 'Card: ', label: '[CREDIT_CARD_0]' },
+          { key: 'UPI: ', label: '[UPI_ID_0]' },
+        ],
+        toast: '2 secrets masked \u2014 originals saved to vault'
+      }
+    ];
+
+    var input = document.getElementById('demo-input');
+    var output = document.getElementById('demo-output');
+    var scanEl = document.getElementById('demo-scan');
+    var toastEl = document.getElementById('demo-toast');
+    var toastText = document.getElementById('toast-text');
+    var titleEl = document.getElementById('demo-title');
+    var commentEl = document.getElementById('demo-comment');
+    var idx = 0;
+
+    function typeText(el, text, speed, cb) {
+      var i = 0;
+      var span = document.createElement('span');
+      el.appendChild(span);
+      var cur = document.createElement('span');
+      cur.className = 'cursor';
+      el.appendChild(cur);
+      function tick() {
+        if (i < text.length) {
+          span.textContent += text[i]; i++;
+          setTimeout(tick, speed);
+        } else {
+          if (cur.parentNode) cur.parentNode.removeChild(cur);
+          if (cb) cb();
+        }
+      }
+      tick();
+    }
+
+    function run() {
+      var s = scenarios[idx % scenarios.length];
+      idx++;
+
+      titleEl.textContent = s.title;
+      commentEl.textContent = s.comment;
+      input.innerHTML = '';
+      output.innerHTML = '';
+      scanEl.classList.remove('active');
+      toastEl.classList.remove('show');
+
+      var li = 0;
+      function nextLine() {
+        if (li >= s.lines.length) {
+          setTimeout(function() {
+            scanEl.classList.add('active');
+            setTimeout(function() {
+              s.masked.forEach(function(m) {
+                var d = document.createElement('div');
+                d.className = 'demo-line';
+                d.innerHTML = '<span class="demo-key">' + m.key + '</span><span class="demo-masked">' + m.label + '</span>';
+                output.appendChild(d);
+              });
+              setTimeout(function() {
+                toastText.textContent = s.toast;
+                toastEl.classList.add('show');
+                setTimeout(run, 3500);
+              }, 400);
+            }, 600);
+          }, 300);
+          return;
+        }
+        var d = document.createElement('div');
+        d.className = 'demo-line';
+        input.appendChild(d);
+        typeText(d, s.lines[li], 20, function() {
+          li++;
+          setTimeout(nextLine, 200);
+        });
+      }
+      nextLine();
+    }
+
+    setTimeout(run, 800);
+  })();
+  </script>
+</body>
+</html>

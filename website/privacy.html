@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Secret Sanitizer</title>
+  <meta name="description" content="Privacy Policy for Secret Sanitizer Chrome extension. We collect nothing. All data stays on your machine.">
+  <link rel="canonical" href="https://secretsanitizer.com/privacy.html">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/souvikghosh957/secret-sanitizer-extension/master/icons/icon-128.png">
+  <meta name="theme-color" content="#060a14">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Privacy Policy — Secret Sanitizer">
+  <meta property="og:description" content="We collect nothing. All data stays on your machine.">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #0ea5e9;
+      --accent: #06b6d4;
+      --bg: #060a14;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --text: #e8edf5;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border: rgba(255, 255, 255, 0.08);
+      --radius: 16px;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { color: var(--accent); }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+    .page-header {
+      padding: 60px 0 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .back-link { display: inline-block; margin-bottom: 16px; font-size: 0.9rem; color: var(--text-dim); }
+    .back-link:hover { color: var(--primary); }
+
+    .content { padding: 48px 0 80px; }
+    .content h2 { font-size: 1.3rem; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+    .content h2:first-child { margin-top: 0; }
+    .content p, .content li { color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
+    .content p { margin-bottom: 12px; }
+    .content ul { margin-bottom: 12px; padding-left: 20px; }
+    .content li { margin-bottom: 6px; }
+
+    .content code {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--accent);
+    }
+
+    .highlight-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 16px 0;
+      backdrop-filter: blur(16px);
+    }
+    .highlight-box p { margin-bottom: 0; }
+
+    .tldr {
+      border-left: 3px solid var(--primary);
+      padding: 20px 24px;
+      margin: 24px 0;
+      background: rgba(14, 165, 233, 0.05);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .tldr strong { color: var(--primary); }
+    .tldr p { margin-bottom: 0; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    th { color: var(--text); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { color: var(--text-muted); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+    }
+    .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .footer-links a { color: var(--text-muted); font-size: 0.9rem; }
+    .footer-links a:hover { color: var(--primary); }
+    .footer-credit { font-size: 0.82rem; color: var(--text-dim); }
+
+    @media (max-width: 768px) {
+      .page-header { padding: 40px 0 32px; }
+      .page-header h1 { font-size: 1.6rem; }
+      .content { padding: 32px 0 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="container">
+      <a href="index.html" class="back-link">&larr; Back to Secret Sanitizer</a>
+      <h1>Privacy Policy</h1>
+      <p>Last updated: March 1, 2026</p>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="container">
+
+      <p>Secret Sanitizer is a privacy-first Chrome extension with a single narrow purpose: to prevent accidental disclosure of sensitive information when interacting with AI chat websites. All processing happens locally on your device &mdash; no data ever leaves your browser.</p>
+
+      <div class="tldr">
+        <p><strong>KEY POINT:</strong> Your secrets stay on your device. Always. No exceptions.</p>
+      </div>
+
+      <h2>Data Processing</h2>
+      <p>All data processing performed by Secret Sanitizer occurs entirely on your local device. The extension does not transmit, sync, upload, or share any data with external servers or third parties.</p>
+
+      <h2>Local Storage Usage</h2>
+      <p>The extension uses <code>chrome.storage.local</code> exclusively to store:</p>
+      <ul>
+        <li>Temporarily masked secret values (to allow user-initiated unmasking within the extension popup)</li>
+        <li>Aggregate user statistics (e.g., total and daily count of blocked secrets)</li>
+        <li>User preferences, such as enabled or disabled detection patterns and custom websites</li>
+      </ul>
+      <p>All stored data remains local to your browser and is never accessible outside the extension.</p>
+
+      <h2>Permissions Used</h2>
+      <p>Secret Sanitizer requests only the minimum permissions needed for its single purpose. None of these permissions allow data collection or transmission:</p>
+
+      <div class="highlight-box">
+        <p><strong>storage</strong> &mdash; Saves user preferences and local statistics.</p>
+      </div>
+      <div class="highlight-box">
+        <p><strong>scripting</strong> &mdash; Injects lightweight content scripts to detect and mask secrets on AI chat pages.</p>
+      </div>
+      <div class="highlight-box">
+        <p><strong>activeTab</strong> &mdash; Allows interaction only with the currently active tab when you open the popup.</p>
+      </div>
+      <div class="highlight-box">
+        <p><strong>alarms</strong> &mdash; Resets daily statistics at midnight (local device time).</p>
+      </div>
+      <div class="highlight-box">
+        <p><strong>notifications</strong> &mdash; Optional local notifications (disabled by default).</p>
+      </div>
+      <div class="highlight-box">
+        <p><strong>Host permissions</strong> &mdash; Limited to major AI chat domains (chatgpt.com, claude.ai, gemini.google.com, grok.x.ai, perplexity.ai, deepseek.com, and any sites you explicitly add).</p>
+      </div>
+
+      <h2>No Data Collection</h2>
+      <p>Secret Sanitizer does not collect or transmit:</p>
+      <ul>
+        <li>Personally identifiable information</li>
+        <li>Browsing history or web activity</li>
+        <li>Clipboard contents beyond user-initiated paste events</li>
+        <li>Health, financial, authentication, or location data</li>
+        <li>Analytics, telemetry, or usage tracking</li>
+      </ul>
+
+      <h2>No External Communication</h2>
+      <p>The extension makes no network requests and does not communicate with any remote servers. No data is sold, shared, or disclosed to any third party.</p>
+
+      <h2>Code Execution</h2>
+      <p>Secret Sanitizer does not execute remote code. All scripts are bundled with the extension package and run locally within the browser.</p>
+
+      <h2>Supported Websites</h2>
+      <p>By default, Secret Sanitizer works on ChatGPT, Claude, Gemini, Grok, Perplexity, and DeepSeek. You can add any custom website with explicit permission.</p>
+
+      <h2>Data Retention</h2>
+      <p>All data is stored locally until you manually clear it, uninstall the extension, or clear browser data. There is no automatic deletion or external storage.</p>
+
+      <h2>Your Rights</h2>
+      <p>You have full control over all data stored locally. You can view, modify, export, or delete everything at any time through the extension settings.</p>
+
+      <h2>Updates to This Policy</h2>
+      <p>We may update this privacy policy to reflect new features. The latest version will always be available at the URL where you accessed this page, with the updated date shown above.</p>
+
+      <h2>Contact</h2>
+      <p>For questions or concerns regarding this privacy policy, please contact:</p>
+      <ul>
+        <li>X (Twitter): <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a></li>
+        <li>GitHub: <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">Secret Sanitizer on GitHub</a></li>
+      </ul>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener">Chrome Web Store</a>
+      </div>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a> &middot; MIT License</p>
+    </div>
+  </footer>
+
+</body>
+</html>
