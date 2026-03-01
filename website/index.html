@@ -175,6 +175,7 @@
       letter-spacing: -0.03em;
       line-height: 1.1;
       margin-bottom: 14px;
+      white-space: nowrap;
     }
 
     .hero-logo-box {
@@ -621,6 +622,9 @@
     }
 
     @media (max-width: 480px) {
+      .hero-title { font-size: clamp(1.6rem, 7vw, 2.2rem); gap: 10px; }
+      .hero-logo-box { width: 38px; height: 38px; border-radius: 10px; }
+      .hero-logo-icon { width: 20px; height: 20px; }
       .features-top { grid-template-columns: 1fr; }
       .patterns-strip { grid-template-columns: 1fr; }
       .trust-row { grid-template-columns: 1fr; }
