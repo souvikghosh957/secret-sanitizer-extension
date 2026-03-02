@@ -521,7 +521,7 @@
     .testimonials-track {
       display: flex;
       gap: 20px;
-      animation: scroll-left 35s linear infinite;
+      animation: scroll-left 50s linear infinite;
       width: max-content;
     }
     .testimonials-track:hover { animation-play-state: paused; }
@@ -538,6 +538,12 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .test-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(14, 165, 233, 0.18);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 
     .test-quote {
@@ -548,6 +554,7 @@
       font-style: italic;
     }
     .test-quote::before { content: '\201C'; font-size: 1.6rem; color: var(--primary); line-height: 0; vertical-align: -0.4em; margin-right: 2px; }
+    .test-quote::after { content: '\201D'; font-size: 1.6rem; color: var(--primary); line-height: 0; vertical-align: -0.4em; margin-left: 2px; }
 
     .test-author {
       display: flex;
@@ -568,7 +575,26 @@
     }
     .test-name { font-weight: 600; font-size: 0.82rem; }
     .test-handle { font-size: 0.72rem; color: var(--text-dim); }
-    .test-src { font-size: 0.68rem; color: var(--text-dim); opacity: 0.7; margin-left: auto; }
+    .test-src {
+      margin-left: auto;
+      font-size: 1.05rem;
+      font-weight: 700;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .test-src.src-x {
+      color: #fff;
+      background: rgba(29, 155, 240, 0.15);
+    }
+    .test-src.src-reddit {
+      color: #ff4500;
+      background: rgba(255, 69, 0, 0.12);
+    }
 
     /* ===== CTA ===== */
     .cta-block {
@@ -868,7 +894,7 @@
         <a href="https://www.youtube.com/watch?v=Ee_cBZ5SJDw" target="_blank" rel="noopener" class="video-thumb glass" aria-label="Watch demo on YouTube">
           <img src="https://img.youtube.com/vi/Ee_cBZ5SJDw/maxresdefault.jpg" alt="Secret Sanitizer demo video" loading="lazy">
           <div class="play-btn">
-            <svg width="48" height="48" viewBox="0 0 68 48"><path d="M66.5 7.7s-.7-4.7-2.8-6.8C60.7-2 57.2-2 55.6-2.2 46.5-3 34-3 34-3s-12.5 0-21.6.8C10.8-2 7.3-2 4.3.9 2.2 3 1.5 7.7 1.5 7.7S.8 13.3.8 18.8v5.2c0 5.5.7 11.1.7 11.1s.7 4.7 2.8 6.8c3 2.9 6.9 2.8 8.6 3.1 6.3.6 26.1.8 26.1.8s12.5 0 21.6-.8c1.6-.2 5.1-.2 8.1-3.1 2.1-2.1 2.8-6.8 2.8-6.8s.7-5.5.7-11.1v-5.2c0-5.5-.7-11.1-.7-11.1z" fill="#FF0000"/><path d="M27 33V13l18 10z" fill="#fff"/></svg>
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="rgba(0,0,0,0.55)"/><path d="M22 18l18 10-18 10V18z" fill="#fff"/></svg>
           </div>
         </a>
       </div>
@@ -879,12 +905,12 @@
       <div class="container">
         <div style="text-align:center" class="fade-up">
           <span class="section-label">What people are saying</span>
-          <h2 class="section-title">Loved by developers &amp; users</h2>
+          <h2 class="section-title">Loved by developers &amp; indie builders</h2>
         </div>
 
         <div class="testimonials-track-wrapper">
           <div class="testimonials-track">
-            <!-- Card set 1 (original) -->
+            <!-- Card set 1 (original) — alternating X / Reddit -->
             <div class="test-card">
               <p class="test-quote">Nice build. Local-first + open source is exactly what security tools should aim for.</p>
               <div class="test-author">
@@ -893,18 +919,7 @@
                   <div class="test-name">@aweoss</div>
                   <div class="test-handle">on X</div>
                 </div>
-                <span class="test-src">&#120143;</span>
-              </div>
-            </div>
-            <div class="test-card">
-              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
-              <div class="test-author">
-                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
-                <div>
-                  <div class="test-name">@AhsanFarooq4711</div>
-                  <div class="test-handle">on X</div>
-                </div>
-                <span class="test-src">&#120143;</span>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -915,7 +930,18 @@
                   <div class="test-name">Agitated-Ninja-7399</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AhsanFarooq4711</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -926,7 +952,18 @@
                   <div class="test-name">Craig_301</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Secret Sanitizer is a brilliant safeguard. Auto-masking secrets locally before they hit AI chats keeps everything secure without the cloud risk. Love the open-source vibe!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AlexEngineerAI</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -937,7 +974,18 @@
                   <div class="test-name">AnyExit8486</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">This is actually so useful. I've definitely pasted stuff I shouldn't have into AI chats before. Congrats on the launch!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">S</div>
+                <div>
+                  <div class="test-name">@SophiaBriasco</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <!-- Card set 2 (duplicate for seamless scroll) -->
@@ -949,18 +997,7 @@
                   <div class="test-name">@aweoss</div>
                   <div class="test-handle">on X</div>
                 </div>
-                <span class="test-src">&#120143;</span>
-              </div>
-            </div>
-            <div class="test-card">
-              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
-              <div class="test-author">
-                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
-                <div>
-                  <div class="test-name">@AhsanFarooq4711</div>
-                  <div class="test-handle">on X</div>
-                </div>
-                <span class="test-src">&#120143;</span>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -971,7 +1008,18 @@
                   <div class="test-name">Agitated-Ninja-7399</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Such a smart idea! Protecting secrets before they ever leave your machine just makes sense.</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AhsanFarooq4711</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -982,7 +1030,18 @@
                   <div class="test-name">Craig_301</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">Secret Sanitizer is a brilliant safeguard. Auto-masking secrets locally before they hit AI chats keeps everything secure without the cloud risk. Love the open-source vibe!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">A</div>
+                <div>
+                  <div class="test-name">@AlexEngineerAI</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
             <div class="test-card">
@@ -993,7 +1052,18 @@
                   <div class="test-name">AnyExit8486</div>
                   <div class="test-handle">on Reddit</div>
                 </div>
-                <span class="test-src">&#9673;</span>
+                <span class="test-src src-reddit"><svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 0a10 10 0 100 20 10 10 0 000-20zm5.9 11.5c.1.2.1.5.1.7 0 2.7-3.2 5-7.1 5s-7.1-2.2-7.1-5c0-.2 0-.5.1-.7a1.3 1.3 0 01-.5-1c0-.7.6-1.3 1.3-1.3.3 0 .6.1.9.3 1.2-.8 2.8-1.4 4.6-1.4l.9-2.9 2.5.6a1 1 0 011.9.4 1 1 0 01-2 .2l-2.1-.5-.8 2.5c1.7.1 3.3.6 4.5 1.4.2-.2.5-.3.9-.3.7 0 1.3.6 1.3 1.3 0 .4-.2.8-.5 1zM7.5 11a1 1 0 100 2 1 1 0 000-2zm5 0a1 1 0 100 2 1 1 0 000-2zm-4.2 3a.1.1 0 01.2 0c.6.6 1.5.9 1.9.9s1.1-.3 1.7-.9a.1.1 0 01.2 0 .1.1 0 010 .2c-.6.6-1.6 1-2 1-.3 0-1.3-.4-2-1a.1.1 0 010-.2z"/></svg></span>
+              </div>
+            </div>
+            <div class="test-card">
+              <p class="test-quote">This is actually so useful. I've definitely pasted stuff I shouldn't have into AI chats before. Congrats on the launch!</p>
+              <div class="test-author">
+                <div class="test-avatar" style="background:linear-gradient(135deg,#1d9bf0,#0ea5e9)">S</div>
+                <div>
+                  <div class="test-name">@SophiaBriasco</div>
+                  <div class="test-handle">on X</div>
+                </div>
+                <span class="test-src src-x"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
               </div>
             </div>
           </div>
