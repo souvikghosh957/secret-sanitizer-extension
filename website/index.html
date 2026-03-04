@@ -9,17 +9,20 @@
   <link rel="canonical" href="https://secretsanitizer.com/">
 
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Secret Sanitizer">
   <meta property="og:title" content="Secret Sanitizer — Your Secrets Never Leave Your Machine">
   <meta property="og:description" content="Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.">
   <meta property="og:url" content="https://secretsanitizer.com/">
-  <meta property="og:image" content="https://secret-sanitizer.netlify.app/og-card.png">
+  <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
+  <meta property="og:image:alt" content="Secret Sanitizer — Mask API Keys & Secrets Before They Reach AI Chats">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="536">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@souvik_ghosh975">
   <meta name="twitter:title" content="Secret Sanitizer — Mask Secrets in AI Chats">
   <meta name="twitter:description" content="Your secrets never leave your machine. 100% local Chrome extension.">
-  <meta name="twitter:image" content="https://secret-sanitizer.netlify.app/og-card.png">
+  <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
   <meta name="twitter:creator" content="@souvik_ghosh975">
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/souvikghosh957/secret-sanitizer-extension/master/icons/icon-128.png">
   <meta name="theme-color" content="#060a14">
@@ -61,6 +64,38 @@
       --radius: 16px;
       --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 10px 0;
+      background: rgba(6, 10, 20, 0.75);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .navbar.scrolled { border-bottom-color: var(--border); background: rgba(6, 10, 20, 0.95); }
+    .nav-inner {
+      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 0.92rem; }
+    .nav-brand:hover { color: var(--text); }
+    .nav-brand img { width: 28px; height: 28px; border-radius: 7px; }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--text-muted); font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 7px 16px; border-radius: 8px; font-weight: 600;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff !important; font-size: 0.8rem; white-space: nowrap;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px var(--primary-glow); color: #fff; }
+    @media (max-width: 600px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+      .nav-brand span { display: none; }
     }
 
     html { scroll-behavior: smooth; }
@@ -129,7 +164,7 @@
       display: flex;
       align-items: center;
       position: relative;
-      padding: 40px 0 60px;
+      padding: 72px 0 60px;
       overflow: hidden;
     }
 
@@ -344,6 +379,7 @@
     .section {
       padding: 72px 0;
       position: relative;
+      scroll-margin-top: 52px;
     }
 
     .section-label {
@@ -667,6 +703,22 @@
 </head>
 <body>
 
+  <!-- ======================== NAVBAR ======================== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand">
+        <img src="https://raw.githubusercontent.com/souvikghosh957/secret-sanitizer-extension/master/icons/icon-128.png" alt="Secret Sanitizer" width="28" height="28">
+        <span>Secret Sanitizer</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#trust">Trust</a>
+        <a href="#reviews">Reviews</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
   <!-- ======================== HERO ======================== -->
   <section class="hero">
     <div class="container">
@@ -850,7 +902,7 @@
     </section>
 
     <!-- ======================== TRUST + ESB + VIDEO ======================== -->
-    <section class="section trust-section">
+    <section id="trust" class="section trust-section">
       <div class="container fade-up">
         <div style="text-align:center">
           <span class="section-label">Trust &amp; Privacy</span>
@@ -881,6 +933,8 @@
           </div>
         </div>
 
+        <p style="text-align:center; margin-top:20px; font-size:0.82rem"><a href="privacy.html" style="color:var(--text-dim)">Read our Privacy Policy &rarr;</a></p>
+
         <!-- ESB warning -->
         <div class="esb-banner">
           <div class="esb-icon">&#9432;</div>
@@ -905,7 +959,7 @@
     </section>
 
     <!-- ======================== TESTIMONIALS ======================== -->
-    <section class="section testimonials-section">
+    <section id="reviews" class="section testimonials-section">
       <div class="container">
         <div style="text-align:center" class="fade-up">
           <span class="section-label">What people are saying</span>
@@ -1092,6 +1146,9 @@
   <footer>
     <div class="container">
       <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#trust">Trust</a>
+        <a href="#reviews">Reviews</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">GitHub</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener">Chrome Web Store</a>
         <a href="privacy.html">Privacy Policy</a>
@@ -1102,6 +1159,10 @@
 
   <script>
   (function() {
+    // Navbar scroll
+    var nb = document.getElementById('navbar');
+    window.addEventListener('scroll', function() { nb.classList.toggle('scrolled', window.scrollY > 20); });
+
     // Scroll reveal
     var fades = document.querySelectorAll('.fade-up');
     if ('IntersectionObserver' in window) {
