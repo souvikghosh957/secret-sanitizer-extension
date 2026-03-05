@@ -22,8 +22,8 @@
   <a href="https://x.com/souvik_ghosh975">
     <img src="https://img.shields.io/badge/Follow-@souvik__ghosh975-black?style=flat-square&logo=x" alt="Follow on X"/>
   </a>
-  <a href="https://secret-sanitizer.netlify.app">
-    <img src="https://img.shields.io/badge/Website-secret--sanitizer.netlify.app-0ea5e9?style=flat-square&logo=netlify&logoColor=white" alt="Website"/>
+  <a href="https://secretsanitizer.com">
+    <img src="https://img.shields.io/badge/Website-secretsanitizer.com-0ea5e9?style=flat-square&logo=google-chrome&logoColor=white" alt="Website"/>
   </a>
 </p>
 
