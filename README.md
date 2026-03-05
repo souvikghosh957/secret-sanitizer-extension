@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <sub>Masks API keys, passwords & tokens before they reach AI chats — 100% local, open source, zero tracking.</sub>
+  <b>Masks API keys, passwords & tokens before they reach AI chats — 100% local, open source, zero tracking.</b>
 </p>
 
 <p align="center">
