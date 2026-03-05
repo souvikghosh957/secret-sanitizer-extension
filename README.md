@@ -1,12 +1,20 @@
 <p align="center">
-  <img src="icons/icon-128.png" width="100" alt="Secret Sanitizer" />
+  <img src="readme-heading.png" width="720" alt="Secret Sanitizer — Your secrets never leave your machine. Ever." />
 </p>
 
-<h1 align="center">Secret Sanitizer</h1>
+<p align="center">
+  <sub>Masks API keys, passwords & tokens before they reach AI chats — 100% local, open source, zero tracking.</sub>
+</p>
 
 <p align="center">
-  <strong>Your secrets never leave your machine. Ever.</strong><br>
-  <sub>Masks API keys, passwords & tokens before they reach AI chats — 100% local, open source, zero tracking.</sub>
+  <a href="#the-problem">The Problem</a> &bull;
+  <a href="#how-it-works">How It Works</a> &bull;
+  <a href="#supported-platforms">Platforms</a> &bull;
+  <a href="#what-it-catches">Detection</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#screenshots">Screenshots</a> &bull;
+  <a href="#install">Install</a> &bull;
+  <a href="#privacy--security">Privacy</a>
 </p>
 
 <p align="center">
@@ -80,13 +88,9 @@ Vault stores:   postgres://admin:s3cret@db.prod.internal:5432/myapp  (local, enc
 
 Works out of the box on every major AI chat:
 
-<p align="center">
-
-| ChatGPT | Claude | Gemini | Grok | Perplexity | DeepSeek | Any site |
-|:-------:|:------:|:------:|:----:|:----------:|:--------:|:--------:|
-| &check; | &check; | &check; | &check; | &check; | &check; | &check; Add with one click |
-
-</p>
+| ChatGPT | Claude | Gemini | Grok | Perplexity | DeepSeek | Custom Sites |
+|:-------:|:------:|:------:|:----:|:----------:|:--------:|:------------:|
+| &check; | &check; | &check; | &check; | &check; | &check; | &check; One-click add |
 
 ---
 
@@ -162,22 +166,22 @@ Works out of the box on every major AI chat:
 ## Screenshots
 
 <p align="center">
-  <img width="900" alt="Instant feedback when a secret is detected and masked" src="https://github.com/user-attachments/assets/53c82a0b-75d0-467c-bd49-322ad0eab5d5" />
+  <img width="720" alt="Instant feedback when a secret is detected and masked" src="https://github.com/user-attachments/assets/53c82a0b-75d0-467c-bd49-322ad0eab5d5" />
   <br><em>Instant feedback when a secret is detected and masked</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="Clean, animated popup with intuitive controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
+  <img width="720" alt="Clean, animated popup with intuitive controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
   <br><em>Clean, animated popup with intuitive controls</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="Custom sites, pattern controls, and configuration export" src="https://github.com/user-attachments/assets/270e6b89-0e73-4e6f-ae8a-bbe2a7e56db7" />
+  <img width="720" alt="Custom sites, pattern controls, and configuration export" src="https://github.com/user-attachments/assets/270e6b89-0e73-4e6f-ae8a-bbe2a7e56db7" />
   <br><em>Custom sites, pattern controls, and configuration export</em>
 </p>
 
 <p align="center">
-  <img width="900" alt="One-click unmask from the secure local vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
+  <img width="720" alt="One-click unmask from the secure local vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
   <br><em>One-click unmask from the secure local vault</em>
 </p>
 
@@ -240,10 +244,8 @@ Please open an issue first for larger changes so we can discuss the approach.
 
 [MIT](LICENSE) — use it, fork it, improve it.
 
----
-
 <p align="center">
-  If Secret Sanitizer has saved you from a secret leak, consider giving it a star — it helps others find it.
+  <br>If Secret Sanitizer has saved you from a secret leak, consider giving it a star — it helps others find it.
 </p>
 
 <p align="center">
