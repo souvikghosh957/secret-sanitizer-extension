@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme-heading.png" width="720" alt="Secret Sanitizer — Your secrets never leave your machine. Ever." />
+  <img src="readme-heading.jpg" width="720" alt="Secret Sanitizer — Your secrets never leave your machine. Ever." />
 </p>
 
 <p align="center">
