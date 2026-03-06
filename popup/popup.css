@@ -1,6 +1,3 @@
-/* popup.css - Dark Luxury Premium Theme */
-/* Fintech security dashboard aesthetic */
-
 :root {
   --primary: #0ea5e9;
   --primary-hover: #0284c7;
@@ -48,7 +45,8 @@ body.dark-mode {
 }
 
 body {
-  width: 400px;
+  /* --dpr-scale is set by dpi-fix.js on Windows to counteract OS DPI scaling */
+  width: calc(400px * var(--dpr-scale, 1));
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
@@ -60,7 +58,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  height: 600px;
+  height: calc(600px * var(--dpr-scale, 1));
   overflow: hidden;
 }
 
@@ -135,29 +133,6 @@ body.dark-mode .header {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* Keep old class for backwards compatibility */
-.dark-mode-toggle {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.85);
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8em;
-  transition: all 0.25s ease-out;
-}
-
-.dark-mode-toggle:hover {
-  background: rgba(255,255,255,0.25);
-  color: white;
-  transform: translateY(-1px);
-}
-
 .header h1 {
   margin: 0;
   font-size: 1.5em;
@@ -166,15 +141,6 @@ body.dark-mode .header {
   position: relative;
   z-index: 1;
   text-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.subtitle {
-  margin: 8px 0 0;
-  font-size: 0.82em;
-  opacity: 0.9;
-  font-weight: 400;
-  position: relative;
-  z-index: 1;
 }
 
 /* Site Status Indicator */
@@ -1088,8 +1054,9 @@ body.dark-mode .try-btn:hover {
   margin-top: 14px;
   font-size: 0.88em;
   white-space: pre-wrap;
-  word-break: break-all;
-  max-height: 180px;
+  overflow-wrap: break-word;
+  word-break: normal;
+  max-height: 220px;
   overflow-y: auto;
   line-height: 1.5;
   border: 1px solid var(--border);
@@ -1623,11 +1590,11 @@ body.dark-mode .tab-btn.active {
 
 /* Scrollbar subtle */
 body.dark-mode ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* Vault items & toggles glass */

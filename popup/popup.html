@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="dpi-fix.js"></script>
   <title>Secret Sanitizer</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
+<body class="dark-mode">
   <div class="container">
     <header class="header">
       <h1><i class="fas fa-shield-alt"></i> Secret Sanitizer</h1>
@@ -16,19 +17,18 @@
         <span class="status-text">Checking...</span>
       </div>
       <div class="header-actions">
-        <button id="showWelcome" class="header-btn" title="About">
+        <button id="showWelcome" class="header-btn" title="About" aria-label="About">
           <i class="fas fa-info"></i>
         </button>
-        <button id="darkModeToggle" class="header-btn" title="Toggle dark mode">
-          <i class="fas fa-moon"></i>
+        <button id="darkModeToggle" class="header-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <i class="fas fa-sun"></i>
         </button>
       </div>
-      <button id="shareBtn" class="share-pill" title="Share with others">
+      <button id="shareBtn" class="share-pill" title="Share with others" aria-label="Share with others">
         <i class="fas fa-share-alt"></i> Share
       </button>
     </header>
 
-    <!-- First-run Welcome Overlay -->
     <div id="welcomeOverlay" class="welcome-overlay hidden">
       <div class="welcome-content">
         <div class="welcome-hero">
@@ -42,7 +42,6 @@
         <div class="welcome-example">
           <div class="example-step">
             <div class="example-label"><i class="fas fa-paste"></i> You paste</div>
-            <!-- Sample key from Stripe docs — not a real secret -->
             <div class="example-code example-before">
               STRIPE_KEY = "<span class="code-secret">sk_live_4eC39HqLyjWDarjtT1zdp7dc</span>"
             </div>
@@ -81,13 +80,12 @@
       </div>
     </div>
 
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="main"><i class="fas fa-home"></i> Main</button>
-      <button class="tab-btn" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="main" role="tab" aria-selected="true"><i class="fas fa-home"></i> Main</button>
+      <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false"><i class="fas fa-cog"></i> Settings</button>
     </nav>
 
     <div id="main-tab" class="tab-content active">
-      <!-- Hero Stats Section -->
       <section class="section hero-stats">
         <div class="hero-shield">
           <i class="fas fa-shield-alt"></i>
@@ -99,7 +97,6 @@
         </div>
       </section>
 
-      <!-- Unified Action Area -->
       <section class="section action-area">
         <h2 class="section-title"><i class="fas fa-magic"></i> <span id="actionTitle">Test or Unmask</span></h2>
         <p class="section-desc" id="actionDesc">Paste text to test masking, or paste AI response with placeholders to unmask</p>
@@ -120,7 +117,7 @@
             </button>
           </div>
         </div>
-        <textarea id="actionInput" placeholder="Paste text here, or tap a sample above..."></textarea>
+        <textarea id="actionInput" placeholder="Paste text here, or tap a sample above..." aria-label="Text input for testing or unmasking secrets"></textarea>
         <button id="actionBtn" class="action-btn">
           <i class="fas fa-vial" id="actionIcon"></i>
           <span id="actionBtnText">Analyze</span>
@@ -131,7 +128,6 @@
         <pre id="actionOutput" class="hidden"></pre>
       </section>
 
-      <!-- Simplified Recent Section -->
       <section class="section recent">
         <div class="section-header-row">
           <h2 class="section-title"><i class="fas fa-history"></i> Recent</h2>
@@ -148,7 +144,6 @@
     </div>
 
     <div id="settings-tab" class="tab-content">
-      <!-- Sites Accordion -->
       <section class="section accordion" id="sitesAccordion">
         <div class="accordion-header" data-accordion="sites">
           <h2 class="section-title"><i class="fas fa-globe"></i> Custom Websites</h2>
@@ -164,7 +159,6 @@
         </div>
       </section>
 
-      <!-- Security Accordion -->
       <section class="section accordion">
         <div class="accordion-header" data-accordion="security">
           <h2 class="section-title"><i class="fas fa-lock"></i> Security</h2>
@@ -192,7 +186,6 @@
         </div>
       </section>
 
-      <!-- Patterns Accordion (collapsed by default) -->
       <section class="section accordion collapsed">
         <div class="accordion-header" data-accordion="patterns">
           <h2 class="section-title"><i class="fas fa-sliders-h"></i> Pattern Controls</h2>
@@ -205,7 +198,6 @@
         </div>
       </section>
 
-      <!-- Backup Accordion -->
       <section class="section accordion collapsed">
         <div class="accordion-header" data-accordion="backup">
           <h2 class="section-title"><i class="fas fa-download"></i> Backup & Restore</h2>

@@ -1,11 +1,3 @@
-// content_script.js - Ultra-Optimized Secret Sanitizer
-// - Pre-compiled regex patterns
-// - Smart caching and early exits
-// - Performance metrics
-// - Zero-lag paste handling
-
-// Secret Sanitizer content script initialized
-
 // Config
 const CONFIG = {
   minEntropyLength: 12,
@@ -802,7 +794,7 @@ function showSmartToast(secretTypes, onUndo) {
 
 // Optimized paste handler with performance tracking
 document.addEventListener("paste", (e) => {
-  const clipboardText = (e.clipboardData || window.clipboardData).getData("text");
+  const clipboardText = e.clipboardData?.getData("text");
   if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
 
   // Fast path: quick check if text looks like it might contain secrets
@@ -857,11 +849,10 @@ document.addEventListener("paste", (e) => {
       }
     } catch (_) {}
 
+    // Fallback for contentEditable elements (e.g. ChatGPT, Claude)
     try {
-      if (document.queryCommandSupported('insertText')) {
-        document.execCommand('insertText', false, text);
-        return true;
-      }
+      document.execCommand('insertText', false, text);
+      return true;
     } catch (_) {}
 
     try {
@@ -1185,7 +1176,7 @@ function showReviewToast(milestone, total) {
 
 // ==================== MILESTONE CELEBRATION ====================
 
-function showMilestoneCelebration(milestone, total) {
+function showMilestoneCelebration(milestone) {
   // Remove any existing celebration
   const existing = document.getElementById("ss-milestone-toast");
   if (existing) existing.remove();
@@ -1385,7 +1376,7 @@ function showMilestoneCelebration(milestone, total) {
 
 // ==================== MESSAGE HANDLERS ====================
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   try {
     if (request.action === "milestone") {
       showMilestoneCelebration(request.milestone, request.total);

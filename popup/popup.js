@@ -1,11 +1,3 @@
-// popup.js - Premium Secret Sanitizer Redesign
-// - Hero stats with count-up animation
-// - Unified smart action area (test vs unmask auto-detection)
-// - Accordion settings with auto-save
-// - Simplified recent section
-
-// ==================== UTILITIES ====================
-
 function showNotification(message, type = "success") {
   const notification = document.createElement("div");
   notification.className = `notification notification-${type}`;
@@ -141,7 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "darkMode", "autoDarkMode", "useEncryption", "hasSeenWelcome"
     ]);
 
-    // ==================== SITE STATUS INDICATOR ====================
+    // Site status indicator
 
     const defaultSites = [
       "chatgpt.com", "chat.openai.com", "claude.ai", "gemini.google.com",
@@ -211,21 +203,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // ==================== FIRST-RUN WELCOME ====================
+    // First-run welcome
 
     const welcomeOverlay = document.getElementById("welcomeOverlay");
     const welcomeStartBtn = document.getElementById("welcomeStart");
 
     if (!hasSeenWelcome && welcomeOverlay) {
       welcomeOverlay.classList.remove("hidden");
-
-      // Animate the demo after a short delay
-      setTimeout(() => {
-        const demoOutput = document.getElementById("demoOutput");
-        if (demoOutput) {
-          demoOutput.style.animation = "fadeIn 0.5s ease-out";
-        }
-      }, 500);
     }
 
     if (welcomeStartBtn) {
@@ -251,15 +235,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const disabled = new Set(disabledPatterns);
     const now = Date.now();
 
-    // ==================== DARK MODE ====================
+    // Dark mode
 
-    // Dark mode by default — users can toggle to light if preferred
-    const shouldUseDarkMode = darkMode === null
-      ? true
-      : darkMode === true;
+    // Body starts with dark-mode class in HTML (default).
+    // Only remove it if the user has explicitly chosen light mode.
+    const shouldUseDarkMode = darkMode === null ? true : darkMode === true;
 
-    if (shouldUseDarkMode) {
-      document.body.classList.add("dark-mode");
+    if (!shouldUseDarkMode) {
+      document.body.classList.remove("dark-mode");
     }
 
     if (autoDarkMode) {
@@ -270,7 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== CLEAN EXPIRED VAULT ====================
+    // Clean expired vault entries
 
     let cleaned = false;
     Object.keys(vault).forEach(key => {
@@ -281,7 +264,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     if (cleaned) await chrome.storage.local.set({ vault });
 
-    // ==================== HERO STATS ====================
+    // Hero stats
 
     const heroTotal = document.getElementById("heroTotal");
     const heroToday = document.getElementById("heroToday");
@@ -293,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       heroToday.textContent = stats.todayBlocked || 0;
     }
 
-    // ==================== UNIFIED ACTION AREA ====================
+    // Action area
 
     const actionInput = document.getElementById("actionInput");
     const actionBtn = document.getElementById("actionBtn");
@@ -301,8 +284,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const actionBtnText = document.getElementById("actionBtnText");
     const actionOutput = document.getElementById("actionOutput");
     const modeIndicator = document.getElementById("modeIndicator");
-
-    let currentMode = 'auto';
 
     // Update UI based on detected mode
     function updateModeUI(mode) {
@@ -327,7 +308,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         badge.className = 'mode-badge mode-auto';
         badge.innerHTML = '<i class="fas fa-robot"></i> Auto-detect';
       }
-      currentMode = mode;
     }
 
     // Example snippets for "Try it" buttons
@@ -367,6 +347,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Handle action button click
     if (actionBtn) {
       actionBtn.addEventListener('click', async () => {
+        if (actionBtn.classList.contains('loading')) return;
         const text = actionInput?.value.trim();
         if (!text) {
           showNotification("Paste some text first", "warning");
@@ -436,7 +417,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== RECENT SECTION ====================
+    // Recent section
 
     const recentList = document.getElementById("recentList");
     const recentListExpanded = document.getElementById("recentListExpanded");
@@ -509,10 +490,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== DARK MODE TOGGLE ====================
+    // Dark mode toggle
 
     const darkModeToggle = document.getElementById("darkModeToggle");
     if (darkModeToggle) {
+      // Sync icon with actual state
+      const isDark = document.body.classList.contains("dark-mode");
+      darkModeToggle.querySelector("i").className = isDark ? "fas fa-sun" : "fas fa-moon";
+
       darkModeToggle.addEventListener("click", async () => {
         const currentMode = document.body.classList.contains("dark-mode");
         const newMode = !currentMode;
@@ -520,12 +505,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.body.classList.toggle("dark-mode", newMode);
         darkModeToggle.querySelector("i").className = newMode ? "fas fa-sun" : "fas fa-moon";
       });
-      if (shouldUseDarkMode) {
-        darkModeToggle.querySelector("i").className = "fas fa-sun";
-      }
     }
 
-    // ==================== SHARE BUTTON ====================
+    // Share button
 
     const shareBtn = document.getElementById("shareBtn");
     if (shareBtn) {
@@ -551,18 +533,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== TAB SWITCHING ====================
+    // Tab switching
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+        });
         document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
         btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
         document.getElementById(`${btn.dataset.tab}-tab`).classList.add("active");
       });
     });
 
-    // ==================== ACCORDION BEHAVIOR ====================
+    // Accordion behavior
 
     document.querySelectorAll('.accordion-header').forEach(header => {
       header.addEventListener('click', () => {
@@ -571,7 +557,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // ==================== SETTINGS WITH AUTO-SAVE ====================
+    // Settings (auto-save)
 
     // Encryption toggle (auto-save)
     const encryptionCheckbox = document.getElementById("useEncryption");
@@ -610,7 +596,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== PATTERN TOGGLES (AUTO-SAVE) ====================
+    // Pattern toggles (auto-save)
 
     const allLabels = [
       // Cloud
@@ -711,7 +697,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // ==================== CUSTOM SITES (AUTO-SAVE) ====================
+    // Custom sites (auto-save)
 
     const siteList = document.getElementById("siteList");
 
@@ -805,7 +791,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== EXPORT/IMPORT ====================
+    // Export/Import
 
     const exportBtn = document.getElementById("exportSettings");
     if (exportBtn) {
@@ -855,7 +841,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ==================== KEYBOARD SHORTCUTS ====================
+    // Keyboard shortcuts
 
     document.addEventListener("keydown", (e) => {
       if (e.ctrlKey || e.metaKey) {
