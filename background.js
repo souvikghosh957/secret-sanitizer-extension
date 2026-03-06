@@ -211,6 +211,9 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
 // ==================== MESSAGE HANDLER ====================
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Only accept messages from this extension (content scripts or popup)
+  if (sender.id !== chrome.runtime.id) return;
+
   if (request.action === "decrypt") {
     decryptVaultData(request.data).then(decrypted => {
       sendResponse({ decrypted });
