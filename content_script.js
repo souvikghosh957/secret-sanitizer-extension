@@ -5,7 +5,9 @@ const CONFIG = {
   vaultTTLMinutes: 15,
   maxVaultEntries: 50,
   cacheSize: 100, // Cache last N text samples
-  minTextLength: 10 // Skip processing very short text
+  minTextLength: 10, // Skip processing very short text
+  maxMatchesPerScan: 100, // Cap matches to avoid bloat on large pastes
+  largePasteThreshold: 5000 // 5KB — skip generic patterns + entropy above this
 };
 
 // Check if extension context is still valid
@@ -161,7 +163,7 @@ const ALL_PATTERNS = [
   [/\bpypi-[A-Za-z0-9\-_]{50,}\b/g, "PYPI_TOKEN"],
 
   // === INDIAN PII ===
-  [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
+  [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
   [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
   [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
   [/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}\b/gi, "GSTIN"],
@@ -200,14 +202,67 @@ const ALL_PATTERNS = [
 ];
 
 let SECRET_PATTERNS = ALL_PATTERNS;
+
+// Generic fallback pattern labels — slow on large text, skipped for pastes > largePasteThreshold
+const TIER2_LABELS = new Set(["QUOTED_SECRET", "LONG_RANDOM_STRING", "BASE64_SECRET"]);
+
+// Broad patterns without distinctive prefixes — skipped on large text (>5KB) to avoid
+// full-string regex scans on code/HTML where they produce mostly false positives.
+const LARGE_TEXT_SKIP_LABELS = new Set([
+  "CREDIT_CARD", "AADHAAR", "PAN", "INDIAN_PHONE", "GSTIN", "IFSC",
+  "DRIVING_LICENSE", "VOTER_ID", "PASSPORT", "VEHICLE_REG",
+  "TELEGRAM_BOT_TOKEN", "TWILIO_SID",
+]);
+
+// Literal guard strings (lowercase) — checked via fast includes() before running regex.
+// If the guard substring isn't in the text, the regex is skipped entirely.
+// Patterns without a guard entry always run (unless skipped by LARGE_TEXT_SKIP_LABELS).
+const PATTERN_GUARDS = {
+  AWS_KEY: 'akia', AWS_TEMP_KEY: 'asia',
+  AZURE_SECRET: 'azure', GOOGLE_API_KEY: 'aiza',
+  GITHUB_TOKEN: 'gh', GITHUB_FINE_PAT: 'github_pat_',
+  GITLAB_TOKEN: 'glpat-', GITLAB_TRIGGER_TOKEN: 'glptt-',
+  JWT: 'eyj', DB_CONN: '://',
+  STRIPE_KEY: 'sk_live_', STRIPE_TEST_KEY: 'sk_test_',
+  STRIPE_PUB_KEY: 'pk_live_', STRIPE_TEST_PUB_KEY: 'pk_test_',
+  SQUARE_ACCESS_TOKEN: 'sq0atp-', SQUARE_SECRET: 'sq0csp-',
+  RAZORPAY_KEY: 'rzp_', RAZORPAY_TEST_KEY: 'rzp_',
+  PAYTM_KEY: 'paytm', PAYTM_MERCHANT: 'merchant',
+  TWILIO_AUTH_TOKEN: 'twilio', SLACK_TOKEN: 'xox',
+  DISCORD_WEBHOOK: 'discord', SENDGRID_KEY: 'sg.',
+  MAILGUN_KEY: 'mailgun',
+  ANTHROPIC_KEY: 'sk-ant-', OPENAI_KEY: 'sk-',
+  GROQ_KEY: 'gsk_', HUGGINGFACE_TOKEN: 'hf_',
+  FIREBASE_KEY: 'aaaa', HEROKU_API_KEY: 'heroku',
+  DIGITALOCEAN_TOKEN: 'dop_v1_', DIGITALOCEAN_REFRESH: 'doctl-',
+  SUPABASE_TOKEN: 'sbp_', CLOUDFLARE_TOKEN: 'cloudflare',
+  DATADOG_KEY: 'datadog', SHOPIFY_TOKEN: 'shp',
+  NPM_TOKEN: 'npm_', PYPI_TOKEN: 'pypi-',
+  PRIVATE_KEY: '-----begin', SSH_PRIVATE_KEY: '-----begin', PGP_PRIVATE_KEY: '-----begin',
+  UPI_ID: '@', UPI_ID_GENERIC: '@upi', UPI_TEST_ID: '@', PAYMENT_UPI_ID: '@',
+  SECRET_KEY_FORMAT: 'secret',
+};
+
 let COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
 
 // Pre-compile patterns — always create NEW RegExp instances to avoid shared lastIndex state
+// Returns { tier1: [...specific], tier2: [...generic] } for tiered execution
+// Attaches a lowercase guard string (if available) for fast pre-filtering
+// Marks broad patterns with skipOnLargeText for large-paste optimization
 function compilePatterns(patterns) {
-  return patterns.map(([pattern, label]) => ({
-    regex: new RegExp(pattern.source, pattern.flags),
-    label
-  }));
+  const tier1 = [];
+  const tier2 = [];
+  for (const [pattern, label] of patterns) {
+    const guard = PATTERN_GUARDS[label] || null;
+    const skipOnLargeText = LARGE_TEXT_SKIP_LABELS.has(label);
+    const compiled = { regex: new RegExp(pattern.source, pattern.flags), label, guard, skipOnLargeText };
+    if (TIER2_LABELS.has(label)) {
+      tier2.push(compiled);
+    } else {
+      tier1.push(compiled);
+    }
+  }
+  return { tier1, tier2 };
 }
 
 // Load disabled patterns and compile
@@ -221,6 +276,45 @@ function compilePatterns(patterns) {
     COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
   }
 })();
+
+// Helper: run a list of compiled patterns against text, pushing matches into allMatches.
+// textLower is the pre-lowercased text for fast guard checks.
+// isLargePaste skips broad patterns that produce noise on code/HTML.
+// Returns true if the match cap was hit (early exit signal).
+function runPatterns(patterns, text, textLower, allMatches, isLargePaste) {
+  for (const { regex, label, guard, skipOnLargeText } of patterns) {
+    // Skip broad unanchored patterns on large text (false-positive heavy on code/HTML)
+    if (isLargePaste && skipOnLargeText) continue;
+    // Fast pre-filter: skip regex entirely if required literal isn't in text
+    if (guard && !textLower.includes(guard)) continue;
+
+    regex.lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const original = match[0];
+      const start = match.index;
+      const end = start + original.length;
+
+      // Guard against zero-length matches to prevent infinite loops
+      if (original.length === 0) {
+        regex.lastIndex = start + 1;
+        continue;
+      }
+
+      allMatches.push({ start, end, label, original });
+
+      // Early exit if we've hit the match cap
+      if (allMatches.length >= CONFIG.maxMatchesPerScan) {
+        regex.lastIndex = 0;
+        return true;
+      }
+
+      if (!regex.global) break;
+    }
+    regex.lastIndex = 0;
+  }
+  return false;
+}
 
 // Entropy
 function calculateEntropy(str) {
@@ -275,10 +369,16 @@ function findHighEntropySecrets(text) {
 }
 
 // FNV-1a hash for cache keys — fast, low-collision string hash
+// For large strings (>2KB), sample first+last 512 chars + length for speed.
+// Cache hits are still verified by full text === comparison.
 function fnv1aHash(str) {
   let hash = 0x811c9dc5; // FNV offset basis
-  for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
+  let source = str;
+  if (str.length > 2048) {
+    source = str.slice(0, 512) + str.slice(-512) + str.length;
+  }
+  for (let i = 0; i < source.length; i++) {
+    hash ^= source.charCodeAt(i);
     hash = (hash * 0x01000193) >>> 0; // FNV prime, keep as uint32
   }
   return hash.toString(36);
@@ -299,35 +399,27 @@ function sanitizeText(text) {
 
   // Phase 1: Collect ALL matches in original-text coordinates (no mutations)
   const allMatches = []; // { start, end, label, original }
+  const isLargePaste = text.length > CONFIG.largePasteThreshold;
+  const textLower = text.toLowerCase(); // one-time cost for fast guard checks
 
-  // Pattern-based matching against the ORIGINAL text
-  for (const { regex, label } of COMPILED_PATTERNS) {
-    regex.lastIndex = 0;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      const original = match[0];
-      const start = match.index;
-      const end = start + original.length;
+  // Tier 1: specific prefixed patterns — guards + skipOnLargeText filter most out for big pastes
+  let capped = runPatterns(COMPILED_PATTERNS.tier1, text, textLower, allMatches, isLargePaste);
 
-      // Guard against zero-length matches to prevent infinite loops
-      if (original.length === 0) {
-        regex.lastIndex = start + 1;
-        continue;
-      }
-
-      allMatches.push({ start, end, label, original });
-
-      if (!regex.global) break;
-    }
-    regex.lastIndex = 0;
+  // Tier 2: generic fallbacks (QUOTED_SECRET, LONG_RANDOM_STRING, BASE64_SECRET)
+  // Skip entirely on large pastes — these are slow unanchored scans that produce noise on code/HTML
+  if (!capped && !isLargePaste) {
+    capped = runPatterns(COMPILED_PATTERNS.tier2, text, textLower, allMatches, false);
   }
 
-  // Entropy-based detection on original text (only if few pattern matches)
-  const patternMatchCount = allMatches.length;
-  if (patternMatchCount === 0 || text.length > 100) {
-    const entropySecrets = findHighEntropySecrets(text);
-    for (const { secret, start, end } of entropySecrets) {
-      allMatches.push({ start, end, label: 'ENTROPY', original: secret });
+  // Entropy-based detection on original text
+  // Skip on large pastes — entropy is designed for short snippets, not entire codebases
+  if (!capped && !isLargePaste) {
+    const patternMatchCount = allMatches.length;
+    if (patternMatchCount === 0 || text.length > 100) {
+      const entropySecrets = findHighEntropySecrets(text);
+      for (const { secret, start, end } of entropySecrets) {
+        allMatches.push({ start, end, label: 'ENTROPY', original: secret });
+      }
     }
   }
 
@@ -341,7 +433,14 @@ function sanitizeText(text) {
   }
 
   if (filtered.length === 0) {
-    return { maskedText: text, replacements: [] };
+    const result = { maskedText: text, replacements: [] };
+    // Cache clean results too — avoids re-scanning the same large text
+    if (patternCache.size > CONFIG.cacheSize) {
+      const firstKey = patternCache.keys().next().value;
+      patternCache.delete(firstKey);
+    }
+    patternCache.set(cacheKey, { text, result });
+    return result;
   }
 
   // Phase 3: Build masked text in one pass (left to right), assign placeholders
@@ -846,8 +945,8 @@ window.addEventListener("paste", (e) => {
 
   // Fast path: quick check if text looks like it might contain secrets
   const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|github_pat_|glpat-|eyJ|sk_(live|test)|pk_(live|test)|sk-proj-|sk-ant-|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|xox[bpsare]-|SG\.|hf_|gsk_|shp(?:at|ca|pa|ss|ua)_|dop_v1_|sbp_|npm_|sq0|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|password|passwd|pwd|bearer|token[\s:=]|success@|failure@|test@|discord(?:app)?\.com\/api\/webhooks|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|[6-9]\d{9}|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)|mongodb:|postgres:|mysql:|redis:|amqp:/i.test(clipboardText);
-  if (!quickCheck && clipboardText.length < 50) {
-    // Very short text without obvious patterns - skip processing
+  if (!quickCheck && clipboardText.length < 200) {
+    // Short/medium text without obvious patterns - skip processing
     return;
   }
 
