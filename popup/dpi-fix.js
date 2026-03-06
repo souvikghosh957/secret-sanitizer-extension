@@ -1,8 +1,8 @@
 // Windows DPI scaling fix.
-// Chrome applies OS display scaling to extension popups on Windows.
-// Instead of fighting it with zoom (which shrinks text and layout),
-// we scale down CSS dimensions so Chrome's native DPI rendering
-// produces the intended physical size while keeping text crisp.
+// On Windows, Chrome applies OS display scaling to extension popups,
+// making them appear larger than intended. macOS handles this correctly.
+// We apply inverse zoom to fix dimensions, then restore font-size so text
+// stays readable instead of shrinking with the zoom.
 (function() {
   var platform = '';
   if (navigator.userAgentData && navigator.userAgentData.platform) {
@@ -12,10 +12,10 @@
   }
   var isWindows = /win/i.test(platform);
   var dpr = window.devicePixelRatio;
-  if (isWindows && dpr && dpr > 1) {
-    // Scale CSS dimensions down; Chrome's DPI multiplier restores physical size.
-    // Text renders at native DPI — sharp and readable, no zoom needed.
-    var scale = 1 / dpr;
-    document.documentElement.style.setProperty('--dpi-scale', scale);
+  if (isWindows && dpr && dpr !== 1) {
+    document.documentElement.style.zoom = (1 / dpr);
+    // Counteract zoom's text shrinkage: bump root font-size so em-based
+    // sizes render at their intended visual size despite the zoom.
+    document.documentElement.style.fontSize = (dpr * 100) + '%';
   }
 })();
