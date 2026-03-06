@@ -13,10 +13,10 @@
   var isWindows = /win/i.test(platform);
   var dpr = window.devicePixelRatio;
   if (isWindows && dpr && dpr > 1) {
-    // Clamp zoom: compensate DPI but never shrink below 75%.
+    // Clamp zoom: compensate DPI but never shrink below 90%.
     // This keeps text readable while preventing an oversized popup.
-    // At 125% DPI: zoom=0.80, at 150%: zoom=0.75, at 200%: zoom=0.75
-    var zoom = Math.max(1 / dpr, 0.75);
+    // At 125% DPI: zoom=0.90, at 150%: zoom=0.90, at 200%: zoom=0.90
+    var zoom = Math.max(1 / dpr, 0.90);
     document.documentElement.style.zoom = zoom;
   }
 })();
