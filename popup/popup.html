@@ -86,6 +86,10 @@
     </nav>
 
     <div id="main-tab" class="tab-content active">
+      <div id="noSitesWarning" class="no-sites-warning hidden">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>No websites active. Go to <strong>Settings → Custom Websites</strong> to add sites.</span>
+      </div>
       <section class="section hero-stats">
         <div class="hero-shield">
           <i class="fas fa-shield-alt"></i>
@@ -150,12 +154,11 @@
           <i class="fas fa-chevron-down accordion-icon"></i>
         </div>
         <div class="accordion-content" id="sites-content">
-          <p class="section-desc">Add domains where sanitizing should run</p>
+          <div id="siteChips" class="site-chips"></div>
           <div class="add-site">
-            <input type="text" id="newSite" placeholder="example.com" class="site-input">
+            <input type="text" id="newSite" placeholder="Add custom domain..." class="site-input">
             <button id="addSite"><i class="fas fa-plus"></i></button>
           </div>
-          <ul id="siteList" class="site-list"></ul>
         </div>
       </section>
 

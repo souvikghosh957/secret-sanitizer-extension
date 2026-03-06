@@ -12,40 +12,19 @@
     "storage",
     "scripting",
     "alarms",
-    "notifications",
-    "activeTab"
+    "notifications"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "host_permissions": [
     "*://chatgpt.com/*",
-    "*://chat.openai.com/*",
     "*://claude.ai/*",
     "*://gemini.google.com/*",
-    "*://grok.x.ai/*",
-    "*://grok.com/*",
-    "*://chat.deepseek.com/*",
-    "*://www.perplexity.ai/*"
+    "*://grok.com/*"
   ],
   "optional_host_permissions": [
     "*://*/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "*://chatgpt.com/*",
-        "*://chat.openai.com/*",
-        "*://claude.ai/*",
-        "*://gemini.google.com/*",
-        "*://grok.x.ai/*",
-        "*://grok.com/*",
-        "*://chat.deepseek.com/*",
-        "*://www.perplexity.ai/*"
-      ],
-      "js": ["content_script.js"],
-      "run_at": "document_idle"
-    }
   ],
   "action": {
     "default_popup": "popup/popup.html"

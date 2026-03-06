@@ -1271,40 +1271,78 @@ body.dark-mode .accordion-header:hover {
   box-shadow: 0 4px 16px var(--primary-glow);
 }
 
-.site-list li {
+
+.no-sites-warning {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 14px;
+  margin: 0 16px 4px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  color: var(--warning);
+  font-size: 0.82em;
+  line-height: 1.4;
+}
+
+.no-sites-warning i {
+  font-size: 1em;
+  flex-shrink: 0;
+}
+
+.site-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.site-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.site-chip.active {
+  background: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid rgba(14, 165, 233, 0.15);
+}
+
+.site-chip.custom.active {
+  background: rgba(129, 140, 248, 0.12);
+  color: var(--accent-warm);
+  border: 1px solid rgba(129, 140, 248, 0.2);
+}
+
+.site-chip.removed {
   background: var(--bg);
-  border-radius: 12px;
-  margin: 8px 0;
-  border: 1px solid var(--border);
-  font-size: 0.9em;
-  transition: all 0.3s ease;
-}
-
-.site-list li:hover {
-  transform: translateX(2px);
-  box-shadow: 0 2px 8px var(--shadow);
-}
-
-.site-list button {
-  background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.8em;
-  cursor: pointer;
-  transition: all 0.3s ease-out;
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
-.site-list button:hover {
-  background: var(--error);
-  color: white;
-  border-color: var(--error);
-  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+.site-chip button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.site-chip button:hover {
+  opacity: 1;
 }
 
 /* Settings items */
@@ -1598,8 +1636,7 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 /* Vault items & toggles glass */
 body.dark-mode .vault-item,
-body.dark-mode .toggles-list > div,
-body.dark-mode .site-list li {
+body.dark-mode .toggles-list > div {
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -1611,11 +1648,6 @@ body.dark-mode .vault-item:hover {
 }
 
 body.dark-mode .toggles-list > div:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark-mode .site-list li:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.08);
 }
@@ -1714,11 +1746,6 @@ body.dark-mode .import-btn:hover {
 /* Add site button glow */
 body.dark-mode #addSite {
   box-shadow: 0 2px 10px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-/* Delete button glow in dark mode */
-body.dark-mode .site-list button:hover {
-  box-shadow: 0 2px 16px rgba(248, 113, 113, 0.3);
 }
 
 /* Notification glass in dark mode */

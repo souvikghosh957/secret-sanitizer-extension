@@ -28,7 +28,7 @@ What actually happened.
 - **Chrome version:**
 - **Extension version:**
 - **OS:**
-- **AI platform:** (ChatGPT / Claude / Gemini / Grok / Perplexity / DeepSeek / Custom)
+- **AI platform:** (ChatGPT / Claude / Gemini / Grok / Custom)
 
 ## Screenshots
 

@@ -2,6 +2,26 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.1.3] - 2026-03-06
+
+### Fixed
+- XSS hardening: replaced all innerHTML with DOM construction (createElement + textContent)
+- ContentEditable paste fix: execCommand-first approach prevents wiping editor state in ChatGPT/Claude/Gemini
+- Race condition: debounced content script registration on rapid site toggles
+- Patterns available immediately on load (sync init instead of waiting for async)
+- Ctrl+D no longer triggers double confirmation dialog
+- DPI scaling fix now targets Windows only (was applying to Linux/ChromeOS)
+- Action button double-click guard uses synchronous disabled property
+- Array validation before iterating decrypted vault replacements
+- Removed unused `request.total` argument in milestone celebration call
+
+### Changed
+- Unified site chip design: default and custom sites rendered as consistent chips
+- Enter key now works in custom site input field
+- Alarm creation moved to onInstalled (no longer recreated on every service worker wake)
+- Removed unused `activeTab` permission
+- Removed Perplexity and DeepSeek from default sites documentation (available as custom sites)
+
 ## [2.1.2] - 2026-03-01
 
 ### Added
@@ -95,4 +115,4 @@ All notable changes to Secret Sanitizer are documented here.
 - Basic paste interception on AI chat platforms
 - Regex-based secret detection (API keys, passwords, tokens, database URLs, private keys)
 - Toast notification on secret detection
-- Support for ChatGPT, Claude, Gemini, Grok, Perplexity, DeepSeek
+- Support for ChatGPT, Claude, Gemini, Grok

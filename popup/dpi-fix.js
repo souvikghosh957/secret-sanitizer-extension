@@ -8,9 +8,9 @@
   } else {
     platform = navigator.userAgent || '';
   }
-  var isMac = /mac/i.test(platform);
+  var isWindows = /win/i.test(platform);
   var dpr = window.devicePixelRatio;
-  if (!isMac && dpr && dpr !== 1) {
+  if (isWindows && dpr && dpr !== 1) {
     document.documentElement.style.zoom = (1 / dpr);
   }
 })();

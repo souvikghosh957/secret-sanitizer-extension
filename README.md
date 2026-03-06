@@ -88,9 +88,9 @@ Vault stores:   postgres://admin:s3cret@db.prod.internal:5432/myapp  (local, enc
 
 Works out of the box on every major AI chat:
 
-| ChatGPT | Claude | Gemini | Grok | Perplexity | DeepSeek | Custom Sites |
-|:-------:|:------:|:------:|:----:|:----------:|:--------:|:------------:|
-| &check; | &check; | &check; | &check; | &check; | &check; | &check; One-click add |
+| ChatGPT | Claude | Gemini | Grok | Custom Sites |
+|:-------:|:------:|:------:|:----:|:------------:|
+| &check; | &check; | &check; | &check; | &check; One-click add |
 
 ---
 

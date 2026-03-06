@@ -190,7 +190,7 @@ const ALL_PATTERNS = [
 ];
 
 let SECRET_PATTERNS = ALL_PATTERNS;
-let COMPILED_PATTERNS = [];
+let COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
 
 // Pre-compile patterns for performance
 function compilePatterns(patterns) {
@@ -580,7 +580,13 @@ function showToast(message, type = "success") {
     gap: "8px"
   });
 
-  toast.innerHTML = `<span style="font-size:15px">${style.icon}</span><span>${message}</span>`;
+  const iconSpan = document.createElement("span");
+  iconSpan.style.fontSize = "15px";
+  iconSpan.textContent = style.icon;
+  const msgSpan = document.createElement("span");
+  msgSpan.textContent = message;
+  toast.appendChild(iconSpan);
+  toast.appendChild(msgSpan);
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => {
@@ -630,7 +636,13 @@ function showCleanToast() {
     pointerEvents: "none"
   });
 
-  toast.innerHTML = `<span style="color:#34d399;font-size:13px">&#10003;</span><span>Scanned &mdash; no secrets found</span>`;
+  const checkSpan = document.createElement("span");
+  checkSpan.style.cssText = "color:#34d399;font-size:13px";
+  checkSpan.textContent = "\u2713";
+  const cleanMsg = document.createElement("span");
+  cleanMsg.textContent = "Scanned \u2014 no secrets found";
+  toast.appendChild(checkSpan);
+  toast.appendChild(cleanMsg);
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => {
@@ -827,44 +839,47 @@ document.addEventListener("paste", (e) => {
   const insertText = (text, element) => {
     if (!element) return false;
 
-    try {
-      if (element.isContentEditable || element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+    // ContentEditable elements (ChatGPT, Claude, Gemini)
+    if (element.isContentEditable) {
+      try {
+        document.execCommand('insertText', false, text);
+        return true;
+      } catch (_) {}
+
+      try {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(document.createTextNode(text));
+          range.collapse(false);
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        }
+      } catch (_) {}
+
+      return false;
+    }
+
+    // Textarea / Input elements
+    if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+      try {
         const start = element.selectionStart || 0;
         const end = element.selectionEnd || 0;
-        const value = element.value || element.textContent || '';
+        const value = element.value || '';
         const newValue = value.substring(0, start) + text + value.substring(end);
 
         insertionStart = start;
         insertionEnd = start + text.length;
 
-        if (element.value !== undefined) {
-          element.value = newValue;
-          element.setSelectionRange(insertionEnd, insertionEnd);
-        } else {
-          element.textContent = newValue;
-        }
-
+        element.value = newValue;
+        element.setSelectionRange(insertionEnd, insertionEnd);
         element.dispatchEvent(new Event('input', { bubbles: true }));
         return true;
-      }
-    } catch (_) {}
+      } catch (_) {}
 
-    // Fallback for contentEditable elements (e.g. ChatGPT, Claude)
-    try {
-      document.execCommand('insertText', false, text);
-      return true;
-    } catch (_) {}
-
-    try {
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        range.insertNode(document.createTextNode(text));
-        range.collapse(false);
-        return true;
-      }
-    } catch (_) {}
+      return false;
+    }
 
     return false;
   };
@@ -1039,9 +1054,13 @@ function showReviewToast(milestone, total) {
   });
 
   const milestoneText = milestone >= 1000
-    ? `${(milestone / 1000).toLocaleString()}K`
+    ? (milestone / 1000).toLocaleString() + "K"
     : milestone.toLocaleString();
-  title.innerHTML = `<span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${milestoneText}</span> secrets protected`;
+  const milestoneSpan = document.createElement("span");
+  milestoneSpan.style.cssText = "background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text";
+  milestoneSpan.textContent = milestoneText;
+  title.appendChild(milestoneSpan);
+  title.appendChild(document.createTextNode(" secrets protected"));
 
   const sub = document.createElement("div");
   Object.assign(sub.style, {
@@ -1051,7 +1070,7 @@ function showReviewToast(milestone, total) {
     lineHeight: "1.4"
   });
   sub.textContent = milestone >= 100
-    ? `Trusted with ${total.toLocaleString()} secrets. Help others stay safe.`
+    ? "Trusted with " + total.toLocaleString() + " secrets. Help others stay safe."
     : "Loving it? A quick rating goes a long way.";
 
   textWrap.appendChild(title);
@@ -1119,7 +1138,7 @@ function showReviewToast(milestone, total) {
     letterSpacing: "0.02em",
     boxShadow: "0 4px 14px rgba(245,158,11,0.25)"
   });
-  rateBtn.innerHTML = "\u2605 Rate on Chrome Store";
+  rateBtn.textContent = "\u2605 Rate on Chrome Store";
   rateBtn.onmouseenter = () => { rateBtn.style.transform = "translateY(-1px)"; rateBtn.style.boxShadow = "0 6px 20px rgba(245,158,11,0.35)"; };
   rateBtn.onmouseleave = () => { rateBtn.style.transform = "translateY(0)"; rateBtn.style.boxShadow = "0 4px 14px rgba(245,158,11,0.25)"; };
   rateBtn.addEventListener("click", () => {
@@ -1323,10 +1342,17 @@ function showMilestoneCelebration(milestone) {
     animation: "ss-count-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both"
   });
 
-  const milestoneText = milestone >= 1000
-    ? `${(milestone / 1000).toLocaleString()}K`
+  const mText = milestone >= 1000
+    ? (milestone / 1000).toLocaleString() + "K"
     : milestone.toLocaleString();
-  count.innerHTML = `<span style="background:linear-gradient(135deg,#38bdf8,#06b6d4,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${milestoneText}</span> <span style="color:#e2e8f0">secrets protected</span>`;
+  const mSpan = document.createElement("span");
+  mSpan.style.cssText = "background:linear-gradient(135deg,#38bdf8,#06b6d4,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text";
+  mSpan.textContent = mText;
+  const protSpan = document.createElement("span");
+  protSpan.style.color = "#e2e8f0";
+  protSpan.textContent = " secrets protected";
+  count.appendChild(mSpan);
+  count.appendChild(protSpan);
 
   const sub = document.createElement("div");
   Object.assign(sub.style, {
@@ -1379,7 +1405,7 @@ function showMilestoneCelebration(milestone) {
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   try {
     if (request.action === "milestone") {
-      showMilestoneCelebration(request.milestone, request.total);
+      showMilestoneCelebration(request.milestone);
       sendResponse({ success: true });
     } else {
       sendResponse({ success: false, error: "Unknown action" });

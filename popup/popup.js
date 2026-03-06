@@ -124,23 +124,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       stats = { totalBlocked: 0, todayBlocked: 0 },
       disabledPatterns = [],
       customSites = [],
+      removedDefaults = [],
       darkMode = null,
       autoDarkMode = true,
       useEncryption = true,
       hasSeenWelcome = false
     } = await chrome.storage.local.get([
-      "vault", "stats", "disabledPatterns", "customSites",
+      "vault", "stats", "disabledPatterns", "customSites", "removedDefaults",
       "darkMode", "autoDarkMode", "useEncryption", "hasSeenWelcome"
     ]);
 
     // Site status indicator
 
     const defaultSites = [
-      "chatgpt.com", "chat.openai.com", "claude.ai", "gemini.google.com",
-      "grok.x.ai", "grok.com", "chat.deepseek.com", "www.perplexity.ai"
+      "chatgpt.com", "claude.ai", "gemini.google.com", "grok.com"
     ];
+    const activeDefaults = defaultSites.filter(s => !removedDefaults.includes(s));
 
-    const allProtectedSites = [...defaultSites, ...customSites];
+    const allProtectedSites = [...activeDefaults, ...customSites];
     const siteStatus = document.getElementById("siteStatus");
 
     try {
@@ -154,16 +155,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (isProtected) {
           siteStatus.className = "site-status active";
-          siteStatus.innerHTML = `
-            <span class="status-dot"></span>
-            <span class="status-text">Active on ${hostname}</span>
-          `;
+          siteStatus.textContent = "";
+          const dot1 = document.createElement("span");
+          dot1.className = "status-dot";
+          const text1 = document.createElement("span");
+          text1.className = "status-text";
+          text1.textContent = "Active on " + hostname;
+          siteStatus.appendChild(dot1);
+          siteStatus.appendChild(text1);
         } else if (url.protocol.startsWith("http")) {
           siteStatus.className = "site-status inactive clickable";
-          siteStatus.innerHTML = `
-            <span class="status-dot"></span>
-            <span class="status-text">Not active on ${hostname.slice(0,20)}${hostname.length > 20 ? '...' : ''}</span>
-          `;
+          siteStatus.textContent = "";
+          const dot2 = document.createElement("span");
+          dot2.className = "status-dot";
+          const text2 = document.createElement("span");
+          text2.className = "status-text";
+          text2.textContent = "Not active on " + (hostname.length > 20 ? hostname.slice(0,20) + '...' : hostname);
+          siteStatus.appendChild(dot2);
+          siteStatus.appendChild(text2);
           siteStatus.title = "Click to enable on this site";
           siteStatus.addEventListener("click", () => {
             document.querySelector('[data-tab="settings"]').click();
@@ -181,25 +190,37 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
         } else {
           siteStatus.className = "site-status inactive";
-          siteStatus.innerHTML = `
-            <span class="status-dot"></span>
-            <span class="status-text">Not a web page</span>
-          `;
+          siteStatus.textContent = "";
+          const dot3 = document.createElement("span");
+          dot3.className = "status-dot";
+          const text3 = document.createElement("span");
+          text3.className = "status-text";
+          text3.textContent = "Not a web page";
+          siteStatus.appendChild(dot3);
+          siteStatus.appendChild(text3);
         }
       } else if (siteStatus) {
         siteStatus.className = "site-status inactive";
-        siteStatus.innerHTML = `
-          <span class="status-dot"></span>
-          <span class="status-text">Not a web page</span>
-        `;
+        siteStatus.textContent = "";
+        const dot4 = document.createElement("span");
+        dot4.className = "status-dot";
+        const text4 = document.createElement("span");
+        text4.className = "status-text";
+        text4.textContent = "Not a web page";
+        siteStatus.appendChild(dot4);
+        siteStatus.appendChild(text4);
       }
     } catch (e) {
       if (siteStatus) {
         siteStatus.className = "site-status inactive";
-        siteStatus.innerHTML = `
-          <span class="status-dot"></span>
-          <span class="status-text">Status unavailable</span>
-        `;
+        siteStatus.textContent = "";
+        const dot5 = document.createElement("span");
+        dot5.className = "status-dot";
+        const text5 = document.createElement("span");
+        text5.className = "status-text";
+        text5.textContent = "Status unavailable";
+        siteStatus.appendChild(dot5);
+        siteStatus.appendChild(text5);
       }
     }
 
@@ -289,24 +310,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     function updateModeUI(mode) {
       const badge = modeIndicator.querySelector('.mode-badge');
 
+      const buildBadge = (iconClass, text) => {
+        badge.textContent = "";
+        const i = document.createElement("i");
+        i.className = iconClass;
+        badge.appendChild(i);
+        badge.appendChild(document.createTextNode(" " + text));
+      };
+
       if (mode === 'unmask') {
         actionBtn.classList.add('mode-unmask');
         actionIcon.className = 'fas fa-unlock';
         actionBtnText.textContent = 'Unmask Secrets';
         badge.className = 'mode-badge mode-unmask';
-        badge.innerHTML = '<i class="fas fa-unlock"></i> Unmask mode';
+        buildBadge('fas fa-unlock', 'Unmask mode');
       } else if (mode === 'test') {
         actionBtn.classList.remove('mode-unmask');
         actionIcon.className = 'fas fa-vial';
         actionBtnText.textContent = 'Test Masking';
         badge.className = 'mode-badge mode-test';
-        badge.innerHTML = '<i class="fas fa-flask"></i> Test mode';
+        buildBadge('fas fa-flask', 'Test mode');
       } else {
         actionBtn.classList.remove('mode-unmask');
         actionIcon.className = 'fas fa-vial';
         actionBtnText.textContent = 'Analyze';
         badge.className = 'mode-badge mode-auto';
-        badge.innerHTML = '<i class="fas fa-robot"></i> Auto-detect';
+        buildBadge('fas fa-robot', 'Auto-detect');
       }
     }
 
@@ -347,13 +376,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Handle action button click
     if (actionBtn) {
       actionBtn.addEventListener('click', async () => {
-        if (actionBtn.classList.contains('loading')) return;
+        if (actionBtn.disabled) return;
         const text = actionInput?.value.trim();
         if (!text) {
           showNotification("Paste some text first", "warning");
           return;
         }
 
+        actionBtn.disabled = true;
         actionBtn.classList.add('loading');
         const mode = detectMode(text);
 
@@ -380,6 +410,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               } catch (err) {}
             }
 
+            if (!Array.isArray(replacements)) continue;
             for (const [placeholder, original] of replacements) {
               const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
               const regex = new RegExp(escaped, "g");
@@ -414,6 +445,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         actionBtn.classList.remove('loading');
+        actionBtn.disabled = false;
       });
     }
 
@@ -438,7 +470,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         .slice(0, limit);
 
       if (traceIds.length === 0) {
-        targetList.innerHTML = `<li class="empty-state">${searchTerm ? 'No matches' : 'No recent sanitizations'}</li>`;
+        const emptyLi = document.createElement("li");
+        emptyLi.className = "empty-state";
+        emptyLi.textContent = searchTerm ? 'No matches' : 'No recent sanitizations';
+        targetList.appendChild(emptyLi);
       } else {
         traceIds.forEach(id => {
           const entry = vault[id];
@@ -449,15 +484,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             : (Array.isArray(entry.replacements) ? entry.replacements.length : 0);
           const li = document.createElement("li");
           li.className = "vault-item";
-          li.innerHTML = `
-            <div class="vault-item-content">
-              <strong>${id.slice(0, 8)}...</strong>
-              <div>
-                <span class="vault-badge">${count}</span>
-                <small style="margin-left: 8px;">${minsLeft}m</small>
-              </div>
-            </div>
-          `;
+          const contentDiv = document.createElement("div");
+          contentDiv.className = "vault-item-content";
+          const strong = document.createElement("strong");
+          strong.textContent = id.slice(0, 8) + "...";
+          const rightDiv = document.createElement("div");
+          const badgeSpan = document.createElement("span");
+          badgeSpan.className = "vault-badge";
+          badgeSpan.textContent = count;
+          const small = document.createElement("small");
+          small.style.marginLeft = "8px";
+          small.textContent = minsLeft + "m";
+          rightDiv.appendChild(badgeSpan);
+          rightDiv.appendChild(small);
+          contentDiv.appendChild(strong);
+          contentDiv.appendChild(rightDiv);
+          li.appendChild(contentDiv);
           targetList.appendChild(li);
         });
       }
@@ -699,69 +741,90 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Custom sites (auto-save)
 
-    const siteList = document.getElementById("siteList");
+    const updateNoSitesWarning = () => {
+      const warning = document.getElementById("noSitesWarning");
+      if (!warning) return;
+      const active = activeDefaults.length + customSites.length;
+      warning.classList.toggle("hidden", active > 0);
+    };
 
     const saveSitesAndRegister = async () => {
-      await chrome.storage.local.set({ customSites });
-
       try {
         if (customSites.length > 0) {
           const origins = customSites.map(s => `*://${s}/*`);
           await chrome.permissions.request({ origins });
         }
+      } catch (_) {}
 
-        await chrome.scripting.unregisterContentScripts();
-
-        const defaultMatches = [
-          "*://chatgpt.com/*",
-          "*://chat.openai.com/*",
-          "*://claude.ai/*",
-          "*://gemini.google.com/*",
-          "*://grok.x.ai/*",
-          "*://grok.com/*",
-          "*://chat.deepseek.com/*",
-          "*://www.perplexity.ai/*"
-        ];
-
-        const allMatches = [...defaultMatches, ...customSites.map(s => `*://${s}/*`)];
-
-        await chrome.scripting.registerContentScripts([{
-          id: "secret-sanitizer",
-          matches: allMatches,
-          js: ["content_script.js"],
-          runAt: "document_idle"
-        }]);
-      } catch (err) {
-        console.error("Failed to register sites:", err);
-      }
+      // Save to storage — background.js listens and re-registers content scripts
+      await chrome.storage.local.set({ customSites, removedDefaults });
+      updateNoSitesWarning();
     };
 
-    const renderSites = () => {
-      if (!siteList) return;
-      siteList.innerHTML = "";
+    const renderSiteChips = () => {
+      const container = document.getElementById("siteChips");
+      if (!container) return;
+      container.textContent = "";
 
-      if (customSites.length === 0) {
-        siteList.innerHTML = '<li class="empty-state">No custom sites added</li>';
-        return;
-      }
+      // Default site chips
+      defaultSites.forEach(site => {
+        const isActive = !removedDefaults.includes(site);
+        const chip = document.createElement("span");
+        chip.className = "site-chip " + (isActive ? "active" : "removed");
+        const siteText = document.createTextNode(site + " ");
+        chip.appendChild(siteText);
+        const btn = document.createElement("button");
+        btn.title = isActive ? "Remove" : "Restore";
+        btn.textContent = isActive ? "\u00d7" : "+";
+        btn.onclick = async () => {
+          if (isActive) {
+            removedDefaults.push(site);
+            activeDefaults.splice(activeDefaults.indexOf(site), 1);
+            showNotification(site + " removed", "success");
+          } else {
+            removedDefaults.splice(removedDefaults.indexOf(site), 1);
+            activeDefaults.push(site);
+            showNotification(site + " restored", "success");
+          }
+          renderSiteChips();
+          await saveSitesAndRegister();
+        };
+        chip.appendChild(btn);
+        container.appendChild(chip);
+      });
 
+      // Custom site chips
       customSites.forEach(site => {
-        const li = document.createElement("li");
-        li.textContent = site;
-        const remove = document.createElement("button");
-        remove.textContent = "Remove";
-        remove.onclick = async () => {
+        const chip = document.createElement("span");
+        chip.className = "site-chip custom active";
+        const siteText = document.createTextNode(site + " ");
+        chip.appendChild(siteText);
+        const btn = document.createElement("button");
+        btn.title = "Remove";
+        btn.textContent = "\u00d7";
+        btn.onclick = async () => {
           customSites.splice(customSites.indexOf(site), 1);
-          renderSites();
+          renderSiteChips();
           await saveSitesAndRegister();
           showNotification("Site removed", "success");
         };
-        li.appendChild(remove);
-        siteList.appendChild(li);
+        chip.appendChild(btn);
+        container.appendChild(chip);
       });
     };
 
-    renderSites();
+    renderSiteChips();
+    updateNoSitesWarning();
+
+    const newSiteInput = document.getElementById("newSite");
+    if (newSiteInput) {
+      newSiteInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          document.getElementById("addSite")?.click();
+        }
+      });
+    }
 
     const addSiteBtn = document.getElementById("addSite");
     if (addSiteBtn) {
@@ -776,14 +839,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           const url = new URL(urlStr.startsWith("http") ? urlStr : "https://" + urlStr);
           const host = url.host;
 
-          if (host && !customSites.includes(host)) {
-            customSites.push(host);
-            input.value = "";
-            renderSites();
-            await saveSitesAndRegister();
-            showNotification("Site added", "success");
+          if (defaultSites.includes(host)) {
+            showNotification("Use the + button above to restore this default", "warning");
           } else if (customSites.includes(host)) {
             showNotification("Site already added", "warning");
+          } else if (host) {
+            customSites.push(host);
+            input.value = "";
+            renderSiteChips();
+            await saveSitesAndRegister();
+            showNotification("Site added", "success");
           }
         } catch (_) {
           showNotification("Invalid URL format", "error");
@@ -852,9 +917,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             break;
           case 'd':
             e.preventDefault();
-            if (confirm("Delete all stored secrets?")) {
-              clearVaultBtn?.click();
-            }
+            clearVaultBtn?.click();
             break;
         }
       }

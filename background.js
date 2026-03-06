@@ -1,13 +1,46 @@
 // background.js - Service Worker for Secret Sanitizer
-// Handles periodic cleanup, badge updates, weekly summary, and milestones
 
-// ==================== ALARMS ====================
+const DEFAULT_SITES = [
+  "chatgpt.com", "claude.ai", "gemini.google.com", "grok.com"
+];
 
-// Periodic vault cleanup (every 5 minutes)
-chrome.alarms.create("vaultCleanup", { periodInMinutes: 5 });
+async function registerContentScripts() {
+  try {
+    await chrome.scripting.unregisterContentScripts();
 
-// Weekly summary (check daily, show on Sundays)
-chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 }); // Daily check
+    const { removedDefaults = [], customSites = [] } =
+      await chrome.storage.local.get(["removedDefaults", "customSites"]);
+
+    const activeDefaults = DEFAULT_SITES.filter(s => !removedDefaults.includes(s));
+    const allMatches = [...activeDefaults, ...customSites].map(s => `*://${s}/*`);
+
+    if (allMatches.length > 0) {
+      await chrome.scripting.registerContentScripts([{
+        id: "secret-sanitizer",
+        matches: allMatches,
+        js: ["content_script.js"],
+        runAt: "document_idle"
+      }]);
+    }
+  } catch (err) {
+    console.error("Content script registration error:", err);
+  }
+}
+
+let registerTimer = null;
+function debouncedRegister() {
+  clearTimeout(registerTimer);
+  registerTimer = setTimeout(() => registerContentScripts(), 150);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  registerContentScripts();
+  // Periodic vault cleanup (every 5 minutes)
+  chrome.alarms.create("vaultCleanup", { periodInMinutes: 5 });
+  // Weekly summary (check daily, show on Sundays)
+  chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 });
+});
+chrome.runtime.onStartup.addListener(() => registerContentScripts());
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "vaultCleanup") {
@@ -57,8 +90,12 @@ async function updateBadge() {
 // Initialize badge on startup
 updateBadge();
 
-// Listen for storage changes to update badge, check milestones, and track weekly stats
+// Listen for storage changes to re-register sites, update badge, check milestones, and track weekly stats
 chrome.storage.onChanged.addListener(async (changes) => {
+  if (changes.removedDefaults || changes.customSites) {
+    debouncedRegister();
+  }
+
   if (changes.stats) {
     updateBadge();
     checkMilestones(changes.stats.newValue, changes.stats.oldValue);
