@@ -45,8 +45,7 @@ body.dark-mode {
 }
 
 body {
-  /* --dpr-scale is set by dpi-fix.js on Windows to counteract OS DPI scaling */
-  width: calc(400px * var(--dpr-scale, 1));
+  width: 400px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
@@ -58,7 +57,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  height: calc(600px * var(--dpr-scale, 1));
+  height: 600px;
   overflow: hidden;
 }
 
