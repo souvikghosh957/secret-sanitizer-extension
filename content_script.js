@@ -61,6 +61,15 @@ function safeStorageSet(data) {
 const patternCache = new Map();
 const encryptionKeyCache = { key: null, timestamp: 0, ttl: 300000 }; // 5 min cache
 
+// Serial queue for storage writes to prevent read-modify-write races
+const storageQueue = {
+  _chain: Promise.resolve(),
+  run(fn) {
+    this._chain = this._chain.then(fn, fn);
+    return this._chain;
+  }
+};
+
 // Enhanced patterns with comprehensive secret detection
 // Order: specific prefixed patterns first, then contextual, then generic (last resort)
 const ALL_PATTERNS = [
@@ -86,7 +95,8 @@ const ALL_PATTERNS = [
   [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
 
   // === CREDIT CARDS ===
-  [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
+  // Visa, Mastercard, Amex, Diners Club (30x/36x/38x), Discover
+  [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
 
   // === PAYMENT PLATFORMS ===
   // Stripe
@@ -192,12 +202,11 @@ const ALL_PATTERNS = [
 let SECRET_PATTERNS = ALL_PATTERNS;
 let COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
 
-// Pre-compile patterns for performance
+// Pre-compile patterns — always create NEW RegExp instances to avoid shared lastIndex state
 function compilePatterns(patterns) {
   return patterns.map(([pattern, label]) => ({
-    regex: pattern instanceof RegExp ? pattern : new RegExp(pattern.source || pattern, pattern.flags || 'gi'),
-    label,
-    compiled: true
+    regex: new RegExp(pattern.source, pattern.flags),
+    label
   }));
 }
 
@@ -229,43 +238,50 @@ function calculateEntropy(str) {
 
 function findHighEntropySecrets(text) {
   const candidates = [];
-  const words = text.split(/\s+|[\"'`()[\]{},;]/);
+  // Match contiguous runs of non-whitespace, non-delimiter characters
+  const wordRegex = /[^\s"'`()[\]{},;]+/g;
   const seen = new Set();
-  
-  for (let word of words) {
-    const clean = word.replace(/[^A-Za-z0-9!@#$%^&*_\-=+]/g, "");
-    if (clean.length >= CONFIG.minEntropyLength && 
-        calculateEntropy(clean) >= CONFIG.entropyThreshold &&
-        !seen.has(clean)) {
-      seen.add(clean);
-      // Find all occurrences in text
-      let start = 0;
-      while ((start = text.indexOf(clean, start)) !== -1) {
-        // Skip if already masked (contains bracket nearby)
-        const context = text.substring(Math.max(0, start - 2), Math.min(text.length, start + clean.length + 2));
-        if (!context.includes('[') && !context.includes(']')) {
-          candidates.push({ secret: clean, start, end: start + clean.length });
-        }
-        start += clean.length;
-      }
-    }
+  let wordMatch;
+
+  while ((wordMatch = wordRegex.exec(text)) !== null) {
+    const word = wordMatch[0];
+    const wordStart = wordMatch.index;
+    // Use the raw word for entropy check (strip only leading/trailing punctuation)
+    const trimmed = word.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "");
+    const trimOffset = word.indexOf(trimmed);
+    if (trimmed.length < CONFIG.minEntropyLength) continue;
+
+    // Calculate entropy on alphanumeric-only content
+    const alphanumOnly = trimmed.replace(/[^A-Za-z0-9]/g, "");
+    if (alphanumOnly.length < CONFIG.minEntropyLength) continue;
+    if (calculateEntropy(alphanumOnly) < CONFIG.entropyThreshold) continue;
+    if (seen.has(trimmed)) continue;
+    seen.add(trimmed);
+
+    // Use the actual position in text (no indexOf — exact from regex match)
+    const start = wordStart + trimOffset;
+    const end = start + trimmed.length;
+
+    // Skip if near brackets (likely already a placeholder)
+    const ctxStart = Math.max(0, start - 2);
+    const ctxEnd = Math.min(text.length, end + 2);
+    const context = text.substring(ctxStart, ctxEnd);
+    if (context.includes('[') || context.includes(']')) continue;
+
+    candidates.push({ secret: trimmed, start, end });
   }
-  // Remove overlapping candidates (keep first occurrence)
-  return candidates.sort((a, b) => a.start - b.start)
-    .filter((cand, idx, arr) => {
-      if (idx === 0) return true;
-      const prev = arr[idx - 1];
-      return cand.start >= prev.end;
-    });
+
+  return candidates;
 }
 
-// Fast range overlap check using sorted array
-function hasOverlap(ranges, start, end) {
-  // Binary search would be better, but linear is fast enough for small arrays
-  for (const r of ranges) {
-    if (start < r.end && end > r.start) return true;
+// FNV-1a hash for cache keys — fast, low-collision string hash
+function fnv1aHash(str) {
+  let hash = 0x811c9dc5; // FNV offset basis
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = (hash * 0x01000193) >>> 0; // FNV prime, keep as uint32
   }
-  return false;
+  return hash.toString(36);
 }
 
 // Optimized sanitize with caching and early exits
@@ -273,72 +289,85 @@ function sanitizeText(text) {
   if (!text || text.length < CONFIG.minTextLength) {
     return { maskedText: text, replacements: [] };
   }
-  
-  // Check cache (simple hash)
-  const textHash = text.length + text.charCodeAt(0) + text.charCodeAt(text.length - 1);
-  const cacheKey = `${textHash}_${text.length}`;
+
+  // Check cache (FNV-1a inspired hash for better distribution)
+  const cacheKey = fnv1aHash(text);
   if (patternCache.has(cacheKey)) {
     const cached = patternCache.get(cacheKey);
     if (cached.text === text) return cached.result;
   }
-  
-  let maskedText = text;
-  const replacements = [];
-  const maskedRanges = []; // Sorted by start position
 
-  // Pattern-based matching (using pre-compiled patterns)
+  // Phase 1: Collect ALL matches in original-text coordinates (no mutations)
+  const allMatches = []; // { start, end, label, original }
+
+  // Pattern-based matching against the ORIGINAL text
   for (const { regex, label } of COMPILED_PATTERNS) {
+    regex.lastIndex = 0;
     let match;
-    while ((match = regex.exec(maskedText)) !== null) {
+    while ((match = regex.exec(text)) !== null) {
       const original = match[0];
       const start = match.index;
       const end = start + original.length;
-      
-      // Fast overlap check
-      if (hasOverlap(maskedRanges, start, end)) {
-        // Reset lastIndex if global flag to avoid infinite loop
-        if (!regex.global) break;
+
+      // Guard against zero-length matches to prevent infinite loops
+      if (original.length === 0) {
+        regex.lastIndex = start + 1;
         continue;
       }
-      
-      const placeholder = `[${label}_${replacements.length}]`;
-      maskedText = maskedText.substring(0, start) + placeholder + maskedText.substring(end);
-      replacements.push([placeholder, original]);
-      
-      // Insert range in sorted order
-      maskedRanges.push({ start, end: start + placeholder.length });
-      maskedRanges.sort((a, b) => a.start - b.start);
-      
-      // Adjust regex lastIndex for next iteration
-      if (regex.global) {
-        regex.lastIndex = start + placeholder.length;
-      } else {
-        break;
-      }
+
+      allMatches.push({ start, end, label, original });
+
+      if (!regex.global) break;
     }
-    // Reset regex for next pattern
-    if (regex.global) regex.lastIndex = 0;
+    regex.lastIndex = 0;
   }
 
-  // Entropy-based detection (only if patterns didn't catch everything)
-  if (replacements.length === 0 || maskedText.length > text.length * 0.5) {
-    const entropySecrets = findHighEntropySecrets(maskedText);
+  // Entropy-based detection on original text (only if few pattern matches)
+  const patternMatchCount = allMatches.length;
+  if (patternMatchCount === 0 || text.length > 100) {
+    const entropySecrets = findHighEntropySecrets(text);
     for (const { secret, start, end } of entropySecrets) {
-      if (!hasOverlap(maskedRanges, start, end)) {
-        const placeholder = `[ENTROPY_${replacements.length}]`;
-        maskedText = maskedText.slice(0, start) + placeholder + maskedText.slice(end);
-        replacements.push([placeholder, secret]);
-        maskedRanges.push({ start, end: start + placeholder.length });
-        maskedRanges.sort((a, b) => a.start - b.start);
-      }
+      allMatches.push({ start, end, label: 'ENTROPY', original: secret });
     }
   }
+
+  // Phase 2: Remove overlapping matches (prefer earlier, then longer)
+  allMatches.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const filtered = [];
+  for (const m of allMatches) {
+    if (filtered.length === 0 || m.start >= filtered[filtered.length - 1].end) {
+      filtered.push(m);
+    }
+  }
+
+  if (filtered.length === 0) {
+    return { maskedText: text, replacements: [] };
+  }
+
+  // Phase 3: Build masked text in one pass (left to right), assign placeholders
+  const replacements = [];
+  const parts = [];
+  let cursor = 0;
+  for (const m of filtered) {
+    if (m.start > cursor) {
+      parts.push(text.substring(cursor, m.start));
+    }
+    const placeholder = `[${m.label}_${replacements.length}]`;
+    parts.push(placeholder);
+    replacements.push([placeholder, m.original]);
+    cursor = m.end;
+  }
+  if (cursor < text.length) {
+    parts.push(text.substring(cursor));
+  }
+  const maskedText = parts.join('');
 
   const result = { maskedText, replacements };
 
-  // Track pattern statistics (async, don't block)
+  // Track pattern statistics (serialized to prevent lost updates)
   if (replacements.length > 0) {
-    safeStorageGet("patternStats").then(({ patternStats = {} }) => {
+    storageQueue.run(async () => {
+      const { patternStats = {} } = await safeStorageGet("patternStats");
       replacements.forEach(([placeholder]) => {
         const match = placeholder.match(/\[(\w+)_/);
         if (match) {
@@ -346,7 +375,7 @@ function sanitizeText(text) {
           patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
         }
       });
-      safeStorageSet({ patternStats });
+      await safeStorageSet({ patternStats });
     });
   }
   
@@ -502,45 +531,46 @@ async function decryptData(encryptedData) {
   }
 }
 
-// Vault save - silent on failure with encryption
+// Vault save - serialized to prevent read-modify-write races
 async function saveToVault(traceId, replacements) {
   if (!isExtensionContextValid()) return;
 
-  const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
+  return storageQueue.run(async () => {
+    try {
+      const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
+      const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await safeStorageGet(["vault", "stats"]);
 
-  try {
-    const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await safeStorageGet(["vault", "stats"]);
+      const now = Date.now();
+      Object.keys(vault).forEach(key => {
+        if (vault[key] && vault[key].expires < now) delete vault[key];
+      });
 
-    const now = Date.now();
-    Object.keys(vault).forEach(key => {
-      if (vault[key] && vault[key].expires < now) delete vault[key];
-    });
+      const today = new Date().toDateString();
+      if (stats.lastDate !== today) {
+        stats.todayBlocked = 0;
+        stats.lastDate = today;
+      }
+      stats.totalBlocked += replacements.length;
+      stats.todayBlocked += replacements.length;
 
-    const today = new Date().toDateString();
-    if (stats.lastDate !== today) {
-      stats.todayBlocked = 0;
-      stats.lastDate = today;
+      // Encrypt replacements before storing
+      const encryptedResult = await encryptData(replacements);
+      vault[traceId] = {
+        replacements: encryptedResult.data,
+        expires,
+        encrypted: encryptedResult.encrypted
+      };
+
+      if (Object.keys(vault).length > CONFIG.maxVaultEntries) {
+        const keys = Object.keys(vault).sort((a, b) => (vault[a]?.expires || 0) - (vault[b]?.expires || 0));
+        delete vault[keys[0]];
+      }
+
+      await safeStorageSet({ vault, stats });
+    } catch (_) {
+      // Silent - common on Gemini/ChatGPT context reloads
     }
-    stats.totalBlocked += replacements.length;
-    stats.todayBlocked += replacements.length;
-
-    // Encrypt replacements before storing
-    const encryptedResult = await encryptData(replacements);
-    vault[traceId] = { 
-      replacements: encryptedResult.data, 
-      expires, 
-      encrypted: encryptedResult.encrypted 
-    };
-
-    if (Object.keys(vault).length > CONFIG.maxVaultEntries) {
-      const keys = Object.keys(vault).sort((a, b) => (vault[a]?.expires || 0) - (vault[b]?.expires || 0));
-      delete vault[keys[0]];
-    }
-
-    await safeStorageSet({ vault, stats });
-  } catch (_) {
-    // Silent - common on Gemini/ChatGPT context reloads
-  }
+  });
 }
 
 // Simple toast for basic messages
@@ -759,6 +789,8 @@ function showSmartToast(secretTypes, onUndo) {
       flexShrink: "0"
     });
     undoBtn.textContent = "Undo";
+    // Prevent button from stealing focus away from the editor
+    undoBtn.addEventListener("mousedown", (e) => e.preventDefault());
     undoBtn.onmouseenter = () => {
       undoBtn.style.background = "rgba(255,255,255,0.15)";
       undoBtn.style.color = "#f1f5f9";
@@ -769,12 +801,13 @@ function showSmartToast(secretTypes, onUndo) {
     };
     undoBtn.onclick = (e) => {
       e.stopPropagation();
-      onUndo();
+      clearTimeout(dismissTimeout);
+      const success = onUndo();
       toast.style.opacity = "0";
       toast.style.transform = "translateY(16px)";
       setTimeout(() => {
         toast.remove();
-        showToast("Restored original text", "info");
+        showToast(success !== false ? "Restored original text" : "Couldn't restore text", success !== false ? "info" : "error");
       }, 200);
     };
     content.appendChild(undoBtn);
@@ -789,7 +822,8 @@ function showSmartToast(secretTypes, onUndo) {
   });
 
   // Auto-dismiss after 5 seconds (longer to allow undo)
-  const dismissTimeout = setTimeout(() => {
+  // Declared with let so undo button can clear it (hoisted above onclick)
+  let dismissTimeout = setTimeout(() => {
     toast.style.opacity = "0";
     toast.style.transform = "translateY(16px)";
     setTimeout(() => toast.remove(), 250);
@@ -805,7 +839,8 @@ function showSmartToast(secretTypes, onUndo) {
 }
 
 // Optimized paste handler with performance tracking
-document.addEventListener("paste", (e) => {
+// Use window capture phase to fire BEFORE any site handlers on document
+window.addEventListener("paste", (e) => {
   const clipboardText = e.clipboardData?.getData("text");
   if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
 
@@ -831,87 +866,140 @@ document.addEventListener("paste", (e) => {
   // Async save (don't block UI)
   saveToVault(traceId, replacements).catch(() => {});
 
-  // Track insertion position for undo
-  let insertionStart = 0;
-  let insertionEnd = 0;
+  let inserted = false;
 
-  // Optimized text insertion
-  const insertText = (text, element) => {
-    if (!element) return false;
+  if (target && target.isContentEditable) {
+    // ContentEditable (ChatGPT/Lexical, Claude/ProseMirror, Gemini):
+    // execCommand('insertText') integrates with the editor's undo stack.
+    try {
+      inserted = document.execCommand('insertText', false, maskedText);
+    } catch (_) {}
 
-    // ContentEditable elements (ChatGPT, Claude, Gemini)
-    if (element.isContentEditable) {
-      try {
-        document.execCommand('insertText', false, text);
-        return true;
-      } catch (_) {}
-
+    // Fallback: Selection API (no undo stack integration)
+    if (!inserted) {
       try {
         const sel = window.getSelection();
         if (sel.rangeCount > 0) {
           const range = sel.getRangeAt(0);
           range.deleteContents();
-          range.insertNode(document.createTextNode(text));
+          range.insertNode(document.createTextNode(maskedText));
           range.collapse(false);
-          element.dispatchEvent(new Event('input', { bubbles: true }));
-          return true;
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          inserted = true;
         }
       } catch (_) {}
-
-      return false;
     }
-
+  } else if (target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) {
     // Textarea / Input elements
-    if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
-      try {
-        const start = element.selectionStart || 0;
-        const end = element.selectionEnd || 0;
-        const value = element.value || '';
-        const newValue = value.substring(0, start) + text + value.substring(end);
+    try {
+      const start = target.selectionStart || 0;
+      const end = target.selectionEnd || 0;
+      const value = target.value || '';
+      const newValue = value.substring(0, start) + maskedText + value.substring(end);
 
-        insertionStart = start;
-        insertionEnd = start + text.length;
+      // Use native setter for React/framework compatibility
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(target), 'value'
+      )?.set;
+      if (nativeSetter) {
+        nativeSetter.call(target, newValue);
+      } else {
+        target.value = newValue;
+      }
+      const cursorPos = start + maskedText.length;
+      target.setSelectionRange(cursorPos, cursorPos);
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+      target.dispatchEvent(new Event('change', { bubbles: true }));
+      inserted = true;
+    } catch (_) {}
+  }
 
-        element.value = newValue;
-        element.setSelectionRange(insertionEnd, insertionEnd);
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        return true;
-      } catch (_) {}
-
-      return false;
-    }
-
-    return false;
-  };
-
-  if (insertText(maskedText, target)) {
+  if (inserted) {
     // Extract secret types from placeholders (e.g., [OPENAI_KEY_0] -> OPENAI_KEY)
-    // Uses same regex pattern as patternStats tracking for consistency
     const secretTypes = replacements.map(([placeholder]) => {
       const match = placeholder.match(/\[(\w+)_/);
       return match ? match[1] : placeholder.replace(/[\[\]]/g, '');
     });
 
-    // Undo function - replaces masked text with original
+    // Undo: replace each placeholder with its original secret individually.
+    // This is more robust than replacing the entire maskedText at once, because
+    // rich text editors (Lexical, ProseMirror) often split/reformat inserted text.
     const handleUndo = () => {
       try {
-        if (target && (target.value !== undefined || target.textContent !== undefined)) {
-          const currentValue = target.value !== undefined ? target.value : target.textContent;
-          const beforeInsert = currentValue.substring(0, insertionStart);
-          const afterInsert = currentValue.substring(insertionEnd);
-          const restoredValue = beforeInsert + clipboardText + afterInsert;
+        if (target.isContentEditable) {
+          target.focus();
+          let restored = 0;
 
-          if (target.value !== undefined) {
-            target.value = restoredValue;
-            target.setSelectionRange(insertionStart + clipboardText.length, insertionStart + clipboardText.length);
+          // Replace each placeholder individually in reverse order (last first)
+          // so earlier positions aren't shifted by earlier replacements
+          for (let i = replacements.length - 1; i >= 0; i--) {
+            const [placeholder, original] = replacements[i];
+
+            // Walk text nodes fresh each time (DOM changes after each replacement)
+            const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+            let node;
+            while ((node = walker.nextNode())) {
+              const idx = node.textContent.indexOf(placeholder);
+              if (idx !== -1) {
+                // Select just this placeholder and replace it
+                const range = document.createRange();
+                range.setStart(node, idx);
+                range.setEnd(node, idx + placeholder.length);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand('insertText', false, original);
+                restored++;
+                break;
+              }
+            }
+          }
+
+          // If no individual placeholders found, try full-text fallback
+          if (restored === 0) {
+            document.execCommand('undo');
+          }
+          target.focus();
+          return restored > 0;
+        } else if (target.value !== undefined) {
+          target.focus();
+
+          // Replace each placeholder individually in the value
+          let currentValue = target.value;
+          let restored = 0;
+
+          for (const [placeholder, original] of replacements) {
+            const idx = currentValue.indexOf(placeholder);
+            if (idx !== -1) {
+              currentValue = currentValue.substring(0, idx) + original + currentValue.substring(idx + placeholder.length);
+              restored++;
+            }
+          }
+
+          if (restored > 0) {
+            // Use native setter for React/framework compatibility
+            const nativeSetter = Object.getOwnPropertyDescriptor(
+              Object.getPrototypeOf(target), 'value'
+            )?.set;
+            if (nativeSetter) {
+              nativeSetter.call(target, currentValue);
+            } else {
+              target.value = currentValue;
+            }
           } else {
-            target.textContent = restoredValue;
+            // Full-text fallback: replace entire maskedText block
+            const idx = currentValue.indexOf(maskedText);
+            if (idx !== -1) {
+              target.value = currentValue.substring(0, idx) + clipboardText + currentValue.substring(idx + maskedText.length);
+            }
           }
           target.dispatchEvent(new Event('input', { bubbles: true }));
-          target.focus();
+          target.dispatchEvent(new Event('change', { bubbles: true }));
+          return restored > 0;
         }
+        return false;
       } catch (_) {
-        showToast("Couldn't restore text", "error");
+        return false;
       }
     };
 

@@ -58,32 +58,39 @@ async function decryptData(encryptedData) {
   }
 }
 
-// Test sanitization patterns
+// Test sanitization patterns (mirrors content_script.js patterns)
 function testSanitize(text) {
   const patterns = [
     // Cloud & prefixed keys
     [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
+    [/\bASIA[0-9A-Z]{16}\b/gi, "AWS_TEMP_KEY"],
     [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
     [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
     [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/g, "GITHUB_FINE_PAT"],
     [/\bglpat-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TOKEN"],
     [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
-    [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
-    [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
-    [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
-    [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
+    [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
     [/\bsk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_KEY"],
     [/\bsk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_KEY"],
     [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
     [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
+    [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
     [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
     [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
     [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/g, "SLACK_TOKEN"],
     [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/g, "SENDGRID_KEY"],
+    [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
+    [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
+    [/\bgsk_[A-Za-z0-9]{48,}\b/gi, "GROQ_KEY"],
+    [/\bhf_[A-Za-z0-9]{34,}\b/g, "HUGGINGFACE_TOKEN"],
     [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
+    [/\bnpm_[A-Za-z0-9]{36,}\b/g, "NPM_TOKEN"],
+    [/\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/g, "SHOPIFY_TOKEN"],
+    [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
+    [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
     [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
     [/(?:otp|pin|code)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
-    [/(?:password|passwd|pwd)[\s:=]+['"]?[A-Za-z0-9!@#$%^&*]{8,}['"]?/gi, "PASSWORD_HINT"],
+    [/(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi, "PASSWORD_HINT"],
     [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
     [/\b(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
     [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
@@ -91,21 +98,40 @@ function testSanitize(text) {
     [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
     [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
     [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
-    [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, "BASE64_SECRET"],
   ];
 
-  let masked = text;
-  let count = 0;
-
+  // Phase 1: Collect all matches on original text
+  const allMatches = [];
   for (const [pattern, label] of patterns) {
-    const matches = masked.match(pattern);
-    if (matches) {
-      count += matches.length;
-      masked = masked.replace(pattern, `[${label}]`);
+    const regex = new RegExp(pattern.source, pattern.flags);
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match[0].length === 0) { regex.lastIndex++; continue; }
+      allMatches.push({ start: match.index, end: match.index + match[0].length, label, original: match[0] });
+      if (!regex.global) break;
     }
   }
 
-  return { maskedText: masked, count };
+  // Phase 2: Remove overlapping matches (prefer earlier, then longer)
+  allMatches.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  const filtered = [];
+  for (const m of allMatches) {
+    if (filtered.length === 0 || m.start >= filtered[filtered.length - 1].end) {
+      filtered.push(m);
+    }
+  }
+
+  // Phase 3: Build masked text
+  const parts = [];
+  let cursor = 0;
+  for (const m of filtered) {
+    if (m.start > cursor) parts.push(text.substring(cursor, m.start));
+    parts.push(`[${m.label}]`);
+    cursor = m.end;
+  }
+  if (cursor < text.length) parts.push(text.substring(cursor));
+
+  return { maskedText: parts.join(''), count: filtered.length };
 }
 
 // Detect if text contains placeholders (unmask mode)
