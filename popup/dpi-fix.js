@@ -1,21 +1,14 @@
-// Windows DPI scaling fix.
-// On Windows, Chrome applies OS display scaling to extension popups,
-// making them appear larger than intended. macOS handles this correctly.
-// We apply inverse zoom to fix dimensions, then restore font-size so text
-// stays readable instead of shrinking with the zoom.
+// Secret Sanitizer - Windows High DPI Popup Fix (Recommended)
 (function() {
-  var platform = '';
-  if (navigator.userAgentData && navigator.userAgentData.platform) {
-    platform = navigator.userAgentData.platform;
-  } else {
-    platform = navigator.userAgent || '';
-  }
-  var isWindows = /win/i.test(platform);
-  var dpr = window.devicePixelRatio;
-  if (isWindows && dpr && dpr !== 1) {
-    document.documentElement.style.zoom = (1 / dpr);
-    // Counteract zoom's text shrinkage: bump root font-size so em-based
-    // sizes render at their intended visual size despite the zoom.
-    document.documentElement.style.fontSize = (dpr * 100) + '%';
+  const isWindows = /win/i.test(navigator.userAgentData?.platform || navigator.userAgent);
+  const dpr = window.devicePixelRatio || 1;
+
+  if (isWindows && dpr > 1.15) {
+    // Gentle increase (feels perfect on 125–175% scaling)
+    document.documentElement.style.fontSize = '107.5%';
+    
+    // Make popup comfortably larger on Windows
+    const container = document.querySelector('.container');
+    if (container) container.style.width = '398px';
   }
 })();
