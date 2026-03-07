@@ -223,6 +223,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+
+  sendResponse({ error: "unknown action" });
+  return false;
 });
 
 // ==================== DECRYPTION ====================

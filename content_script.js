@@ -847,7 +847,9 @@ window.addEventListener("paste", (e) => {
   const target = document.activeElement;
 
   // Async save (don't block UI)
-  saveToVault(traceId, replacements).catch(() => {});
+  saveToVault(traceId, replacements).catch(() => {
+    showToast("Could not save to vault — undo unavailable", "warning");
+  });
 
   let inserted = false;
 

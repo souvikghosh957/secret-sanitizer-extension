@@ -39,14 +39,17 @@ function animateCount(element, target, duration = 1000) {
 // Decrypt vault data
 async function decryptData(encryptedData) {
   try {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: "decrypt", data: encryptedData },
-        (response) => {
-          resolve(response?.decrypted || encryptedData);
-        }
-      );
-    });
+    return await Promise.race([
+      new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { action: "decrypt", data: encryptedData },
+          (response) => {
+            resolve(response?.decrypted || encryptedData);
+          }
+        );
+      }),
+      new Promise((resolve) => setTimeout(() => resolve(encryptedData), 3000))
+    ]);
   } catch (_) {
     try {
       if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
