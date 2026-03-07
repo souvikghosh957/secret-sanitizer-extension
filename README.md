@@ -157,7 +157,7 @@ Works out of the box on every major AI chat:
 <td align="center"><strong>Backup & Restore</strong><br><sub>Export/import your config as JSON</sub></td>
 <td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your setup</sub></td>
 <td align="center"><strong>Share Button</strong><br><sub>Spread the word in one click</sub></td>
-<td align="center"><strong>~68 KB Total</strong><br><sub>Lightweight, no bloat, no deps</sub></td>
+<td align="center"><strong>Lightweight</strong><br><sub>No bloat, no dependencies</sub></td>
 </tr>
 </table>
 
