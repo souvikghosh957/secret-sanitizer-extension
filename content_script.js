@@ -116,6 +116,7 @@ const PATTERN_GUARDS = {
   PRIVATE_KEY: '-----begin', SSH_PRIVATE_KEY: '-----begin', PGP_PRIVATE_KEY: '-----begin',
   UPI_ID: '@', UPI_ID_GENERIC: '@upi', UPI_TEST_ID: '@', PAYMENT_UPI_ID: '@',
   VOTER_ID: 'voter', PASSPORT: 'passport', VEHICLE_REG: 'vehicle',
+  API_KEY_FORMAT: 'api', ACCESS_KEY_FORMAT: 'access',
   SECRET_KEY_FORMAT: 'secret',
 };
 
@@ -295,15 +296,12 @@ function sanitizeText(text) {
     capped = runPatterns(COMPILED_PATTERNS.tier2, text, textLower, allMatches, false);
   }
 
-  // Entropy-based detection on original text
-  // Skip on large pastes — entropy is designed for short snippets, not entire codebases
-  if (!capped && !isLargePaste) {
-    const patternMatchCount = allMatches.length;
-    if (patternMatchCount === 0 || text.length > 100) {
-      const entropySecrets = findHighEntropySecrets(text);
-      for (const { secret, start, end } of entropySecrets) {
-        allMatches.push({ start, end, label: 'ENTROPY', original: secret });
-      }
+  // Entropy-based detection on original text (fallback for secrets without known prefixes)
+  // Skip when: large paste, match cap hit, or patterns already found enough (≥5)
+  if (!capped && !isLargePaste && allMatches.length < 5) {
+    const entropySecrets = findHighEntropySecrets(text);
+    for (const { secret, start, end } of entropySecrets) {
+      allMatches.push({ start, end, label: 'ENTROPY', original: secret });
     }
   }
 
