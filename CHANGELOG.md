@@ -2,6 +2,21 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.2.0] - 2026-03-07
+
+### Fixed
+- `dismissTimeout` variable ordering in smart toast — declared before undo button closure that references it
+- Stale vault timer display — `minsLeft` now uses live `Date.now()` instead of captured startup value
+- Missing `VERCEL_TOKEN` guard in pattern fast-filter — regex was running unnecessarily on every paste
+- Background message handler returns `false` for unknown senders to properly close message port
+- `.DS_Store` files and old release `.zip` files removed from git tracking
+
+### Changed
+- **False positive reduction**: `INDIAN_PHONE`, `VOTER_ID`, `PASSPORT`, and `VEHICLE_REG` patterns now require keyword context (e.g., `+91`, `phone:`, `passport no:`) instead of matching bare numbers/codes
+- **Pattern deduplication**: all 50+ detection patterns moved to shared `patterns.js` — single source of truth for both content script and popup test mode (eliminates drift risk)
+- Quick-check fast path updated to cover Vercel token prefix and contextual pattern keywords
+- Added explicit Content Security Policy (`script-src 'self'`) to manifest.json
+
 ## [2.1.3] - 2026-03-06
 
 ### Fixed

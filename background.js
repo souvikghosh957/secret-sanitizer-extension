@@ -18,7 +18,7 @@ async function registerContentScripts() {
       await chrome.scripting.registerContentScripts([{
         id: "secret-sanitizer",
         matches: allMatches,
-        js: ["content_script.js"],
+        js: ["patterns.js", "content_script.js"],
         runAt: "document_idle"
       }]);
     }
@@ -212,7 +212,7 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // Only accept messages from this extension (content scripts or popup)
-  if (sender.id !== chrome.runtime.id) return;
+  if (sender.id !== chrome.runtime.id) return false;
 
   if (request.action === "decrypt") {
     decryptVaultData(request.data).then(decrypted => {

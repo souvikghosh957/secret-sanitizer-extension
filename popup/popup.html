@@ -82,11 +82,11 @@
     </div>
 
     <nav class="tabs" role="tablist">
-      <button class="tab-btn active" data-tab="main" role="tab" aria-selected="true"><i class="fas fa-home"></i> Main</button>
-      <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false"><i class="fas fa-cog"></i> Settings</button>
+      <button class="tab-btn active" id="main-tab-btn" data-tab="main" role="tab" aria-selected="true"><i class="fas fa-home"></i> Main</button>
+      <button class="tab-btn" id="settings-tab-btn" data-tab="settings" role="tab" aria-selected="false"><i class="fas fa-cog"></i> Settings</button>
     </nav>
 
-    <div id="main-tab" class="tab-content active">
+    <div id="main-tab" class="tab-content active" role="tabpanel" aria-labelledby="main-tab-btn">
       <div id="noSitesWarning" class="no-sites-warning hidden">
         <i class="fas fa-exclamation-triangle"></i>
         <span>No websites active. Go to <strong>Settings → Custom Websites</strong> to add sites.</span>
@@ -148,7 +148,7 @@
       </section>
     </div>
 
-    <div id="settings-tab" class="tab-content">
+    <div id="settings-tab" class="tab-content" role="tabpanel" aria-labelledby="settings-tab-btn">
       <section class="section accordion" id="sitesAccordion">
         <div class="accordion-header" data-accordion="sites">
           <h2 class="section-title"><i class="fas fa-globe"></i> Custom Websites</h2>
@@ -217,6 +217,7 @@
       </section>
     </div>
   </div>
+  <script src="../patterns.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

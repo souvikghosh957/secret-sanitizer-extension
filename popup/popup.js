@@ -58,47 +58,9 @@ async function decryptData(encryptedData) {
   }
 }
 
-// Test sanitization patterns (mirrors content_script.js patterns)
+// Test sanitization using shared patterns from patterns.js (single source of truth)
 function testSanitize(text) {
-  const patterns = [
-    // Cloud & prefixed keys
-    [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
-    [/\bASIA[0-9A-Z]{16}\b/gi, "AWS_TEMP_KEY"],
-    [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
-    [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
-    [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/g, "GITHUB_FINE_PAT"],
-    [/\bglpat-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TOKEN"],
-    [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
-    [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
-    [/\bsk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_KEY"],
-    [/\bsk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_KEY"],
-    [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
-    [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
-    [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
-    [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
-    [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
-    [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/g, "SLACK_TOKEN"],
-    [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/g, "SENDGRID_KEY"],
-    [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
-    [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
-    [/\bgsk_[A-Za-z0-9]{48,}\b/gi, "GROQ_KEY"],
-    [/\bhf_[A-Za-z0-9]{34,}\b/g, "HUGGINGFACE_TOKEN"],
-    [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
-    [/\bnpm_[A-Za-z0-9]{36,}\b/g, "NPM_TOKEN"],
-    [/\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/g, "SHOPIFY_TOKEN"],
-    [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
-    [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
-    [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
-    [/(?:otp|pin|code)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
-    [/(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi, "PASSWORD_HINT"],
-    [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
-    [/\b(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
-    [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE|OPENSSH\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
-    [/(?:api[_-]?key|apikey|api_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "API_KEY_FORMAT"],
-    [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
-    [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
-    [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
-  ];
+  const patterns = SHARED_PATTERNS;
 
   // Phase 1: Collect all matches on original text
   const allMatches = [];
@@ -467,7 +429,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else {
               showNotification("No secrets detected", "warning");
             }
+
+            actionBtn.classList.remove('loading');
+            actionBtn.disabled = false;
           });
+          return; // button re-enabled inside rAF
         }
 
         actionBtn.classList.remove('loading');
@@ -485,7 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const renderRecent = (targetList, limit = 3, searchTerm = "") => {
       if (!targetList) return;
-      targetList.innerHTML = "";
+      targetList.replaceChildren();
 
       let traceIds = Object.keys(vault)
         .filter(id => {
@@ -504,7 +470,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         traceIds.forEach(id => {
           const entry = vault[id];
           if (!entry) return;
-          const minsLeft = Math.max(1, Math.round((entry.expires - now) / 60000));
+          const minsLeft = Math.max(1, Math.round((entry.expires - Date.now()) / 60000));
           const count = entry.encrypted
             ? (typeof entry.replacements === 'string' ? '?' : entry.replacements?.length || 0)
             : (Array.isArray(entry.replacements) ? entry.replacements.length : 0);
@@ -721,7 +687,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (togglesDiv) {
       const renderPatterns = (search = "") => {
-        togglesDiv.innerHTML = "";
+        togglesDiv.replaceChildren();
         allLabels
           .filter(l => l.toLowerCase().includes(search.toLowerCase()))
           .forEach(label => {
@@ -942,8 +908,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             actionBtn?.click();
             break;
           case 'd':
-            e.preventDefault();
-            clearVaultBtn?.click();
+            if (e.shiftKey) {
+              e.preventDefault();
+              clearVaultBtn?.click();
+            }
             break;
         }
       }

@@ -51,6 +51,9 @@ function safeStorageSet(data) {
         return;
       }
       chrome.storage.local.set(data, () => {
+        if (chrome.runtime.lastError) {
+          console.warn('Storage write failed:', chrome.runtime.lastError.message);
+        }
         resolve();
       });
     } catch (_) {
@@ -72,135 +75,8 @@ const storageQueue = {
   }
 };
 
-// Enhanced patterns with comprehensive secret detection
-// Order: specific prefixed patterns first, then contextual, then generic (last resort)
-const ALL_PATTERNS = [
-  // === CLOUD PROVIDER KEYS ===
-  // AWS
-  [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
-  [/\bASIA[0-9A-Z]{16}\b/gi, "AWS_TEMP_KEY"],
-  // Azure (contextual — only near azure-specific keywords)
-  [/(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}['"]?/gi, "AZURE_SECRET"],
-  // Google
-  [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
-
-  // === VCS & CI/CD TOKENS ===
-  [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
-  [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/g, "GITHUB_FINE_PAT"],
-  [/\bglpat-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TOKEN"],
-  [/\bglptt-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TRIGGER_TOKEN"],
-
-  // === JWT TOKENS ===
-  [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
-
-  // === DATABASE CONNECTIONS ===
-  [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
-
-  // === CREDIT CARDS ===
-  // Visa, Mastercard, Amex, Diners Club (30x/36x/38x), Discover
-  [/\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12})\b/g, "CREDIT_CARD"],
-
-  // === PAYMENT PLATFORMS ===
-  // Stripe
-  [/\bsk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_KEY"],
-  [/\bsk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_KEY"],
-  [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
-  [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
-  // Square
-  [/\bsq0atp-[A-Za-z0-9\-_]{22,}\b/g, "SQUARE_ACCESS_TOKEN"],
-  [/\bsq0csp-[A-Za-z0-9\-_]{22,}\b/g, "SQUARE_SECRET"],
-  // Razorpay
-  [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
-  [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
-  // Paytm
-  [/\bpaytm[_\s-]?(?:key|secret|token)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_KEY"],
-  [/\b(?:merchant[_\s-]?key|merchant[_\s-]?id)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_MERCHANT"],
-
-  // === COMMUNICATION & MESSAGING ===
-  // Twilio
-  [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
-  [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi, "TWILIO_AUTH_TOKEN"],
-  // Slack (xoxb=bot, xoxp=user, xoxa=app, xoxr=refresh, xoxs=session, xoxe=expiring)
-  [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/g, "SLACK_TOKEN"],
-  // Discord webhook
-  [/\bhttps:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+\b/g, "DISCORD_WEBHOOK"],
-  // Telegram bot
-  [/\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, "TELEGRAM_BOT_TOKEN"],
-  // SendGrid
-  [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/g, "SENDGRID_KEY"],
-  // Mailgun (contextual to avoid "key-value" false positives)
-  [/(?:mailgun|MAILGUN_API_KEY)\s*[=:]\s*['"]?key-[a-z0-9]{32,}['"]?/gi, "MAILGUN_KEY"],
-
-  // === AI & ML PLATFORMS ===
-  [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
-  [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
-  [/\bgsk_[A-Za-z0-9]{48,}\b/gi, "GROQ_KEY"],
-  [/\bhf_[A-Za-z0-9]{34,}\b/g, "HUGGINGFACE_TOKEN"],
-
-  // === CLOUD PLATFORMS ===
-  // Firebase
-  [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
-  // Heroku (contextual — only near heroku/api keywords to avoid UUID false positives)
-  [/(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)\s*[=:]\s*['"]?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}['"]?/gi, "HEROKU_API_KEY"],
-  // Vercel (vc prefixed tokens)
-  [/\bvc[pcirka]_[A-Za-z0-9_\-]{24,}\b/g, "VERCEL_TOKEN"],
-  // DigitalOcean
-  [/\bdop_v1_[a-f0-9]{64}\b/g, "DIGITALOCEAN_TOKEN"],
-  [/\bdoctl-[A-Za-z0-9\-]{40,}\b/g, "DIGITALOCEAN_REFRESH"],
-  // Supabase
-  [/\bsbp_[a-f0-9]{40,}\b/g, "SUPABASE_TOKEN"],
-  // Cloudflare (contextual — no distinct prefix, so require keyword context)
-  [/(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{37,}['"]?/gi, "CLOUDFLARE_TOKEN"],
-  // Datadog (contextual — only near datadog/dd keywords to avoid hex false positives)
-  [/(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)\s*[=:]\s*['"]?[a-f0-9]{32,}['"]?/gi, "DATADOG_KEY"],
-
-  // === E-COMMERCE ===
-  // Shopify
-  [/\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/g, "SHOPIFY_TOKEN"],
-
-  // === PACKAGE REGISTRIES ===
-  [/\bnpm_[A-Za-z0-9]{36,}\b/g, "NPM_TOKEN"],
-  [/\bpypi-[A-Za-z0-9\-_]{50,}\b/g, "PYPI_TOKEN"],
-
-  // === INDIAN PII ===
-  [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
-  [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
-  [/\b[6-9]\d{9}\b/g, "INDIAN_PHONE"],
-  [/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}\b/gi, "GSTIN"],
-  [/\b[A-Z]{4}0[A-Z0-9]{6}\b/gi, "IFSC"],
-  [/\b[\w\.-]+@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)\b/gi, "UPI_ID"],
-  [/\b[\w\.-]+@upi\b/gi, "UPI_ID_GENERIC"],
-  [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
-  [/\b[\w\.-]+@(?:razorpay|payu|paytm)\b/gi, "PAYMENT_UPI_ID"],
-  [/\b[A-Z]{2}[0-9]{2}[\s-]?[0-9]{4}[\s-]?[0-9]{7}\b/gi, "DRIVING_LICENSE"],
-  [/\b[A-Z]{3}[0-9]{7}\b/gi, "VOTER_ID"],
-  [/\b[A-PR-V][1-9]\d{6}\b/gi, "PASSPORT"],
-  [/\b[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}\b/gi, "VEHICLE_REG"],
-
-  // === SENSITIVE CONTEXT PATTERNS ===
-  [/(?:otp|pin|code|verification)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
-  [/\b(?:enter|your|the)[\s]+(?:otp|pin|code)[\s:]+(\d{4,8})\b/gi, "OTP_CODE"],
-  [/(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
-  [/(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi, "PASSWORD_HINT"],
-  [/\b(bearer|token)[\s:]+[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
-
-  // === KEY=VALUE FORMAT PATTERNS ===
-  [/(?:api[_-]?key|apikey|api_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "API_KEY_FORMAT"],
-  [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
-  [/(?:access[_-]?key|accesskey|access_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "ACCESS_KEY_FORMAT"],
-  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "AUTH_SECRET_FORMAT"],
-
-  // === PRIVATE KEYS ===
-  [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
-  [/-----BEGIN\s+OPENSSH\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+OPENSSH\s+PRIVATE\s+KEY-----/gi, "SSH_PRIVATE_KEY"],
-  [/-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----/gi, "PGP_PRIVATE_KEY"],
-
-  // === GENERIC FALLBACKS (order matters — these are last resort) ===
-  [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
-  [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
-  [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, "BASE64_SECRET"]
-];
-
+// Patterns are defined in patterns.js (shared with popup.js to prevent drift)
+const ALL_PATTERNS = SHARED_PATTERNS;
 let SECRET_PATTERNS = ALL_PATTERNS;
 
 // Generic fallback pattern labels — slow on large text, skipped for pastes > largePasteThreshold
@@ -209,9 +85,8 @@ const TIER2_LABELS = new Set(["QUOTED_SECRET", "LONG_RANDOM_STRING", "BASE64_SEC
 // Broad patterns without distinctive prefixes — skipped on large text (>5KB) to avoid
 // full-string regex scans on code/HTML where they produce mostly false positives.
 const LARGE_TEXT_SKIP_LABELS = new Set([
-  "CREDIT_CARD", "AADHAAR", "PAN", "INDIAN_PHONE", "GSTIN", "IFSC",
-  "DRIVING_LICENSE", "VOTER_ID", "PASSPORT", "VEHICLE_REG",
-  "TELEGRAM_BOT_TOKEN", "TWILIO_SID",
+  "CREDIT_CARD", "AADHAAR", "PAN", "GSTIN", "IFSC",
+  "DRIVING_LICENSE", "TELEGRAM_BOT_TOKEN", "TWILIO_SID",
 ]);
 
 // Literal guard strings (lowercase) — checked via fast includes() before running regex.
@@ -236,10 +111,11 @@ const PATTERN_GUARDS = {
   FIREBASE_KEY: 'aaaa', HEROKU_API_KEY: 'heroku',
   DIGITALOCEAN_TOKEN: 'dop_v1_', DIGITALOCEAN_REFRESH: 'doctl-',
   SUPABASE_TOKEN: 'sbp_', CLOUDFLARE_TOKEN: 'cloudflare',
-  DATADOG_KEY: 'datadog', SHOPIFY_TOKEN: 'shp',
+  VERCEL_TOKEN: 'vc', DATADOG_KEY: 'datadog', SHOPIFY_TOKEN: 'shp',
   NPM_TOKEN: 'npm_', PYPI_TOKEN: 'pypi-',
   PRIVATE_KEY: '-----begin', SSH_PRIVATE_KEY: '-----begin', PGP_PRIVATE_KEY: '-----begin',
   UPI_ID: '@', UPI_ID_GENERIC: '@upi', UPI_TEST_ID: '@', PAYMENT_UPI_ID: '@',
+  VOTER_ID: 'voter', PASSPORT: 'passport', VEHICLE_REG: 'vehicle',
   SECRET_KEY_FORMAT: 'secret',
 };
 
@@ -394,7 +270,12 @@ function sanitizeText(text) {
   const cacheKey = fnv1aHash(text);
   if (patternCache.has(cacheKey)) {
     const cached = patternCache.get(cacheKey);
-    if (cached.text === text) return cached.result;
+    if (cached.text === text) {
+      // Move to end for LRU eviction (delete + re-insert)
+      patternCache.delete(cacheKey);
+      patternCache.set(cacheKey, cached);
+      return cached.result;
+    }
   }
 
   // Phase 1: Collect ALL matches in original-text coordinates (no mutations)
@@ -872,6 +753,10 @@ function showSmartToast(secretTypes, onUndo) {
   content.appendChild(icon);
   content.appendChild(textWrap);
 
+  // Auto-dismiss after 5 seconds (longer to allow undo)
+  // Declared before undo button so the onclick closure can reference it
+  let dismissTimeout;
+
   // Undo button (if callback provided)
   if (onUndo) {
     const undoBtn = document.createElement("button");
@@ -920,9 +805,7 @@ function showSmartToast(secretTypes, onUndo) {
     toast.style.transform = "translateY(0)";
   });
 
-  // Auto-dismiss after 5 seconds (longer to allow undo)
-  // Declared with let so undo button can clear it (hoisted above onclick)
-  let dismissTimeout = setTimeout(() => {
+  dismissTimeout = setTimeout(() => {
     toast.style.opacity = "0";
     toast.style.transform = "translateY(16px)";
     setTimeout(() => toast.remove(), 250);
@@ -944,7 +827,7 @@ window.addEventListener("paste", (e) => {
   if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
 
   // Fast path: quick check if text looks like it might contain secrets
-  const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|github_pat_|glpat-|eyJ|sk_(live|test)|pk_(live|test)|sk-proj-|sk-ant-|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|xox[bpsare]-|SG\.|hf_|gsk_|shp(?:at|ca|pa|ss|ua)_|dop_v1_|sbp_|npm_|sq0|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|password|passwd|pwd|bearer|token[\s:=]|success@|failure@|test@|discord(?:app)?\.com\/api\/webhooks|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|[6-9]\d{9}|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)|mongodb:|postgres:|mysql:|redis:|amqp:/i.test(clipboardText);
+  const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|github_pat_|glpat-|eyJ|sk_(live|test)|pk_(live|test)|sk-proj-|sk-ant-|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|xox[bpsare]-|SG\.|hf_|gsk_|shp(?:at|ca|pa|ss|ua)_|dop_v1_|sbp_|npm_|sq0|vc[pcirka]_|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|password|passwd|pwd|bearer|token[\s:=]|success@|failure@|test@|discord(?:app)?\.com\/api\/webhooks|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|\+91|phone|mobile|voter|passport|vehicle|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)|mongodb:|postgres:|mysql:|redis:|amqp:/i.test(clipboardText);
   if (!quickCheck && clipboardText.length < 200) {
     // Short/medium text without obvious patterns - skip processing
     return;
