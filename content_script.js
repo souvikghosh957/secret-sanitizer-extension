@@ -1,7 +1,7 @@
 // Config
 const CONFIG = {
   minEntropyLength: 12,
-  entropyThreshold: 4.0,
+  entropyThreshold: 4.2,
   vaultTTLMinutes: 15,
   maxVaultEntries: 50,
   cacheSize: 100, // Cache last N text samples
@@ -220,6 +220,9 @@ function findHighEntropySecrets(text) {
     const trimmed = word.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "");
     const trimOffset = word.indexOf(trimmed);
     if (trimmed.length < CONFIG.minEntropyLength) continue;
+
+    // NEW: Skip URL-like strings to avoid false positives on GitHub links, etc.
+    if (word.startsWith('http') && word.includes('://')) continue;
 
     // Calculate entropy on alphanumeric-only content
     const alphanumOnly = trimmed.replace(/[^A-Za-z0-9]/g, "");
