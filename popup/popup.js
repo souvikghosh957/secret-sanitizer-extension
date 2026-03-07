@@ -741,16 +741,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     const saveSitesAndRegister = async () => {
+      // Save first — if the permission prompt closes the popup, data is still persisted
+      await chrome.storage.local.set({ customSites, removedDefaults });
+      updateNoSitesWarning();
+
       try {
         if (customSites.length > 0) {
           const origins = customSites.map(s => `*://${s}/*`);
           await chrome.permissions.request({ origins });
         }
       } catch (_) {}
-
-      // Save to storage — background.js listens and re-registers content scripts
-      await chrome.storage.local.set({ customSites, removedDefaults });
-      updateNoSitesWarning();
     };
 
     const renderSiteChips = () => {
