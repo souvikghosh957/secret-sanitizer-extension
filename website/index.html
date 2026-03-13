@@ -18,7 +18,7 @@
   <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
   <meta property="og:image:alt" content="Secret Sanitizer — Mask API Keys & Secrets in AI Chats">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="536">
+  <meta property="og:image:height" content="543">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@souvik_ghosh975">
@@ -162,11 +162,11 @@
 
     /* ====================== HERO ====================== */
     .hero {
-      min-height: 90vh;
+      min-height: 88vh;
       display: flex;
       align-items: center;
       position: relative;
-      padding: 72px 0 60px;
+      padding: 80px 0 48px;
       overflow: hidden;
     }
 
@@ -220,7 +220,6 @@
     }
 
     .hero-logo-box {
-      display: inline-flex;
       width: 52px;
       height: 52px;
       flex-shrink: 0;
@@ -254,52 +253,48 @@
     }
 
     .hero-tagline {
-      font-size: clamp(1rem, 2vw, 1.15rem);
+      font-size: clamp(1rem, 2vw, 1.12rem);
       color: var(--text-muted);
-      margin-bottom: 28px;
-      line-height: 1.55;
+      margin-bottom: 32px;
+      line-height: 1.6;
+      max-width: 480px;
     }
 
-    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
 
     .hero-meta {
       display: flex;
-      gap: 20px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-    .hero-meta span { display: flex; align-items: center; gap: 5px; }
-
-    /* Scroll-down hint */
-    .scroll-hint {
-      position: absolute;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 0;
+      font-size: 0.78rem;
       color: var(--text-dim);
-      text-decoration: none;
-      animation: bounceDown 3s ease-in-out infinite;
-      z-index: 2;
-      transition: color 0.2s;
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
-    .scroll-hint:hover { color: var(--primary); }
-    .scroll-hint-text { font-size: 0.72rem; letter-spacing: 0.06em; }
-    @keyframes bounceDown {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(6px); }
+    .hero-meta span {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 0;
+    }
+    .hero-meta svg { flex-shrink: 0; color: var(--primary); }
+    .hero-meta-sep {
+      width: 1px; height: 14px;
+      background: var(--border);
+      margin: 0 16px;
+      flex-shrink: 0;
+    }
+    .hero-meta .hm-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(16,185,129,0.5);
+      flex-shrink: 0;
     }
 
     /* ===== LIVE DEMO ===== */
     .demo-window {
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(14,165,233,0.08);
-      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(14,165,233,0.10), 0 0 0 1px rgba(14,165,233,0.12);
+      border: 1px solid rgba(14,165,233,0.15);
     }
 
     .demo-titlebar {
@@ -425,7 +420,12 @@
       transition: transform 0.25s, border-color 0.25s;
     }
     .feat:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.2); }
-    .feat-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .feat-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(14,165,233,0.08); color: var(--primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
     .feat h3 { font-size: 0.88rem; margin-bottom: 4px; font-weight: 600; }
     .feat p { font-size: 0.78rem; color: var(--text-muted); }
 
@@ -494,7 +494,7 @@
       align-items: center;
       gap: 8px;
     }
-    .audience-chip .a-icon { font-size: 1.1rem; }
+    .audience-chip .a-icon { display: flex; align-items: center; color: var(--primary); }
 
     /* ===== TRUST ===== */
     .trust-section { background: var(--bg); }
@@ -507,7 +507,12 @@
     }
 
     .trust-card { padding: 20px; text-align: center; }
-    .trust-card .t-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .trust-card .t-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(14,165,233,0.08); color: var(--primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
     .trust-card h3 { font-size: 0.88rem; margin-bottom: 4px; }
     .trust-card p { font-size: 0.78rem; color: var(--text-muted); }
 
@@ -521,7 +526,7 @@
       gap: 14px;
       align-items: flex-start;
     }
-    .esb-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .esb-icon { flex-shrink: 0; margin-top: 2px; color: var(--warning); display: flex; }
     .esb-banner h4 { font-size: 0.88rem; color: var(--warning); margin-bottom: 4px; }
     .esb-banner p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
 
@@ -665,6 +670,44 @@
     .footer-links a:hover { color: var(--primary); }
     .footer-credit { font-size: 0.78rem; color: var(--text-dim); }
 
+    /* ===== How It Works ===== */
+    .how-it-works { background: var(--bg); scroll-margin-top: 52px; }
+    .hiw-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 20px; margin-top: 40px;
+    }
+    .hiw-step {
+      text-align: center;
+      padding: 28px 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .hiw-step:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.2); }
+    .hiw-num {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 700; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+    .hiw-step-icon { color: var(--primary); margin-bottom: 10px; }
+    .hiw-step h3 { font-size: 1rem; margin-bottom: 6px; font-weight: 600; }
+    .hiw-step p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* ===== Section Divider ===== */
+    .section-divider {
+      width: 48px; height: 2px; margin: 12px auto 0;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 1px;
+      opacity: 0.6;
+    }
+
     /* ===== Scroll Animations ===== */
     .fade-up {
       opacity: 0;
@@ -679,7 +722,7 @@
       .hero-left { text-align: center; }
       .hero-title { justify-content: center; }
       .hero-buttons { justify-content: center; }
-      .hero-meta { justify-content: center; flex-wrap: wrap; }
+      .hero-meta { justify-content: center; flex-wrap: wrap; gap: 4px; }
       .demo-window { max-width: 500px; margin: 0 auto; }
     }
 
@@ -689,6 +732,7 @@
       .patterns-strip { grid-template-columns: repeat(2, 1fr); }
       .trust-row { grid-template-columns: repeat(2, 1fr); }
       .test-card { width: 290px; }
+      .hiw-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
@@ -717,7 +761,7 @@
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -737,21 +781,24 @@
           <p class="hero-tagline">Prevent API keys, credentials &amp; client data from leaking into AI chats. Every secret is <strong style="color:var(--text)">masked locally before it's sent</strong> &mdash; paste freely, ship fast, nothing leaves your machine.</p>
 
           <div class="hero-buttons">
-            <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener">
+            <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
               Add to Chrome &mdash; Free
             </a>
-            <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" class="btn btn-ghost" target="_blank" rel="noopener">
+            <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               GitHub
             </a>
           </div>
 
           <div class="hero-meta">
-            <span>&#9889; 100% local</span>
-            <span>&#128215; Open source</span>
-            <span>&#129171; Lightweight</span>
-            <span>&#128274; MIT licensed</span>
+            <span><span class="hm-dot"></span> 100% local</span>
+            <div class="hero-meta-sep"></div>
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> Open source</span>
+            <div class="hero-meta-sep"></div>
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Lightweight</span>
+            <div class="hero-meta-sep"></div>
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> MIT licensed</span>
           </div>
         </div>
 
@@ -777,15 +824,41 @@
 
       </div>
 
-      <!-- Scroll indicator -->
-      <a href="#features" class="scroll-hint" aria-label="Scroll down">
-        <span class="scroll-hint-text">Explore more</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </a>
     </div>
   </section>
 
   <main>
+
+    <!-- ======================== HOW IT WORKS ======================== -->
+    <section id="how-it-works" class="section how-it-works">
+      <div class="container fade-up">
+        <div style="text-align:center">
+          <span class="section-label">How it works</span>
+          <h2 class="section-title">Three steps. Zero effort.</h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="hiw-grid">
+          <div class="hiw-step">
+            <div class="hiw-num">1</div>
+            <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
+            <h3>Paste your code</h3>
+            <p>Paste code containing secrets into any AI chat &mdash; ChatGPT, Claude, Gemini, or your custom sites</p>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">2</div>
+            <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <h3>Auto-detect secrets</h3>
+            <p>50+ regex patterns instantly catch API keys, tokens, credentials &amp; private data</p>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">3</div>
+            <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <h3>Masked &amp; safe</h3>
+            <p>Secrets replaced with safe placeholders before sending &mdash; originals saved to your local vault</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ======================== FEATURES + PATTERNS + PLATFORMS ======================== -->
     <section id="features" class="section features-section">
@@ -797,42 +870,42 @@
 
         <div class="features-top">
           <div class="feat glass">
-            <div class="feat-icon">&#9889;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
             <h3>Instant Interception</h3>
             <p>Secrets are caught before they ever reach the chat</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#128737;&#65039;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
             <h3>Encrypted Vault</h3>
             <p>Originals saved locally with AES-GCM, unmask anytime</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#127899;&#65039;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"/><circle cx="16" cy="12" r="3"/></svg></div>
             <h3>Pattern Controls</h3>
             <p>Toggle any pattern on/off &mdash; zero false-positive headaches</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#127760;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
             <h3>Custom Sites</h3>
             <p>Add any website you want to protect, one click</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#128202;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
             <h3>Stats Dashboard</h3>
             <p>Track blocks per day with history</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#128300;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
             <h3>Test Mode</h3>
             <p>See what gets masked before you paste for real</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#128190;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div>
             <h3>Backup &amp; Restore</h3>
             <p>Export/import config as JSON</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon">&#128230;</div>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
             <h3>Zero Dependencies</h3>
             <p>No libs, no bloat, fully open source</p>
           </div>
@@ -841,7 +914,7 @@
         <!-- Patterns -->
         <div class="patterns-strip glass">
           <div class="pat-col">
-            <h4>&#128273; Credentials</h4>
+            <h4><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Credentials</h4>
             <ul>
               <li>Passwords &amp; bearer tokens</li>
               <li>JWTs, OTPs, OAuth tokens</li>
@@ -849,7 +922,7 @@
             </ul>
           </div>
           <div class="pat-col">
-            <h4>&#9729;&#65039; API Keys</h4>
+            <h4><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg> API Keys</h4>
             <ul>
               <li>AWS, GCP, Azure</li>
               <li>OpenAI, Anthropic, Groq</li>
@@ -857,7 +930,7 @@
             </ul>
           </div>
           <div class="pat-col">
-            <h4>&#127959;&#65039; Infrastructure</h4>
+            <h4><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg> Infrastructure</h4>
             <ul>
               <li>Postgres, MongoDB, Redis URLs</li>
               <li>Firebase, Vercel, Supabase</li>
@@ -865,7 +938,7 @@
             </ul>
           </div>
           <div class="pat-col">
-            <h4>&#128272; Private Data</h4>
+            <h4><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><rect x="9" y="11" width="6" height="5" rx="1"/><path d="M10 11V9a2 2 0 114 0v2"/></svg> Private Data</h4>
             <ul>
               <li>RSA, SSH, PGP private keys</li>
               <li>Aadhaar, PAN, UPI, credit cards</li>
@@ -893,11 +966,11 @@
           <p style="font-size:0.9rem; color:var(--text-muted); margin-top:4px">If you live in AI chats and hate the &ldquo;did I just leak my prod key?&rdquo; moment &mdash; this is for you.</p>
         </div>
         <div class="audience-row">
-          <div class="audience-chip glass"><span class="a-icon">&#128295;</span> Indie hackers &amp; solo founders</div>
-          <div class="audience-chip glass"><span class="a-icon">&#128187;</span> Developers &amp; engineers</div>
-          <div class="audience-chip glass"><span class="a-icon">&#128274;</span> Security-conscious users</div>
-          <div class="audience-chip glass"><span class="a-icon">&#128100;</span> Professionals handling sensitive data</div>
-          <div class="audience-chip glass"><span class="a-icon">&#127891;</span> Students &amp; educators</div>
+          <div class="audience-chip glass"><span class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span> Indie hackers &amp; solo founders</div>
+          <div class="audience-chip glass"><span class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span> Developers &amp; engineers</div>
+          <div class="audience-chip glass"><span class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span> Security-conscious users</div>
+          <div class="audience-chip glass"><span class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Professionals handling sensitive data</div>
+          <div class="audience-chip glass"><span class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg></span> Students &amp; educators</div>
         </div>
       </div>
     </section>
@@ -913,22 +986,22 @@
 
         <div class="trust-row">
           <div class="trust-card glass">
-            <div class="t-icon">&#128683;</div>
+            <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
             <h3>No Network Requests</h3>
             <p>Zero outbound calls, ever</p>
           </div>
           <div class="trust-card glass">
-            <div class="t-icon">&#128268;</div>
+            <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
             <h3>Works Offline</h3>
             <p>Disable Wi-Fi. It still works.</p>
           </div>
           <div class="trust-card glass">
-            <div class="t-icon">&#128269;</div>
+            <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
             <h3>No Tracking</h3>
             <p>No analytics, telemetry, or cookies</p>
           </div>
           <div class="trust-card glass">
-            <div class="t-icon">&#128215;</div>
+            <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
             <h3>Fully Open Source</h3>
             <p>MIT licensed. Read every line.</p>
           </div>
@@ -938,10 +1011,10 @@
 
         <!-- ESB warning -->
         <div class="esb-banner">
-          <div class="esb-icon">&#9432;</div>
+          <div class="esb-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
           <div>
             <h4>Chrome "Enhanced Safe Browsing" warning</h4>
-            <p>You may see this warning during installation. It appears for <strong>most indie extensions</strong> &mdash; it simply means Google hasn't manually reviewed it yet, not that there's any issue. Secret Sanitizer is fully open source, makes zero network requests, and every line of code is <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">auditable on GitHub</a>.</p>
+            <p>You may see this warning during installation. It appears for <strong>most indie extensions</strong> &mdash; it simply means Google hasn't manually reviewed it yet, not that there's any issue. Secret Sanitizer is fully open source, makes zero network requests, and every line of code is <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">auditable on GitHub</a>.</p>
           </div>
         </div>
 
@@ -950,8 +1023,8 @@
           <span class="section-label">See it in action</span>
           <h3 style="font-size:1.1rem; margin-bottom:4px">Watch the full demo</h3>
         </div>
-        <a href="https://www.youtube.com/watch?v=Ee_cBZ5SJDw" target="_blank" rel="noopener" class="video-thumb glass" aria-label="Watch demo on YouTube">
-          <img src="https://img.youtube.com/vi/Ee_cBZ5SJDw/maxresdefault.jpg" alt="Secret Sanitizer demo video" loading="lazy">
+        <a href="https://www.youtube.com/watch?v=tyu12wvCDNg" target="_blank" rel="noopener noreferrer" class="video-thumb glass" aria-label="Watch demo on YouTube">
+          <img src="https://img.youtube.com/vi/tyu12wvCDNg/maxresdefault.jpg" alt="Secret Sanitizer demo video" width="1280" height="720" loading="lazy">
           <div class="play-btn">
             <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="rgba(0,0,0,0.55)"/><path d="M22 18l18 10-18 10V18z" fill="#fff"/></svg>
           </div>
@@ -1136,7 +1209,7 @@
         <div class="cta-block">
           <h2 class="gradient-text">Paste freely. Ship faster.</h2>
           <p>Free, open source, installs in 5 seconds. No sign-up, no cloud, no nonsense.</p>
-          <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+          <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Add to Chrome &mdash; Free</a>
           <p style="margin-top:12px"><a href="privacy.html" style="color:var(--text-dim);font-size:0.85rem">Privacy Policy &rarr;</a></p>
         </div>
       </div>
@@ -1150,11 +1223,11 @@
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
-        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener">Chrome Web Store</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
         <a href="privacy.html">Privacy Policy</a>
       </div>
-      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a></p>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></p>
     </div>
   </footer>
 
@@ -1287,24 +1360,24 @@
               setTimeout(function() {
                 toastText.textContent = s.toast;
                 toastEl.classList.add('show');
-                setTimeout(run, 3500);
-              }, 400);
-            }, 600);
-          }, 300);
+                setTimeout(run, 2200);
+              }, 250);
+            }, 400);
+          }, 200);
           return;
         }
         var d = document.createElement('div');
         d.className = 'demo-line';
         input.appendChild(d);
-        typeText(d, s.lines[li], 20, function() {
+        typeText(d, s.lines[li], 12, function() {
           li++;
-          setTimeout(nextLine, 200);
+          setTimeout(nextLine, 120);
         });
       }
       nextLine();
     }
 
-    setTimeout(run, 800);
+    setTimeout(run, 500);
   })();
   </script>
 </body>

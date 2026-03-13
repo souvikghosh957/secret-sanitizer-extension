@@ -50,7 +50,7 @@
     .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
 
     .page-header {
-      padding: 60px 0 40px;
+      padding: 72px 0 40px;
       text-align: center;
       border-bottom: 1px solid var(--border);
     }
@@ -112,14 +112,60 @@
     .footer-links a:hover { color: var(--primary); }
     .footer-credit { font-size: 0.82rem; color: var(--text-dim); }
 
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 10px 0;
+      background: rgba(6, 10, 20, 0.75);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .navbar.scrolled { border-bottom-color: var(--border); background: rgba(6, 10, 20, 0.95); }
+    .nav-inner {
+      max-width: 760px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 0.92rem; }
+    .nav-brand:hover { color: var(--text); }
+    .nav-brand img { width: 28px; height: 28px; border-radius: 7px; }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--text-muted); font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 7px 16px; border-radius: 8px; font-weight: 600;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff !important; font-size: 0.8rem; white-space: nowrap;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,165,233,0.25); color: #fff; }
+    @media (max-width: 600px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+      .nav-brand span { display: none; }
+    }
+
     @media (max-width: 768px) {
-      .page-header { padding: 40px 0 32px; }
+      .page-header { padding: 64px 0 32px; }
       .page-header h1 { font-size: 1.6rem; }
       .content { padding: 32px 0 60px; }
     }
   </style>
 </head>
 <body>
+
+  <!-- ======================== NAVBAR ======================== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <img src="icon-128.png" alt="Secret Sanitizer" width="28" height="28">
+        <span>Secret Sanitizer</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
 
   <header class="page-header">
     <div class="container">
@@ -203,8 +249,8 @@
       <h2>Contact</h2>
       <p>For questions or concerns regarding this privacy policy, please contact:</p>
       <ul>
-        <li>X (Twitter): <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a></li>
-        <li>GitHub: <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">Secret Sanitizer on GitHub</a></li>
+        <li>X (Twitter): <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></li>
+        <li>GitHub: <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">Secret Sanitizer on GitHub</a></li>
       </ul>
 
     </div>
@@ -214,12 +260,18 @@
     <div class="container">
       <div class="footer-links">
         <a href="index.html">Home</a>
-        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener">Chrome Web Store</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
       </div>
-      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener">@souvik_ghosh975</a> &middot; MIT License</p>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &middot; MIT License</p>
     </div>
   </footer>
 
+  <script>
+  (function() {
+    var nb = document.getElementById('navbar');
+    window.addEventListener('scroll', function() { nb.classList.toggle('scrolled', window.scrollY > 20); });
+  })();
+  </script>
 </body>
 </html>
