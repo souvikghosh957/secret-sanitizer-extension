@@ -69,7 +69,7 @@ body {
   padding: 28px 20px 24px;
   background: linear-gradient(135deg, #0c1929 0%, var(--primary) 40%, var(--accent) 80%, #818cf8 100%);
   background-size: 300% 300%;
-  animation: gradientShift 10s ease infinite;
+  animation: gradientShift 16s ease infinite;
   color: white;
   box-shadow: 0 4px 20px var(--shadow-md);
   position: relative;
@@ -164,7 +164,7 @@ body.dark-mode .header {
   height: 8px;
   border-radius: 50%;
   background: #fbbf24;
-  animation: pulse 2s infinite;
+  animation: pulse 3s infinite;
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
 }
 
@@ -258,7 +258,7 @@ body.dark-mode .header {
   height: 80%;
   background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.25) 0%, transparent 60%);
   opacity: 0.6;
-  animation: welcomeGlow 6s ease-in-out infinite alternate;
+  animation: welcomeGlow 8s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
@@ -272,7 +272,7 @@ body.dark-mode .header {
   height: 60%;
   background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.15) 0%, transparent 60%);
   opacity: 0.5;
-  animation: welcomeGlow2 8s ease-in-out infinite alternate;
+  animation: welcomeGlow2 10s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
@@ -348,7 +348,7 @@ body.dark-mode .welcome-overlay::after {
   font-size: 28px;
   color: white;
   box-shadow: 0 12px 36px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.15) inset;
-  animation: logoFloat 4s ease-in-out infinite;
+  animation: logoFloat 6s ease-in-out infinite;
   position: relative;
 }
 
@@ -361,7 +361,7 @@ body.dark-mode .welcome-overlay::after {
   z-index: -1;
   opacity: 0;
   transition: opacity 0.3s ease;
-  animation: logoRing 4s ease-in-out infinite;
+  animation: logoRing 6s ease-in-out infinite;
 }
 
 @keyframes logoFloat {
@@ -500,7 +500,7 @@ body.dark-mode .code-masked {
   color: var(--primary);
   font-size: 0.85em;
   opacity: 0.5;
-  animation: arrowPulse 2s ease-in-out infinite;
+  animation: arrowPulse 3s ease-in-out infinite;
 }
 
 @keyframes arrowPulse {
@@ -557,7 +557,7 @@ body.dark-mode .code-masked {
   padding: 15px 24px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 60%, var(--accent-warm) 100%);
   background-size: 200% 200%;
-  animation: btnGradient 4s ease infinite;
+  animation: btnGradient 8s ease infinite;
   color: white;
   border: none;
   border-radius: 14px;
@@ -737,7 +737,7 @@ body.dark-mode .section-title i {
   height: 200%;
   background: radial-gradient(circle at center, var(--primary-glow) 0%, transparent 50%);
   opacity: 0.5;
-  animation: pulseGlow 4s ease-in-out infinite;
+  animation: pulseGlow 6s ease-in-out infinite;
 }
 
 @keyframes pulseGlow {
@@ -762,11 +762,11 @@ body.dark-mode .hero-stats::after {
 .hero-shield {
   position: relative;
   z-index: 1;
-  font-size: 3em;
+  line-height: 0;
   color: var(--primary);
   margin-bottom: 8px;
   filter: drop-shadow(0 4px 12px var(--primary-glow));
-  animation: shieldBounce 2s ease-in-out infinite;
+  animation: shieldBounce 3s ease-in-out infinite;
 }
 
 body.dark-mode .hero-shield {
@@ -808,8 +808,8 @@ body.dark-mode .hero-count {
 .hero-today {
   position: relative;
   z-index: 1;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--border);
   font-size: 0.9em;
   color: var(--text-muted);

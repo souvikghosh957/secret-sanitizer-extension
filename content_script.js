@@ -10,6 +10,9 @@ const CONFIG = {
   largePasteThreshold: 5000 // 5KB — skip generic patterns + entropy above this
 };
 
+// Unique ID counter for SVG gradient IDs (prevents DOM collisions when multiple toasts coexist)
+let _ssIconId = 0;
+
 // Check if extension context is still valid
 function isExtensionContextValid() {
   try {
@@ -554,7 +557,7 @@ async function saveToVault(traceId, replacements) {
   });
 }
 
-// Simple toast for basic messages
+// Simple toast for basic messages — styled to match the smart toast's dark card
 function showToast(message, type = "success") {
   if (!document.body) return;
   document.querySelectorAll(".secret-sanitizer-toast").forEach(t => t.remove());
@@ -563,10 +566,10 @@ function showToast(message, type = "success") {
   toast.className = "secret-sanitizer-toast";
 
   const colors = {
-    success: { bg: "#10b981", icon: "✓" },
-    warning: { bg: "#f59e0b", icon: "⚠" },
-    error: { bg: "#ef4444", icon: "✕" },
-    info: { bg: "#0ea5e9", icon: "ℹ" }
+    success: { accent: "#10b981", icon: "✓" },
+    warning: { accent: "#f59e0b", icon: "!" },
+    error: { accent: "#ef4444", icon: "✕" },
+    info: { accent: "#0ea5e9", icon: "✓" }
   };
   const style = colors[type] || colors.success;
 
@@ -574,11 +577,11 @@ function showToast(message, type = "success") {
     position: "fixed",
     bottom: "20px",
     right: "20px",
-    background: style.bg,
-    color: "white",
-    padding: "12px 18px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+    background: "#1e293b",
+    color: "#f1f5f9",
+    padding: "0",
+    borderRadius: "12px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
     zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "13px",
@@ -586,18 +589,39 @@ function showToast(message, type = "success") {
     opacity: "0",
     transform: "translateY(16px)",
     transition: "all 0.25s ease-out",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px"
+    overflow: "hidden"
   });
 
-  const iconSpan = document.createElement("span");
-  iconSpan.style.fontSize = "15px";
-  iconSpan.textContent = style.icon;
+  const content = document.createElement("div");
+  Object.assign(content.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "12px 16px"
+  });
+
+  const iconDot = document.createElement("div");
+  Object.assign(iconDot.style, {
+    width: "24px",
+    height: "24px",
+    borderRadius: "7px",
+    background: style.accent,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "12px",
+    fontWeight: "700",
+    color: "#fff",
+    flexShrink: "0",
+    lineHeight: "1"
+  });
+  iconDot.textContent = style.icon;
+
   const msgSpan = document.createElement("span");
   msgSpan.textContent = message;
-  toast.appendChild(iconSpan);
-  toast.appendChild(msgSpan);
+  content.appendChild(iconDot);
+  content.appendChild(msgSpan);
+  toast.appendChild(content);
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => {
@@ -628,12 +652,11 @@ function showCleanToast() {
     position: "fixed",
     bottom: "20px",
     right: "20px",
-    background: "rgba(30, 41, 59, 0.85)",
-    backdropFilter: "blur(8px)",
+    background: "#1e293b",
     color: "#94a3b8",
-    padding: "10px 16px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    padding: "0",
+    borderRadius: "12px",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
     zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "12px",
@@ -641,19 +664,36 @@ function showCleanToast() {
     opacity: "0",
     transform: "translateY(12px)",
     transition: "all 0.25s ease-out",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    pointerEvents: "none"
+    pointerEvents: "none",
+    overflow: "hidden"
   });
 
-  const checkSpan = document.createElement("span");
-  checkSpan.style.cssText = "color:#34d399;font-size:13px";
-  checkSpan.textContent = "\u2713";
+  const content = document.createElement("div");
+  Object.assign(content.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "10px 14px"
+  });
+
+  const iconWrap = document.createElement("div");
+  Object.assign(iconWrap.style, {
+    width: "22px",
+    height: "22px",
+    borderRadius: "6px",
+    background: "rgba(52,211,153,0.12)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: "0"
+  });
+  iconWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="none" stroke="#34d399" stroke-width="1.5"/><path d="M9 12.5l2 2 4-4.5" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+
   const cleanMsg = document.createElement("span");
   cleanMsg.textContent = "Scanned \u2014 no secrets found";
-  toast.appendChild(checkSpan);
-  toast.appendChild(cleanMsg);
+  content.appendChild(iconWrap);
+  content.appendChild(cleanMsg);
+  toast.appendChild(content);
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => {
@@ -710,18 +750,17 @@ function showSmartToast(secretTypes, onUndo) {
 
   // Shield icon
   const icon = document.createElement("div");
+  const _sid1 = _ssIconId++;
   Object.assign(icon.style, {
     width: "32px",
     height: "32px",
     borderRadius: "8px",
-    background: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "14px",
     flexShrink: "0"
   });
-  icon.textContent = "🛡️";
+  icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ss-sg${_sid1}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="url(#ss-sg${_sid1})" stroke="#94a3b8" stroke-width="0.8"/><path d="M9 12.5l2 2 4-4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
 
   // Text content
   const textWrap = document.createElement("div");
@@ -792,7 +831,7 @@ function showSmartToast(secretTypes, onUndo) {
       toast.style.transform = "translateY(16px)";
       setTimeout(() => {
         toast.remove();
-        showToast(success !== false ? "Restored original text" : "Couldn't restore text", success !== false ? "info" : "error");
+        showToast(success !== false ? "Restored original text" : "Couldn't restore text", success !== false ? "success" : "error");
       }, 200);
     };
     content.appendChild(undoBtn);
@@ -1062,7 +1101,7 @@ function showReviewToast(milestone, total) {
     padding: "0",
     borderRadius: "16px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.1), 0 0 20px rgba(251,191,36,0.05)",
-    animation: "ss-review-glow 3s ease-in-out infinite",
+    animation: "ss-review-glow 5s ease-in-out infinite",
     zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "13px",
@@ -1080,7 +1119,7 @@ function showReviewToast(milestone, total) {
     height: "2px",
     background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.6), rgba(14,165,233,0.6), transparent)",
     backgroundSize: "200% 100%",
-    animation: "ss-review-shimmer 3s linear infinite"
+    animation: "ss-review-shimmer 5s linear infinite"
   });
 
   const content = document.createElement("div");
@@ -1109,11 +1148,15 @@ function showReviewToast(milestone, total) {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px",
     flexShrink: "0",
-    animation: "ss-star-spin 3s ease-in-out infinite"
+    animation: "ss-star-spin 5s ease-in-out infinite"
   });
-  icon.textContent = "\u2B50";
+  const reviewImg = document.createElement("img");
+  reviewImg.src = chrome.runtime.getURL("icons/icon-128.png");
+  reviewImg.width = 26;
+  reviewImg.height = 26;
+  Object.assign(reviewImg.style, { borderRadius: "4px", display: "block" });
+  icon.appendChild(reviewImg);
 
   const textWrap = document.createElement("div");
   Object.assign(textWrap.style, { flex: "1", minWidth: "0" });
@@ -1321,7 +1364,7 @@ function showMilestoneCelebration(milestone) {
     borderRadius: "16px",
     background: "linear-gradient(135deg, #0ea5e9, #06b6d4, #818cf8, #fbbf24, #0ea5e9)",
     backgroundSize: "300% 300%",
-    animation: "ss-milestone-border 4s ease infinite, ss-milestone-glow 3s ease-in-out infinite",
+    animation: "ss-milestone-border 6s ease infinite, ss-milestone-glow 5s ease-in-out infinite",
     zIndex: "2147483647",
     opacity: "0",
     transform: "translateY(12px) scale(0.9)",
@@ -1364,19 +1407,17 @@ function showMilestoneCelebration(milestone) {
   });
 
   const icon = document.createElement("div");
+  const _sid2 = _ssIconId++;
   Object.assign(icon.style, {
     width: "42px",
     height: "42px",
     borderRadius: "14px",
-    background: "linear-gradient(135deg, rgba(14,165,233,0.15) 0%, rgba(6,182,212,0.1) 50%, rgba(129,140,248,0.08) 100%)",
-    border: "1px solid rgba(14,165,233,0.15)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
     animation: "ss-trophy-bounce 1s ease-out"
   });
-  icon.textContent = "\uD83C\uDFC6";
+  icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ss-mg${_sid2}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="url(#ss-mg${_sid2})" stroke="#94a3b8" stroke-width="0.8"/><path d="M12 8l1.12 2.27 2.5.36-1.81 1.77.43 2.5L12 13.77 9.76 14.9l.43-2.5-1.81-1.77 2.5-.36L12 8z" fill="#fff"/></svg>`;
 
   // Mini confetti particles
   const confettiColors = ["#fbbf24", "#0ea5e9", "#818cf8"];
