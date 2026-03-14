@@ -392,7 +392,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               try {
                 replacements = await decryptData({ encrypted: true, data: replacements });
               } catch (err) {
-                console.error("Decryption error:", err);
+                console.warn("Decryption error:", err);
                 continue;
               }
             } else if (typeof replacements === 'string' && !replacements.startsWith('[')) {
@@ -591,6 +591,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       header.addEventListener('click', () => {
         const accordion = header.closest('.accordion');
         accordion.classList.toggle('collapsed');
+        const isExpanded = !accordion.classList.contains('collapsed');
+        header.setAttribute('aria-expanded', String(isExpanded));
       });
     });
 
@@ -921,6 +923,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
   } catch (err) {
-    console.error("Popup error:", err);
+    console.warn("Popup initialization error:", err);
   }
 });

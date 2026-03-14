@@ -23,7 +23,7 @@ async function registerContentScripts() {
       }]);
     }
   } catch (err) {
-    console.error("Content script registration error:", err);
+    console.warn("Content script registration error:", err);
   }
 }
 
@@ -70,7 +70,7 @@ async function cleanupVault() {
       updateBadge();
     }
   } catch (err) {
-    console.error("Vault cleanup error:", err);
+    // Vault cleanup failed silently — non-critical, will retry on next alarm
   }
 }
 
@@ -146,7 +146,7 @@ async function notifyMilestone(milestone, total) {
       }).catch(() => {});
     }
   } catch (err) {
-    console.error("Milestone notification error:", err);
+    // Milestone notification failed silently — non-critical
   }
 }
 
@@ -181,7 +181,7 @@ async function checkWeeklySummary() {
       });
     }
   } catch (err) {
-    console.error("Weekly summary error:", err);
+    // Weekly summary failed silently — non-critical, will retry next alarm
   }
 }
 
@@ -204,7 +204,7 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
       priority: 1
     });
   } catch (err) {
-    console.error("Notification error:", err);
+    // Notification creation failed silently — non-critical
   }
 }
 
@@ -218,7 +218,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     decryptVaultData(request.data).then(decrypted => {
       sendResponse({ decrypted });
     }).catch(err => {
-      console.error("Decryption error:", err);
+      console.warn("Decryption error:", err);
       sendResponse({ decrypted: request.data });
     });
     return true;
@@ -289,7 +289,7 @@ async function decryptVaultData(encryptedData) {
 
     return encryptedData;
   } catch (err) {
-    console.error("Decryption error:", err);
+    console.warn("Decryption error:", err);
     return encryptedData;
   }
 }

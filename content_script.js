@@ -415,7 +415,7 @@ async function getEncryptionKey() {
     
     return key;
   } catch (err) {
-    console.error("Key derivation error:", err);
+    console.warn("Key derivation error:", err);
     return null;
   }
 }
@@ -456,7 +456,7 @@ async function encryptData(data) {
     const base64 = btoa(binary);
     return { encrypted: true, data: base64 };
   } catch (err) {
-    console.error("Encryption error:", err);
+    console.warn("Encryption error:", err);
     // Fallback to base64
     const json = JSON.stringify(data);
     return { encrypted: false, data: btoa(new TextEncoder().encode(json).reduce((s, b) => s + String.fromCharCode(b), '')) };
@@ -509,7 +509,7 @@ async function decryptData(encryptedData) {
     
     return encryptedData;
   } catch (err) {
-    console.error("Decryption error:", err);
+    console.warn("Decryption error:", err);
     // Try as plain data (backward compatibility)
     return encryptedData;
   }
@@ -687,7 +687,26 @@ function showCleanToast() {
     justifyContent: "center",
     flexShrink: "0"
   });
-  iconWrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="none" stroke="#34d399" stroke-width="1.5"/><path d="M9 12.5l2 2 4-4.5" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+  const _svgClean = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  _svgClean.setAttribute("width", "14");
+  _svgClean.setAttribute("height", "14");
+  _svgClean.setAttribute("viewBox", "0 0 24 24");
+  _svgClean.setAttribute("fill", "none");
+  const _cpShield = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _cpShield.setAttribute("d", "M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z");
+  _cpShield.setAttribute("fill", "none");
+  _cpShield.setAttribute("stroke", "#34d399");
+  _cpShield.setAttribute("stroke-width", "1.5");
+  const _cpCheck = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _cpCheck.setAttribute("d", "M9 12.5l2 2 4-4.5");
+  _cpCheck.setAttribute("stroke", "#34d399");
+  _cpCheck.setAttribute("stroke-width", "2");
+  _cpCheck.setAttribute("stroke-linecap", "round");
+  _cpCheck.setAttribute("stroke-linejoin", "round");
+  _cpCheck.setAttribute("fill", "none");
+  _svgClean.appendChild(_cpShield);
+  _svgClean.appendChild(_cpCheck);
+  iconWrap.appendChild(_svgClean);
 
   const cleanMsg = document.createElement("span");
   cleanMsg.textContent = "Scanned \u2014 no secrets found";
@@ -760,7 +779,33 @@ function showSmartToast(secretTypes, onUndo) {
     justifyContent: "center",
     flexShrink: "0"
   });
-  icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ss-sg${_sid1}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="url(#ss-sg${_sid1})" stroke="#94a3b8" stroke-width="0.8"/><path d="M9 12.5l2 2 4-4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+  const _svgSmart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  _svgSmart.setAttribute("width", "28");
+  _svgSmart.setAttribute("height", "28");
+  _svgSmart.setAttribute("viewBox", "0 0 24 24");
+  _svgSmart.setAttribute("fill", "none");
+  const _defs1 = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const _grad1 = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+  _grad1.setAttribute("id", `ss-sg${_sid1}`);
+  _grad1.setAttribute("x1", "0"); _grad1.setAttribute("y1", "0");
+  _grad1.setAttribute("x2", "1"); _grad1.setAttribute("y2", "1");
+  const _stop1a = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+  _stop1a.setAttribute("offset", "0%"); _stop1a.setAttribute("stop-color", "#0ea5e9");
+  const _stop1b = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+  _stop1b.setAttribute("offset", "100%"); _stop1b.setAttribute("stop-color", "#06b6d4");
+  _grad1.appendChild(_stop1a); _grad1.appendChild(_stop1b);
+  _defs1.appendChild(_grad1); _svgSmart.appendChild(_defs1);
+  const _sp1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _sp1.setAttribute("d", "M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z");
+  _sp1.setAttribute("fill", `url(#ss-sg${_sid1})`);
+  _sp1.setAttribute("stroke", "#94a3b8"); _sp1.setAttribute("stroke-width", "0.8");
+  const _sp2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _sp2.setAttribute("d", "M9 12.5l2 2 4-4.5");
+  _sp2.setAttribute("stroke", "#fff"); _sp2.setAttribute("stroke-width", "2");
+  _sp2.setAttribute("stroke-linecap", "round"); _sp2.setAttribute("stroke-linejoin", "round");
+  _sp2.setAttribute("fill", "none");
+  _svgSmart.appendChild(_sp1); _svgSmart.appendChild(_sp2);
+  icon.appendChild(_svgSmart);
 
   // Text content
   const textWrap = document.createElement("div");
@@ -1417,7 +1462,31 @@ function showMilestoneCelebration(milestone) {
     justifyContent: "center",
     animation: "ss-trophy-bounce 1s ease-out"
   });
-  icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ss-mg${_sid2}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="url(#ss-mg${_sid2})" stroke="#94a3b8" stroke-width="0.8"/><path d="M12 8l1.12 2.27 2.5.36-1.81 1.77.43 2.5L12 13.77 9.76 14.9l.43-2.5-1.81-1.77 2.5-.36L12 8z" fill="#fff"/></svg>`;
+  const _svgMile = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  _svgMile.setAttribute("width", "34");
+  _svgMile.setAttribute("height", "34");
+  _svgMile.setAttribute("viewBox", "0 0 24 24");
+  _svgMile.setAttribute("fill", "none");
+  const _defs2 = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const _grad2 = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+  _grad2.setAttribute("id", `ss-mg${_sid2}`);
+  _grad2.setAttribute("x1", "0"); _grad2.setAttribute("y1", "0");
+  _grad2.setAttribute("x2", "1"); _grad2.setAttribute("y2", "1");
+  const _stop2a = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+  _stop2a.setAttribute("offset", "0%"); _stop2a.setAttribute("stop-color", "#0ea5e9");
+  const _stop2b = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+  _stop2b.setAttribute("offset", "100%"); _stop2b.setAttribute("stop-color", "#818cf8");
+  _grad2.appendChild(_stop2a); _grad2.appendChild(_stop2b);
+  _defs2.appendChild(_grad2); _svgMile.appendChild(_defs2);
+  const _mp1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _mp1.setAttribute("d", "M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z");
+  _mp1.setAttribute("fill", `url(#ss-mg${_sid2})`);
+  _mp1.setAttribute("stroke", "#94a3b8"); _mp1.setAttribute("stroke-width", "0.8");
+  const _mp2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  _mp2.setAttribute("d", "M12 8l1.12 2.27 2.5.36-1.81 1.77.43 2.5L12 13.77 9.76 14.9l.43-2.5-1.81-1.77 2.5-.36L12 8z");
+  _mp2.setAttribute("fill", "#fff");
+  _svgMile.appendChild(_mp1); _svgMile.appendChild(_mp2);
+  icon.appendChild(_svgMile);
 
   // Mini confetti particles
   const confettiColors = ["#fbbf24", "#0ea5e9", "#818cf8"];
@@ -1525,7 +1594,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       sendResponse({ success: false, error: "Unknown action" });
     }
   } catch (err) {
-    console.error("Message handler error:", err);
+    console.warn("Message handler error:", err);
     sendResponse({ success: false, error: err.message });
   }
   return true;
