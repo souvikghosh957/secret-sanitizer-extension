@@ -882,12 +882,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           const text = await file.text();
           const data = JSON.parse(text);
 
-          // Only import known safe settings keys
-          const allowedKeys = ["disabledPatterns", "customSites", "useEncryption", "autoDarkMode", "darkMode"];
+          // Only import known safe settings keys with type validation
           const safeData = {};
-          for (const key of allowedKeys) {
-            if (key in data) safeData[key] = data[key];
-          }
+          if (Array.isArray(data.disabledPatterns)) safeData.disabledPatterns = data.disabledPatterns.filter(p => typeof p === 'string');
+          if (Array.isArray(data.customSites)) safeData.customSites = data.customSites.filter(s => typeof s === 'string');
+          if (typeof data.useEncryption === 'boolean') safeData.useEncryption = data.useEncryption;
+          if (typeof data.autoDarkMode === 'boolean') safeData.autoDarkMode = data.autoDarkMode;
+          if (typeof data.darkMode === 'boolean') safeData.darkMode = data.darkMode;
 
           if (Object.keys(safeData).length === 0) {
             showNotification("No valid settings found in file", "warning");

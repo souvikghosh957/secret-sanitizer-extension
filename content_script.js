@@ -68,6 +68,18 @@ function safeStorageSet(data) {
 // Performance cache
 const patternCache = new Map();
 const encryptionKeyCache = { key: null, timestamp: 0, ttl: 300000 }; // 5 min cache
+const useEncryptionCache = { value: true, timestamp: 0, ttl: 300000 }; // 5 min cache
+
+async function getCachedUseEncryption() {
+  const now = Date.now();
+  if (now - useEncryptionCache.timestamp < useEncryptionCache.ttl) {
+    return useEncryptionCache.value;
+  }
+  const { useEncryption = true } = await safeStorageGet("useEncryption");
+  useEncryptionCache.value = useEncryption;
+  useEncryptionCache.timestamp = now;
+  return useEncryption;
+}
 
 // Serial queue for storage writes to prevent read-modify-write races
 const storageQueue = {
@@ -124,6 +136,7 @@ const PATTERN_GUARDS = {
 };
 
 let COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
+let _patternsLoaded = false;
 
 // Pre-compile patterns — always create NEW RegExp instances to avoid shared lastIndex state
 // Returns { tier1: [...specific], tier2: [...generic] } for tiered execution
@@ -146,7 +159,7 @@ function compilePatterns(patterns) {
 }
 
 // Load disabled patterns and compile
-(async () => {
+const patternsReady = (async () => {
   try {
     const { disabledPatterns = [] } = await safeStorageGet("disabledPatterns");
     const disabled = new Set(disabledPatterns);
@@ -154,6 +167,8 @@ function compilePatterns(patterns) {
     COMPILED_PATTERNS = compilePatterns(SECRET_PATTERNS);
   } catch (_) {
     COMPILED_PATTERNS = compilePatterns(ALL_PATTERNS);
+  } finally {
+    _patternsLoaded = true;
   }
 })();
 
@@ -170,28 +185,30 @@ function runPatterns(patterns, text, textLower, allMatches, isLargePaste) {
 
     regex.lastIndex = 0;
     let match;
-    while ((match = regex.exec(text)) !== null) {
-      const original = match[0];
-      const start = match.index;
-      const end = start + original.length;
+    try {
+      while ((match = regex.exec(text)) !== null) {
+        const original = match[0];
+        const start = match.index;
+        const end = start + original.length;
 
-      // Guard against zero-length matches to prevent infinite loops
-      if (original.length === 0) {
-        regex.lastIndex = start + 1;
-        continue;
+        // Guard against zero-length matches to prevent infinite loops
+        if (original.length === 0) {
+          regex.lastIndex = start + 1;
+          continue;
+        }
+
+        allMatches.push({ start, end, label, original });
+
+        // Early exit if we've hit the match cap
+        if (allMatches.length >= CONFIG.maxMatchesPerScan) {
+          return true;
+        }
+
+        if (!regex.global) break;
       }
-
-      allMatches.push({ start, end, label, original });
-
-      // Early exit if we've hit the match cap
-      if (allMatches.length >= CONFIG.maxMatchesPerScan) {
-        regex.lastIndex = 0;
-        return true;
-      }
-
-      if (!regex.global) break;
+    } finally {
+      regex.lastIndex = 0;
     }
-    regex.lastIndex = 0;
   }
   return false;
 }
@@ -300,8 +317,8 @@ function sanitizeText(text) {
   }
 
   // Entropy-based detection on original text (fallback for secrets without known prefixes)
-  // Skip when: large paste, match cap hit, or patterns already found enough (≥5)
-  if (!capped && !isLargePaste && allMatches.length < 5) {
+  // Skip when: large paste, match cap hit, or patterns already found matches
+  if (!capped && !isLargePaste && allMatches.length === 0) {
     const entropySecrets = findHighEntropySecrets(text);
     for (const { secret, start, end } of entropySecrets) {
       allMatches.push({ start, end, label: 'ENTROPY', original: secret });
@@ -348,20 +365,7 @@ function sanitizeText(text) {
 
   const result = { maskedText, replacements };
 
-  // Track pattern statistics (serialized to prevent lost updates)
-  if (replacements.length > 0) {
-    storageQueue.run(async () => {
-      const { patternStats = {} } = await safeStorageGet("patternStats");
-      replacements.forEach(([placeholder]) => {
-        const match = placeholder.match(/\[(\w+)_/);
-        if (match) {
-          const patternLabel = match[1];
-          patternStats[patternLabel] = (patternStats[patternLabel] || 0) + 1;
-        }
-      });
-      await safeStorageSet({ patternStats });
-    });
-  }
+  // Pattern stats are now updated inside saveToVault() to avoid a separate storage round-trip
   
   // Cache result (limit cache size)
   if (patternCache.size > CONFIG.cacheSize) {
@@ -422,7 +426,7 @@ async function getEncryptionKey() {
 
 async function encryptData(data) {
   try {
-    const { useEncryption = true } = await safeStorageGet("useEncryption");
+    const useEncryption = await getCachedUseEncryption();
     if (!useEncryption) return { encrypted: false, data };
     
     const key = await getEncryptionKey();
@@ -465,7 +469,7 @@ async function encryptData(data) {
 
 async function decryptData(encryptedData) {
   try {
-    const { useEncryption = true } = await safeStorageGet("useEncryption");
+    const useEncryption = await getCachedUseEncryption();
     if (!useEncryption) {
       // Handle old format
       if (typeof encryptedData === 'string' && encryptedData.startsWith('[')) {
@@ -522,7 +526,7 @@ async function saveToVault(traceId, replacements) {
   return storageQueue.run(async () => {
     try {
       const expires = Date.now() + CONFIG.vaultTTLMinutes * 60 * 1000;
-      const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null } } = await safeStorageGet(["vault", "stats"]);
+      const { vault = {}, stats = { totalBlocked: 0, todayBlocked: 0, lastDate: null }, patternStats = {} } = await safeStorageGet(["vault", "stats", "patternStats"]);
 
       const now = Date.now();
       Object.keys(vault).forEach(key => {
@@ -537,6 +541,14 @@ async function saveToVault(traceId, replacements) {
       stats.totalBlocked += replacements.length;
       stats.todayBlocked += replacements.length;
 
+      // Update pattern stats in the same write
+      replacements.forEach(([placeholder]) => {
+        const match = placeholder.match(/\[(\w+)_/);
+        if (match) {
+          patternStats[match[1]] = (patternStats[match[1]] || 0) + 1;
+        }
+      });
+
       // Encrypt replacements before storing
       const encryptedResult = await encryptData(replacements);
       vault[traceId] = {
@@ -550,7 +562,7 @@ async function saveToVault(traceId, replacements) {
         delete vault[keys[0]];
       }
 
-      await safeStorageSet({ vault, stats });
+      await safeStorageSet({ vault, stats, patternStats });
     } catch (_) {
       // Silent - common on Gemini/ChatGPT context reloads
     }
@@ -564,6 +576,7 @@ function showToast(message, type = "success") {
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-toast";
+  toast.setAttribute("role", "alert");
 
   const colors = {
     success: { accent: "#10b981", icon: "✓" },
@@ -647,6 +660,7 @@ function showCleanToast() {
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-clean-toast";
+  toast.setAttribute("role", "alert");
 
   Object.assign(toast.style, {
     position: "fixed",
@@ -734,6 +748,7 @@ function showSmartToast(secretTypes, onUndo) {
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-toast";
+  toast.setAttribute("role", "alert");
 
   // Get unique secret types (without the _0, _1 suffix)
   const types = [...new Set(secretTypes.map(t => t.replace(/_\d+$/, '')))];
@@ -910,6 +925,9 @@ function showSmartToast(secretTypes, onUndo) {
 window.addEventListener("paste", (e) => {
   const clipboardText = e.clipboardData?.getData("text");
   if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
+
+  // Wait for patterns to load before processing (prevents using unfiltered patterns)
+  if (!_patternsLoaded) return;
 
   // Fast path: quick check if text looks like it might contain secrets
   const quickCheck = /[A-Za-z0-9]{20,}|AKIA|ASIA|ghp_|github_pat_|glpat-|eyJ|sk_(live|test)|pk_(live|test)|sk-proj-|sk-ant-|rzp_(live|test)|AC[a-z0-9]{32}|AAAA[A-Z0-9]{7}:|xox[bpsare]-|SG\.|hf_|gsk_|shp(?:at|ca|pa|ss|ua)_|dop_v1_|sbp_|npm_|sq0|vc[pcirka]_|-----BEGIN|API_KEY|SECRET|PRIVATE|OTP|PIN|CODE|password|passwd|pwd|bearer|token[\s:=]|success@|failure@|test@|discord(?:app)?\.com\/api\/webhooks|[A-Z]{5}\d{4}[A-Z]|[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}|\+91|phone|mobile|voter|passport|vehicle|@(?:ok|ybl|apl|upi|razorpay|payu|paytm|airtel)|mongodb:|postgres:|mysql:|redis:|amqp:/i.test(clipboardText);
@@ -1136,6 +1154,7 @@ function showReviewToast(milestone, total) {
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-review-toast";
+  toast.setAttribute("role", "alert");
 
   Object.assign(toast.style, {
     position: "fixed",
@@ -1401,6 +1420,7 @@ function showMilestoneCelebration(milestone) {
   // Outer wrapper for the gradient border effect
   const wrapper = document.createElement("div");
   wrapper.id = "ss-milestone-toast";
+  wrapper.setAttribute("role", "alert");
   Object.assign(wrapper.style, {
     position: "fixed",
     bottom: bottomOffset + "px",

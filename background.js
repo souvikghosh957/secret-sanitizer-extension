@@ -6,7 +6,7 @@ const DEFAULT_SITES = [
 
 async function registerContentScripts() {
   try {
-    await chrome.scripting.unregisterContentScripts();
+    await chrome.scripting.unregisterContentScripts({ ids: ["secret-sanitizer"] }).catch(() => {});
 
     const { removedDefaults = [], customSites = [] } =
       await chrome.storage.local.get(["removedDefaults", "customSites"]);
