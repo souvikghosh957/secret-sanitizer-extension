@@ -1219,7 +1219,7 @@ function showReviewToast(milestone, total) {
   reviewImg.src = chrome.runtime.getURL("icons/icon-128.png");
   reviewImg.width = 26;
   reviewImg.height = 26;
-  Object.assign(reviewImg.style, { borderRadius: "4px", display: "block" });
+  Object.assign(reviewImg.style, { display: "block" });
   icon.appendChild(reviewImg);
 
   const textWrap = document.createElement("div");
