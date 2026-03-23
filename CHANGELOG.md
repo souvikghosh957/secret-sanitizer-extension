@@ -2,6 +2,11 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.2.5] - 2026-03-23
+
+### Changed
+- Updated Chrome Web Store title and short description for better visibility and search relevance
+
 ## [2.2.0] - 2026-03-07
 
 ### Fixed
