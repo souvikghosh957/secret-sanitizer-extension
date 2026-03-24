@@ -50,13 +50,16 @@ async function decryptData(encryptedData) {
       }),
       new Promise((resolve) => setTimeout(() => resolve(encryptedData), 3000))
     ]);
-  } catch (_) {
+  } catch (err) {
+    console.warn("[SecretSanitizer] decryptData error:", err);
     try {
       if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
         const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0)));
         return JSON.parse(decoded);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Legacy decode failed — return raw encrypted data as fallback
+    }
     return encryptedData;
   }
 }
@@ -637,47 +640,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Pattern toggles (auto-save)
 
-    const allLabels = [
-      // Cloud
-      "AWS_KEY","AWS_TEMP_KEY","AZURE_SECRET","GOOGLE_API_KEY",
-      // VCS & CI/CD
-      "GITHUB_TOKEN","GITHUB_FINE_PAT","GITLAB_TOKEN","GITLAB_TRIGGER_TOKEN",
-      // Auth & Tokens
-      "JWT","BEARER_TOKEN","PASSWORD_HINT","OTP_CODE","EMAIL_IN_SECRET",
-      // Database
-      "DB_CONN",
-      // Credit Cards
-      "CREDIT_CARD",
-      // Payments
-      "STRIPE_KEY","STRIPE_TEST_KEY","STRIPE_PUB_KEY","STRIPE_TEST_PUB_KEY",
-      "SQUARE_ACCESS_TOKEN","SQUARE_SECRET",
-      "RAZORPAY_KEY","RAZORPAY_TEST_KEY",
-      "PAYTM_KEY","PAYTM_MERCHANT",
-      // Communication
-      "TWILIO_SID","TWILIO_AUTH_TOKEN",
-      "SLACK_TOKEN","DISCORD_WEBHOOK","TELEGRAM_BOT_TOKEN",
-      "SENDGRID_KEY","MAILGUN_KEY",
-      // AI & ML
-      "OPENAI_KEY","ANTHROPIC_KEY","GROQ_KEY","HUGGINGFACE_TOKEN",
-      // Cloud Platforms
-      "FIREBASE_KEY","HEROKU_API_KEY","VERCEL_TOKEN",
-      "DIGITALOCEAN_TOKEN","DIGITALOCEAN_REFRESH",
-      "SUPABASE_TOKEN","CLOUDFLARE_TOKEN","DATADOG_KEY",
-      // E-Commerce
-      "SHOPIFY_TOKEN",
-      // Package Registries
-      "NPM_TOKEN","PYPI_TOKEN",
-      // Indian PII
-      "AADHAAR","PAN","INDIAN_PHONE","GSTIN","IFSC",
-      "UPI_ID","UPI_ID_GENERIC","UPI_TEST_ID","PAYMENT_UPI_ID",
-      "DRIVING_LICENSE","VOTER_ID","PASSPORT","VEHICLE_REG",
-      // Key=Value Formats
-      "API_KEY_FORMAT","SECRET_KEY_FORMAT","ACCESS_KEY_FORMAT","AUTH_SECRET_FORMAT",
-      // Private Keys
-      "PRIVATE_KEY","SSH_PRIVATE_KEY","PGP_PRIVATE_KEY",
-      // Generic Fallbacks
-      "QUOTED_SECRET","LONG_RANDOM_STRING","BASE64_SECRET"
-    ];
+    // Derive labels from the single source of truth in patterns.js — no manual sync needed
+    const allLabels = [...new Set(SHARED_PATTERNS.map(([, label]) => label))];
 
     const togglesDiv = document.getElementById("patternToggles");
 
@@ -755,7 +719,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           const origins = customSites.map(s => `*://${s}/*`);
           await chrome.permissions.request({ origins });
         }
-      } catch (_) {}
+      } catch (err) {
+        // Permission request can fail if the user denies or the browser rejects optional permissions
+        console.warn("[SecretSanitizer] Permission request failed:", err);
+      }
     };
 
     const renderSiteChips = () => {
@@ -834,6 +801,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
           const url = new URL(urlStr.startsWith("http") ? urlStr : "https://" + urlStr);
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
+            showNotification("Only http:// and https:// URLs are allowed", "error");
+            return;
+          }
           const host = url.host;
 
           if (defaultSites.includes(host)) {
@@ -877,6 +848,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       importFile.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        if (file.size > 100 * 1024) {
+          showNotification("Settings file too large (max 100 KB)", "error");
+          e.target.value = "";
+          return;
+        }
 
         try {
           const text = await file.text();

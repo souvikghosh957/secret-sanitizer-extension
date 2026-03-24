@@ -10,13 +10,13 @@ const SHARED_PATTERNS = [
   // Azure (contextual — only near azure-specific keywords)
   [/(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}['"]?/gi, "AZURE_SECRET"],
   // Google
-  [/\bAIza[0-9A-Za-z\-_]{35,}\b/g, "GOOGLE_API_KEY"],
+  [/\bAIza[0-9A-Za-z\-_]{35,}\b/gi, "GOOGLE_API_KEY"],
 
   // === VCS & CI/CD TOKENS ===
-  [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/g, "GITHUB_TOKEN"],
-  [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/g, "GITHUB_FINE_PAT"],
-  [/\bglpat-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TOKEN"],
-  [/\bglptt-[A-Za-z0-9\-_]{20,}\b/g, "GITLAB_TRIGGER_TOKEN"],
+  [/\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/gi, "GITHUB_TOKEN"],
+  [/\bgithub_pat_[A-Za-z0-9_]{22,}\b/gi, "GITHUB_FINE_PAT"],
+  [/\bglpat-[A-Za-z0-9\-_]{20,}\b/gi, "GITLAB_TOKEN"],
+  [/\bglptt-[A-Za-z0-9\-_]{20,}\b/gi, "GITLAB_TRIGGER_TOKEN"],
 
   // === JWT TOKENS ===
   [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
@@ -36,8 +36,8 @@ const SHARED_PATTERNS = [
   [/\bpk_live_[A-Za-z0-9]{24,}\b/gi, "STRIPE_PUB_KEY"],
   [/\bpk_test_[A-Za-z0-9]{24,}\b/gi, "STRIPE_TEST_PUB_KEY"],
   // Square
-  [/\bsq0atp-[A-Za-z0-9\-_]{22,}\b/g, "SQUARE_ACCESS_TOKEN"],
-  [/\bsq0csp-[A-Za-z0-9\-_]{22,}\b/g, "SQUARE_SECRET"],
+  [/\bsq0atp-[A-Za-z0-9\-_]{22,}\b/gi, "SQUARE_ACCESS_TOKEN"],
+  [/\bsq0csp-[A-Za-z0-9\-_]{22,}\b/gi, "SQUARE_SECRET"],
   // Razorpay
   [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
   [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
@@ -47,37 +47,37 @@ const SHARED_PATTERNS = [
 
   // === COMMUNICATION & MESSAGING ===
   // Twilio
-  [/\bAC[a-z0-9]{32}\b/g, "TWILIO_SID"],
+  [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
   [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi, "TWILIO_AUTH_TOKEN"],
   // Slack (xoxb=bot, xoxp=user, xoxa=app, xoxr=refresh, xoxs=session, xoxe=expiring)
-  [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/g, "SLACK_TOKEN"],
+  [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/gi, "SLACK_TOKEN"],
   // Discord webhook
-  [/\bhttps:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+\b/g, "DISCORD_WEBHOOK"],
+  [/\bhttps:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+\b/gi, "DISCORD_WEBHOOK"],
   // Telegram bot
-  [/\b\d{8,10}:[A-Za-z0-9_-]{35}\b/g, "TELEGRAM_BOT_TOKEN"],
+  [/\b\d{8,10}:[A-Za-z0-9_-]{35}\b/gi, "TELEGRAM_BOT_TOKEN"],
   // SendGrid
-  [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/g, "SENDGRID_KEY"],
+  [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/gi, "SENDGRID_KEY"],
   // Mailgun (contextual to avoid "key-value" false positives)
   [/(?:mailgun|MAILGUN_API_KEY)\s*[=:]\s*['"]?key-[a-z0-9]{32,}['"]?/gi, "MAILGUN_KEY"],
 
   // === AI & ML PLATFORMS ===
-  [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/g, "ANTHROPIC_KEY"],
+  [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/gi, "ANTHROPIC_KEY"],
   [/\bsk-(?!ant-)(?:proj-)?[A-Za-z0-9\-_]{32,}\b/gi, "OPENAI_KEY"],
   [/\bgsk_[A-Za-z0-9]{48,}\b/gi, "GROQ_KEY"],
-  [/\bhf_[A-Za-z0-9]{34,}\b/g, "HUGGINGFACE_TOKEN"],
+  [/\bhf_[A-Za-z0-9]{34,}\b/gi, "HUGGINGFACE_TOKEN"],
 
   // === CLOUD PLATFORMS ===
   // Firebase
-  [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/g, "FIREBASE_KEY"],
+  [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/gi, "FIREBASE_KEY"],
   // Heroku (contextual — only near heroku/api keywords to avoid UUID false positives)
   [/(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)\s*[=:]\s*['"]?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}['"]?/gi, "HEROKU_API_KEY"],
   // Vercel (vc prefixed tokens)
-  [/\bvc[pcirka]_[A-Za-z0-9_\-]{24,}\b/g, "VERCEL_TOKEN"],
+  [/\bvc[pcirka]_[A-Za-z0-9_\-]{24,}\b/gi, "VERCEL_TOKEN"],
   // DigitalOcean
-  [/\bdop_v1_[a-f0-9]{64}\b/g, "DIGITALOCEAN_TOKEN"],
-  [/\bdoctl-[A-Za-z0-9\-]{40,}\b/g, "DIGITALOCEAN_REFRESH"],
+  [/\bdop_v1_[a-f0-9]{64}\b/gi, "DIGITALOCEAN_TOKEN"],
+  [/\bdoctl-[A-Za-z0-9\-]{40,}\b/gi, "DIGITALOCEAN_REFRESH"],
   // Supabase
-  [/\bsbp_[a-f0-9]{40,}\b/g, "SUPABASE_TOKEN"],
+  [/\bsbp_[a-f0-9]{40,}\b/gi, "SUPABASE_TOKEN"],
   // Cloudflare (contextual — no distinct prefix, so require keyword context)
   [/(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{37,}['"]?/gi, "CLOUDFLARE_TOKEN"],
   // Datadog (contextual — only near datadog/dd keywords to avoid hex false positives)
@@ -85,11 +85,11 @@ const SHARED_PATTERNS = [
 
   // === E-COMMERCE ===
   // Shopify
-  [/\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/g, "SHOPIFY_TOKEN"],
+  [/\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/gi, "SHOPIFY_TOKEN"],
 
   // === PACKAGE REGISTRIES ===
-  [/\bnpm_[A-Za-z0-9]{36,}\b/g, "NPM_TOKEN"],
-  [/\bpypi-[A-Za-z0-9\-_]{50,}\b/g, "PYPI_TOKEN"],
+  [/\bnpm_[A-Za-z0-9]{36,}\b/gi, "NPM_TOKEN"],
+  [/\bpypi-[A-Za-z0-9\-_]{50,}\b/gi, "PYPI_TOKEN"],
 
   // === INDIAN PII ===
   [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],

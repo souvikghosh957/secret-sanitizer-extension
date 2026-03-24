@@ -569,6 +569,18 @@ async function saveToVault(traceId, replacements) {
   });
 }
 
+// Returns the bottom offset (px) needed to stack a new toast above all visible SS toasts
+function getToastStackOffset() {
+  let offset = 20;
+  document.querySelectorAll(
+    '.secret-sanitizer-toast, .secret-sanitizer-clean-toast, #ss-milestone-toast, .secret-sanitizer-review-toast'
+  ).forEach(t => {
+    const h = t.offsetHeight;
+    if (h > 0) offset += h + 12;
+  });
+  return offset;
+}
+
 // Simple toast for basic messages — styled to match the smart toast's dark card
 function showToast(message, type = "success") {
   if (!document.body) return;
@@ -960,7 +972,9 @@ window.addEventListener("paste", (e) => {
     // execCommand('insertText') integrates with the editor's undo stack.
     try {
       inserted = document.execCommand('insertText', false, maskedText);
-    } catch (_) {}
+    } catch (_) {
+      // execCommand is deprecated and may throw in sandboxed iframes — fallback below handles it
+    }
 
     // Fallback: Selection API (no undo stack integration)
     if (!inserted) {
@@ -974,7 +988,9 @@ window.addEventListener("paste", (e) => {
           target.dispatchEvent(new Event('input', { bubbles: true }));
           inserted = true;
         }
-      } catch (_) {}
+      } catch (_) {
+        // Selection API unavailable in this context — insertion will be skipped
+      }
     }
   } else if (target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) {
     // Textarea / Input elements
@@ -998,7 +1014,9 @@ window.addEventListener("paste", (e) => {
       target.dispatchEvent(new Event('input', { bubbles: true }));
       target.dispatchEvent(new Event('change', { bubbles: true }));
       inserted = true;
-    } catch (_) {}
+    } catch (err) {
+      console.warn("[SecretSanitizer] Failed to insert masked text into textarea:", err);
+    }
   }
 
   if (inserted) {
@@ -1121,7 +1139,9 @@ async function checkReviewPrompt() {
     // Mark this milestone as shown before displaying
     await safeStorageSet({ reviewLastShownAt: currentMilestone });
     showReviewToast(currentMilestone, total);
-  } catch (_) {}
+  } catch (err) {
+    console.warn("[SecretSanitizer] Review prompt error:", err);
+  }
 }
 
 function showReviewToast(milestone, total) {
@@ -1158,7 +1178,7 @@ function showReviewToast(milestone, total) {
 
   Object.assign(toast.style, {
     position: "fixed",
-    bottom: "20px",
+    bottom: getToastStackOffset() + "px",
     right: "20px",
     background: "linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
     color: "#f1f5f9",
@@ -1413,9 +1433,7 @@ function showMilestoneCelebration(milestone) {
     document.head.appendChild(style);
   }
 
-  // Position above the secrets-detected toast if it exists
-  const secretsToast = document.querySelector('.secret-sanitizer-toast');
-  const bottomOffset = secretsToast ? secretsToast.offsetHeight + 32 : 20;
+  const bottomOffset = getToastStackOffset();
 
   // Outer wrapper for the gradient border effect
   const wrapper = document.createElement("div");
