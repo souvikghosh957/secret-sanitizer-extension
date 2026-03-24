@@ -2,9 +2,17 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
-## [2.2.5] - 2026-03-23
+## [2.2.5] - 2026-03-24
+
+### Fixed
+- Settings import now rejects files larger than 100 KB to prevent memory exhaustion from malicious files
+- Custom site input now validates that only `http://` and `https://` URLs are accepted — blocks `chrome://`, `javascript:`, and other unsafe protocols
+- Milestone and review toasts no longer overlap — stacking offset now accounts for all visible extension toasts
+- Silent `catch` blocks replaced with `console.warn` or explanatory comments for easier debugging
 
 ### Changed
+- Standardized regex flags to `/gi` across all token detection patterns for consistent case-insensitive matching (JWT, CREDIT_CARD, AADHAAR, PAN, and generic fallbacks intentionally kept as `/g`)
+- Pattern toggle labels derived directly from `SHARED_PATTERNS` — eliminates manual sync risk when new patterns are added
 - Updated Chrome Web Store title and short description for better visibility and search relevance
 
 ## [2.2.0] - 2026-03-07
