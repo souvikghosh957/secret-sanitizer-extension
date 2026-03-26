@@ -18,7 +18,7 @@
   <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
   <meta property="og:image:alt" content="Secret Sanitizer — Mask API Keys & Secrets in AI Chats">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="543">
+  <meta property="og:image:height" content="649">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@souvik_ghosh975">
@@ -261,6 +261,38 @@
     }
 
     .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+
+    .hero-featured-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+      padding: 7px 14px 7px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+    .hero-featured-badge:hover {
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      transform: translateY(-1px);
+    }
+    .hero-featured-badge .badge-chrome-icon {
+      width: 26px; height: 26px; flex-shrink: 0;
+    }
+    .hero-featured-badge .badge-text {
+      display: flex; flex-direction: column; line-height: 1.2;
+    }
+    .hero-featured-badge .badge-text-top {
+      font-size: 0.65rem; font-weight: 500;
+      color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .hero-featured-badge .badge-text-bottom {
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--text);
+    }
 
     .hero-meta {
       display: flex;
@@ -649,13 +681,57 @@
       text-align: center;
       padding: 56px 0 0;
     }
-    .cta-block h2 { font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 10px; }
-    .cta-block p { color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem; }
+    .cta-wrap {
+      position: relative;
+      padding: 64px 40px;
+      border: 1px solid rgba(14,165,233,0.15);
+      border-radius: 24px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(14,165,233,0.08) 0%, transparent 70%);
+      overflow: hidden;
+    }
+    .cta-wrap::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 500px; height: 260px;
+      background: radial-gradient(ellipse, rgba(14,165,233,0.14), transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .cta-wrap > * { position: relative; z-index: 1; }
+    .cta-store-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+      padding: 5px 14px 5px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(14,165,233,0.22);
+      background: rgba(14,165,233,0.06);
+      font-size: 0.77rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .cta-wrap h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 12px; }
+    .cta-wrap > p { color: var(--text-muted); margin-bottom: 28px; font-size: 0.95rem; }
+    .cta-trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      margin-bottom: 14px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+    .cta-trust-row span { display: flex; align-items: center; gap: 5px; }
+    .cta-trust-row .ct-check { color: var(--success); }
 
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
-      padding: 32px 0;
+      padding: 36px 0 28px;
       text-align: center;
       margin-top: 32px;
     }
@@ -664,11 +740,16 @@
       gap: 24px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
-    .footer-links a { color: var(--text-muted); font-size: 0.85rem; }
+    .footer-links a {
+      color: var(--text-muted); font-size: 0.85rem;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
     .footer-links a:hover { color: var(--primary); }
-    .footer-credit { font-size: 0.78rem; color: var(--text-dim); }
+    .footer-links a img { display: block; }
+    .footer-credit { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 4px; }
+    .footer-copy { font-size: 0.72rem; color: var(--text-dim); opacity: 0.55; }
 
     /* ===== How It Works ===== */
     .how-it-works { background: var(--bg); scroll-margin-top: 52px; }
@@ -761,7 +842,7 @@
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px"><img src="cws-logo.svg" alt="" width="14" height="14" style="filter:brightness(0) invert(1);opacity:0.9"> Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -772,6 +853,13 @@
       <div class="hero-inner">
 
         <div class="hero-left">
+          <a href="https://chromewebstore.google.com/detail/secret-sanitizer-%E2%80%93-paste/genolcmpopiemhpbdnhkaefllchgekja" class="hero-featured-badge" target="_blank" rel="noopener noreferrer">
+            <img class="badge-chrome-icon" src="cws-logo.svg" alt="Chrome Web Store" width="26" height="26">
+            <span class="badge-text">
+              <span class="badge-text-top">Featured on</span>
+              <span class="badge-text-bottom">Chrome Web Store</span>
+            </span>
+          </a>
           <h1 class="hero-title">
             <span class="hero-logo-box">
               <svg class="hero-logo-icon" viewBox="0 0 24 27" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.2"/><path d="M9 12.5l2 2 4-4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
@@ -1207,10 +1295,25 @@
     <section class="section" style="background:var(--bg)">
       <div class="container fade-up">
         <div class="cta-block">
-          <h2 class="gradient-text">Paste freely. Ship faster.</h2>
-          <p>Free, open source, installs in 5 seconds. No sign-up, no cloud, no nonsense.</p>
-          <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Add to Chrome &mdash; Free</a>
-          <p style="margin-top:12px"><a href="privacy.html" style="color:var(--text-dim);font-size:0.85rem">Privacy Policy &rarr;</a></p>
+          <div class="cta-wrap">
+            <div class="cta-store-badge">
+              <img src="cws-logo.svg" alt="Chrome Web Store" width="20" height="20">
+              Featured on Chrome Web Store
+            </div>
+            <h2 class="gradient-text">Paste freely. Ship faster.</h2>
+            <p>Free, open source, installs in 5 seconds. No sign-up, no cloud, no nonsense.</p>
+            <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+              Add to Chrome &mdash; Free
+            </a>
+            <div class="cta-trust-row">
+              <span><svg class="ct-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 100% local</span>
+              <span><svg class="ct-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Zero data collection</span>
+              <span><svg class="ct-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Open source &amp; auditable</span>
+              <span><svg class="ct-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Works offline</span>
+            </div>
+            <p><a href="privacy.html" style="color:var(--text-dim);font-size:0.82rem">Privacy Policy &rarr;</a></p>
+          </div>
         </div>
       </div>
     </section>
@@ -1224,10 +1327,13 @@
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">
+          <img src="cws-logo.svg" alt="" width="15" height="15" style="opacity:0.75">Chrome Web Store
+        </a>
         <a href="privacy.html">Privacy Policy</a>
       </div>
       <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></p>
+      <p class="footer-copy">&copy; 2025 Secret Sanitizer &mdash; MIT License</p>
     </div>
   </footer>
 

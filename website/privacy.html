@@ -17,6 +17,9 @@
   <meta property="og:description" content="We collect nothing. All data stays on your machine.">
   <meta property="og:url" content="https://secretsanitizer.com/privacy.html">
   <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="649">
+  <meta property="og:image:type" content="image/png">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -108,9 +111,11 @@
       text-align: center;
     }
     .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
-    .footer-links a { color: var(--text-muted); font-size: 0.9rem; }
+    .footer-links a { color: var(--text-muted); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px; }
     .footer-links a:hover { color: var(--primary); }
-    .footer-credit { font-size: 0.82rem; color: var(--text-dim); }
+    .footer-links a img { display: block; }
+    .footer-credit { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 4px; }
+    .footer-copy { font-size: 0.72rem; color: var(--text-dim); opacity: 0.55; }
 
     /* ===== NAVBAR ===== */
     .navbar {
@@ -162,7 +167,7 @@
       </a>
       <div class="nav-links">
         <a href="index.html">Home</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px"><img src="cws-logo.svg" alt="" width="14" height="14" style="filter:brightness(0) invert(1);opacity:0.9"> Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -261,9 +266,10 @@
       <div class="footer-links">
         <a href="index.html">Home</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer"><img src="cws-logo.svg" alt="" width="14" height="14" style="opacity:0.75">Chrome Web Store</a>
       </div>
-      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &middot; MIT License</p>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></p>
+      <p class="footer-copy">&copy; 2025 Secret Sanitizer &mdash; MIT License</p>
     </div>
   </footer>
 
