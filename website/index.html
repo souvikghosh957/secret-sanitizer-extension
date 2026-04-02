@@ -754,9 +754,10 @@
     /* ===== How It Works ===== */
     .how-it-works { background: var(--bg); scroll-margin-top: 52px; }
     .hiw-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
+      display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 20px; margin-top: 40px;
     }
+    @media (max-width: 900px) { .hiw-grid { grid-template-columns: repeat(2, 1fr) !important; } }
     .hiw-step {
       text-align: center;
       padding: 28px 20px 24px;
@@ -922,7 +923,7 @@
       <div class="container fade-up">
         <div style="text-align:center">
           <span class="section-label">How it works</span>
-          <h2 class="section-title">Three steps. Zero effort.</h2>
+          <h2 class="section-title">Simple. Automatic. Zero effort.</h2>
           <div class="section-divider"></div>
         </div>
         <div class="hiw-grid">
@@ -943,6 +944,12 @@
             <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
             <h3>Masked &amp; safe</h3>
             <p>Secrets replaced with safe placeholders before sending &mdash; originals saved to your local vault</p>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">4</div>
+            <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
+            <h3>Smart Restore ✦</h3>
+            <p>Copy any AI response with placeholders &mdash; originals are automatically put back in your clipboard</p>
           </div>
         </div>
       </div>
@@ -966,6 +973,11 @@
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
             <h3>Encrypted Vault</h3>
             <p>Originals saved locally with AES-GCM, unmask anytime</p>
+          </div>
+          <div class="feat glass">
+            <div class="feat-icon" style="color:var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
+            <h3>Smart Restore <span style="font-size:10px;color:var(--accent);font-weight:600;vertical-align:middle;letter-spacing:0.04em">NEW</span></h3>
+            <p>Copy AI responses with placeholders &mdash; secrets auto-restored in your clipboard</p>
           </div>
           <div class="feat glass">
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"/><circle cx="16" cy="12" r="3"/></svg></div>

@@ -79,6 +79,7 @@ Vault stores:   postgres://admin:s3cret@db.prod.internal:5432/myapp  (local, enc
 | **4** | Detected secrets are replaced with safe `[MASKED]` placeholders |
 | **5** | A toast notification confirms what was blocked |
 | **6** | Originals are stored in a local AES-GCM encrypted vault you can access anytime |
+| **7** | ✨ **Smart Restore** — copy any AI response containing placeholders and the originals are automatically put back in your clipboard |
 
 > **Don't take our word for it.** Run `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
 
@@ -144,8 +145,8 @@ Works out of the box on every major AI chat:
 <tr>
 <td align="center" width="25%"><strong>Instant Interception</strong><br><sub>Secrets never reach the chat input</sub></td>
 <td align="center" width="25%"><strong>Encrypted Vault</strong><br><sub>AES-GCM encrypted, local only</sub></td>
+<td align="center" width="25%"><strong>Smart Restore ✨</strong><br><sub>Copy AI responses — secrets auto-restored in clipboard</sub></td>
 <td align="center" width="25%"><strong>Scan Feedback</strong><br><sub>Toast on every paste — clean or caught</sub></td>
-<td align="center" width="25%"><strong>Interactive Demos</strong><br><sub>Try it with sample secrets instantly</sub></td>
 </tr>
 <tr>
 <td align="center"><strong>Test Mode</strong><br><sub>Preview masking before committing</sub></td>
@@ -156,7 +157,7 @@ Works out of the box on every major AI chat:
 <tr>
 <td align="center"><strong>Backup & Restore</strong><br><sub>Export/import your config as JSON</sub></td>
 <td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your setup</sub></td>
-<td align="center"><strong>Share Button</strong><br><sub>Spread the word in one click</sub></td>
+<td align="center"><strong>Interactive Demos</strong><br><sub>Try it with sample secrets instantly</sub></td>
 <td align="center"><strong>Lightweight</strong><br><sub>No bloat, no dependencies</sub></td>
 </tr>
 </table>
@@ -222,7 +223,7 @@ cd secret-sanitizer-extension
 ## Roadmap
 
 - [ ] Firefox support
-- [ ] Smart restore — auto-restore secrets when copying AI responses
+- [x] Smart Restore — auto-restore secrets when copying AI responses ✨
 - [ ] Pattern sharing — community-contributed pattern packs
 - [ ] VS Code extension variant
 
