@@ -836,7 +836,7 @@ function showSmartToast(secretTypes, onUndo) {
     transform: "translateY(8px)",
     transition: "all 0.2s ease-out",
     overflow: "hidden",
-    maxWidth: "300px"
+    maxWidth: "360px"
   });
 
   // Main content
