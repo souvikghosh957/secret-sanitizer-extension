@@ -6,7 +6,9 @@ const DEFAULT_SITES = [
 
 async function registerContentScripts() {
   try {
-    await chrome.scripting.unregisterContentScripts({ ids: ["secret-sanitizer"] }).catch(() => {});
+    await chrome.scripting.unregisterContentScripts({
+      ids: ["secret-sanitizer", "secret-sanitizer-main"]
+    }).catch(() => {});
 
     const { removedDefaults = [], customSites = [] } =
       await chrome.storage.local.get(["removedDefaults", "customSites"]);
@@ -15,12 +17,23 @@ async function registerContentScripts() {
     const allMatches = [...activeDefaults, ...customSites].map(s => `*://${s}/*`);
 
     if (allMatches.length > 0) {
-      await chrome.scripting.registerContentScripts([{
-        id: "secret-sanitizer",
-        matches: allMatches,
-        js: ["patterns.js", "content_script.js"],
-        runAt: "document_idle"
-      }]);
+      await chrome.scripting.registerContentScripts([
+        {
+          id: "secret-sanitizer",
+          matches: allMatches,
+          js: ["patterns.js", "content_script.js"],
+          runAt: "document_idle"
+        },
+        {
+          // Runs in the page's main world so it can wrap navigator.clipboard.writeText
+          // before site JavaScript calls it (e.g. ChatGPT / Claude copy buttons).
+          id: "secret-sanitizer-main",
+          matches: allMatches,
+          js: ["ss_clipboard_interceptor.js"],
+          world: "MAIN",
+          runAt: "document_start"
+        }
+      ]);
     }
   } catch (err) {
     console.warn("Content script registration error:", err);
