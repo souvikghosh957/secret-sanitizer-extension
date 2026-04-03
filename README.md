@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme_heading.png" width="440" alt="Secret Sanitizer — Prevent API Key & Credential Leaks to AI Chats" />
+  <img src="readme-heading.png" alt="Secret Sanitizer — Prevent API Key & Credential Leaks to AI Chats" style="max-width:100%;" />
 </p>
 
 <p align="center">
