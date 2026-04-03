@@ -9,6 +9,7 @@
 <p align="center">
   <a href="#the-problem">The Problem</a> &bull;
   <a href="#how-it-works">How It Works</a> &bull;
+  <a href="#smart-restore">Smart Restore</a> &bull;
   <a href="#supported-platforms">Platforms</a> &bull;
   <a href="#what-it-catches">Detection</a> &bull;
   <a href="#features">Features</a> &bull;
@@ -57,7 +58,7 @@
 
 In December 2025, researchers discovered that [Chrome extensions with millions of users](https://www.malwarebytes.com/blog/news/2025/12/chrome-extension-slurps-up-ai-chats-after-users-installed-it-for-privacy) — including some with Google's "Featured" badge — were **silently harvesting every AI conversation** and selling the data to brokers. The attack has been dubbed [**Prompt Poaching**](https://thehackernews.com/2026/01/two-chrome-extensions-caught-stealing.html).
 
-Meanwhile, developers paste API keys, database URLs, and credentials into AI chats every day. Once sent, that data is logged — often permanently.
+Meanwhile, developers paste API keys, database URLs, and credentials into AI chats every single day. Once sent, that data is logged — often permanently.
 
 **Secret Sanitizer works the opposite way.** It intercepts your paste, masks anything sensitive using local regex matching, and never makes a single network request. Zero servers. Zero tracking. Fully auditable — you're reading the source right now.
 
@@ -66,22 +67,37 @@ Meanwhile, developers paste API keys, database URLs, and credentials into AI cha
 ## How It Works
 
 ```
-You copy:       DATABASE_URL=postgres://admin:s3cret@db.prod.internal:5432/myapp
-You paste:      DATABASE_URL=[MASKED]
-Vault stores:   postgres://admin:s3cret@db.prod.internal:5432/myapp  (local, encrypted)
+You copy:     DATABASE_URL=postgres://admin:s3cret@db.prod.internal:5432/myapp
+You paste:    DATABASE_URL=[DATABASE_URL_0]
+Vault saves:  postgres://admin:s3cret@db.prod.internal:5432/myapp  ← local, encrypted
 ```
 
 | Step | What happens |
 |:----:|-------------|
 | **1** | You paste text into a supported AI chat |
-| **2** | Content script intercepts the paste **before** it hits the input field |
+| **2** | The extension intercepts the paste **before** it reaches the input field |
 | **3** | Regex patterns run **locally in your browser** — no data leaves your machine |
-| **4** | Detected secrets are replaced with safe `[MASKED]` placeholders |
-| **5** | A toast notification confirms what was blocked |
-| **6** | Originals are stored in a local AES-GCM encrypted vault you can access anytime |
-| **7** | ✨ **Smart Restore** — copy any AI response containing placeholders and the originals are automatically put back in your clipboard |
+| **4** | Detected secrets are replaced with readable placeholders like `[STRIPE_KEY_0]` |
+| **5** | A toast notification tells you what was caught — with a 5-second undo window |
+| **6** | Originals are stored in a local AES-GCM encrypted vault, accessible from the popup |
 
 > **Don't take our word for it.** Run `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
+
+---
+
+## Smart Restore
+
+When the AI replies using your placeholders, getting the real values back is automatic.
+
+**How it works:**
+
+1. You ask the AI: *"Fix this connection string: `[DATABASE_URL_0]`"*
+2. The AI responds: *"Change `[DATABASE_URL_0]` to use port 5433."*
+3. You copy that response — Secret Sanitizer detects the placeholders and swaps them back to the originals in your clipboard instantly.
+
+No manual lookup. No copying from the vault. The clipboard you paste elsewhere already has the real values.
+
+The vault keeps originals for 24 hours. If you need them later, they're always accessible from the popup under **Recent**.
 
 ---
 
@@ -145,20 +161,20 @@ Works out of the box on every major AI chat:
 <tr>
 <td align="center" width="25%"><strong>Instant Interception</strong><br><sub>Secrets never reach the chat input</sub></td>
 <td align="center" width="25%"><strong>Encrypted Vault</strong><br><sub>AES-GCM encrypted, local only</sub></td>
-<td align="center" width="25%"><strong>Smart Restore</strong><br><sub>Copy AI responses — secrets auto-restored in clipboard</sub></td>
-<td align="center" width="25%"><strong>Scan Feedback</strong><br><sub>Toast on every paste — clean or caught</sub></td>
+<td align="center" width="25%"><strong>Smart Restore</strong><br><sub>Copy AI responses — secrets auto-restored in your clipboard</sub></td>
+<td align="center" width="25%"><strong>Undo on Every Paste</strong><br><sub>5-second window to restore originals in-place</sub></td>
 </tr>
 <tr>
 <td align="center"><strong>Test Mode</strong><br><sub>Preview masking before committing</sub></td>
 <td align="center"><strong>Stats Dashboard</strong><br><sub>Track blocks per day with history</sub></td>
-<td align="center"><strong>Pattern Controls</strong><br><sub>Enable/disable individual patterns</sub></td>
+<td align="center"><strong>Pattern Controls</strong><br><sub>Enable/disable individual detection patterns</sub></td>
 <td align="center"><strong>Custom Sites</strong><br><sub>Protect any domain, one click</sub></td>
 </tr>
 <tr>
 <td align="center"><strong>Backup & Restore</strong><br><sub>Export/import your config as JSON</sub></td>
-<td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your setup</sub></td>
-<td align="center"><strong>Interactive Demos</strong><br><sub>Try it with sample secrets instantly</sub></td>
-<td align="center"><strong>Lightweight &amp; Fast</strong><br><sub>Zero dependencies, minimal footprint, optimized for speed</sub></td>
+<td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your system</sub></td>
+<td align="center"><strong>Interactive Demos</strong><br><sub>Try sample secrets right in the popup</sub></td>
+<td align="center"><strong>Lightweight &amp; Fast</strong><br><sub>Zero dependencies, no slowdown</sub></td>
 </tr>
 </table>
 
@@ -231,7 +247,7 @@ cd secret-sanitizer-extension
 
 ## Contributing
 
-Contributions are welcome! Some ideas:
+Contributions are welcome. Some ideas:
 
 - **Add new secret patterns** — know a format we're missing? Open a PR
 - **Report false positives** — help us fine-tune detection
