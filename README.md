@@ -145,7 +145,7 @@ Works out of the box on every major AI chat:
 <tr>
 <td align="center" width="25%"><strong>Instant Interception</strong><br><sub>Secrets never reach the chat input</sub></td>
 <td align="center" width="25%"><strong>Encrypted Vault</strong><br><sub>AES-GCM encrypted, local only</sub></td>
-<td align="center" width="25%"><strong>Smart Restore ✨</strong><br><sub>Copy AI responses — secrets auto-restored in clipboard</sub></td>
+<td align="center" width="25%"><strong>Smart Restore</strong><br><sub>Copy AI responses — secrets auto-restored in clipboard</sub></td>
 <td align="center" width="25%"><strong>Scan Feedback</strong><br><sub>Toast on every paste — clean or caught</sub></td>
 </tr>
 <tr>
@@ -158,7 +158,7 @@ Works out of the box on every major AI chat:
 <td align="center"><strong>Backup & Restore</strong><br><sub>Export/import your config as JSON</sub></td>
 <td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your setup</sub></td>
 <td align="center"><strong>Interactive Demos</strong><br><sub>Try it with sample secrets instantly</sub></td>
-<td align="center"><strong>Lightweight</strong><br><sub>No bloat, no dependencies</sub></td>
+<td align="center"><strong>Lightweight &amp; Fast</strong><br><sub>Zero dependencies, minimal footprint, optimized for speed</sub></td>
 </tr>
 </table>
 
@@ -223,7 +223,7 @@ cd secret-sanitizer-extension
 ## Roadmap
 
 - [ ] Firefox support
-- [x] Smart Restore — auto-restore secrets when copying AI responses ✨
+- [x] Smart Restore — auto-restore secrets when copying AI responses
 - [ ] Pattern sharing — community-contributed pattern packs
 - [ ] VS Code extension variant
 

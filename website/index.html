@@ -27,7 +27,7 @@
   <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
   <meta name="twitter:creator" content="@souvik_ghosh975">
   <link rel="icon" type="image/png" href="icon-128.png">
-  <meta name="theme-color" content="#060a14">
+  <meta name="theme-color" content="#0b1525">
 
   <script type="application/ld+json">
   {
@@ -53,13 +53,13 @@
       --primary-glow: rgba(14, 165, 233, 0.25);
       --accent: #06b6d4;
       --accent-warm: #818cf8;
-      --bg: #060a14;
-      --bg-alt: #0b1120;
-      --bg-card: rgba(255, 255, 255, 0.035);
+      --bg: #0b1525;
+      --bg-alt: #0f1d31;
+      --bg-card: rgba(255, 255, 255, 0.05);
       --text: #e8edf5;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
-      --border: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.09);
       --success: #10b981;
       --warning: #f59e0b;
       --error: #ef4444;
@@ -79,12 +79,12 @@
     }
     .navbar.scrolled { border-bottom-color: var(--border); background: rgba(6, 10, 20, 0.95); }
     .nav-inner {
-      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      max-width: 1200px; margin: 0 auto; padding: 0 32px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .nav-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 0.92rem; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em; }
     .nav-brand:hover { color: var(--text); }
-    .nav-brand img { width: 20px; height: 20px; }
+    .nav-brand img { width: 26px; height: 26px; border-radius: 6px; }
     .nav-links { display: flex; align-items: center; gap: 22px; }
     .nav-links a { color: var(--text-muted); font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: var(--text); }
@@ -97,7 +97,7 @@
     .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px var(--primary-glow); color: #fff; }
     @media (max-width: 600px) {
       .nav-links a:not(.nav-cta) { display: none; }
-      .nav-brand span { display: none; }
+      .nav-brand span { display: inline; }
     }
 
     html { scroll-behavior: smooth; }
@@ -106,7 +106,7 @@
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.7;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
@@ -114,7 +114,7 @@
     a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
     a:hover { color: var(--accent); }
 
-    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
 
     .glass {
       background: var(--bg-card);
@@ -162,32 +162,34 @@
 
     /* ====================== HERO ====================== */
     .hero {
-      min-height: 88vh;
+      min-height: 92vh;
       display: flex;
       align-items: center;
       position: relative;
-      padding: 80px 0 48px;
+      padding: 96px 0 64px;
       overflow: hidden;
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 36px 36px;
     }
 
     .hero::before, .hero::after {
       content: '';
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
+      filter: blur(100px);
       z-index: 0;
-      animation: drift 12s ease-in-out infinite;
+      animation: drift 14s ease-in-out infinite;
     }
     .hero::before {
-      width: 500px; height: 500px;
-      background: rgba(14,165,233,0.12);
-      top: -150px; left: -100px;
+      width: 600px; height: 600px;
+      background: rgba(14,165,233,0.14);
+      top: -200px; left: -120px;
     }
     .hero::after {
-      width: 400px; height: 400px;
-      background: rgba(129,140,248,0.08);
-      bottom: -100px; right: -80px;
-      animation-delay: -6s;
+      width: 500px; height: 500px;
+      background: rgba(129,140,248,0.10);
+      bottom: -120px; right: -100px;
+      animation-delay: -7s;
       animation-direction: reverse;
     }
     @keyframes drift {
@@ -200,8 +202,8 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
+      grid-template-columns: 46fr 54fr;
+      gap: 64px;
       align-items: center;
     }
 
@@ -210,53 +212,52 @@
     .hero-title {
       display: flex;
       align-items: center;
-      gap: 14px;
-      font-size: clamp(2.4rem, 5.2vw, 3.4rem);
+      gap: 16px;
+      font-size: clamp(2.2rem, 4.8vw, 3.2rem);
       font-weight: 800;
       letter-spacing: -0.03em;
       line-height: 1.1;
-      margin-bottom: 14px;
-      white-space: nowrap;
+      margin-bottom: 18px;
     }
 
     .hero-logo-box {
-      width: 52px;
-      height: 52px;
+      width: 60px;
+      height: 60px;
       flex-shrink: 0;
       background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 60%, var(--accent-warm) 100%);
-      border-radius: 14px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 32px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.12) inset;
+      box-shadow: 0 8px 28px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.12) inset;
       animation: logoFloat 6s ease-in-out infinite;
       position: relative;
     }
     .hero-logo-box::after {
       content: '';
       position: absolute;
-      inset: -4px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, rgba(14,165,233,0.3), rgba(6,182,212,0.1), rgba(129,140,248,0.2));
+      inset: -6px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(6,182,212,0.08), rgba(129,140,248,0.15));
       z-index: -1;
       animation: logoRing 6s ease-in-out infinite;
     }
-    .hero-logo-icon { width: 26px; height: 30px; }
+    .hero-logo-icon { width: 30px; height: 34px; }
 
     @keyframes logoFloat {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+      50% { transform: translateY(-5px); }
     }
     @keyframes logoRing {
       0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.06); }
+      50% { opacity: 0.55; transform: scale(1.06); }
     }
 
     .hero-tagline {
-      font-size: clamp(1rem, 2vw, 1.12rem);
-      color: var(--text-muted);
+      font-size: clamp(1.08rem, 2vw, 1.18rem);
+      color: var(--text);
       margin-bottom: 32px;
-      line-height: 1.6;
+      line-height: 1.65;
       max-width: 480px;
     }
 
@@ -266,102 +267,139 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 22px;
-      padding: 7px 14px 7px 7px;
-      border-radius: 999px;
+      margin-bottom: 24px;
+      padding: 6px 14px 6px 6px;
+      border-radius: 10px;
       background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.09);
       text-decoration: none;
       transition: border-color 0.2s, background 0.2s, transform 0.2s;
     }
     .hero-featured-badge:hover {
-      border-color: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.17);
       background: rgba(255,255,255,0.07);
       transform: translateY(-1px);
     }
-    .hero-featured-badge .badge-chrome-icon {
-      width: 26px; height: 26px; flex-shrink: 0;
+    .badge-icon-chip {
+      width: 30px; height: 30px;
+      background: rgba(255,255,255,0.94);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .hero-featured-badge .badge-text {
-      display: flex; flex-direction: column; line-height: 1.2;
-    }
+    .hero-featured-badge .badge-text { display: flex; flex-direction: column; line-height: 1.25; }
     .hero-featured-badge .badge-text-top {
-      font-size: 0.65rem; font-weight: 500;
-      color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase;
+      font-size: 0.6rem; font-weight: 600;
+      color: var(--text-dim); letter-spacing: 0.07em; text-transform: uppercase;
     }
-    .hero-featured-badge .badge-text-bottom {
-      font-size: 0.8rem; font-weight: 700;
-      color: var(--text);
-    }
+    .hero-featured-badge .badge-text-bottom { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .badge-arrow { color: var(--text-dim); flex-shrink: 0; opacity: 0.6; }
 
-    .hero-meta {
+    .hero-trust-line {
       display: flex;
       align-items: center;
-      gap: 0;
-      font-size: 0.78rem;
-      color: var(--text-dim);
+      margin-top: 22px;
+      white-space: nowrap;
+    }
+    .hero-trust-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.73rem;
       font-weight: 500;
-      letter-spacing: 0.02em;
+      color: var(--text-muted);
     }
-    .hero-meta span {
-      display: flex; align-items: center; gap: 7px;
-      padding: 6px 0;
-    }
-    .hero-meta svg { flex-shrink: 0; color: var(--primary); }
-    .hero-meta-sep {
-      width: 1px; height: 14px;
-      background: var(--border);
-      margin: 0 16px;
+    .hero-trust-sep {
+      margin: 0 10px;
+      color: var(--text-dim);
+      opacity: 0.35;
+      font-size: 0.85rem;
+      line-height: 1;
       flex-shrink: 0;
     }
-    .hero-meta .hm-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 6px rgba(16,185,129,0.5);
-      flex-shrink: 0;
-    }
-
     /* ===== LIVE DEMO ===== */
     .demo-window {
-      border-radius: var(--radius);
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(14,165,233,0.10), 0 0 0 1px rgba(14,165,233,0.12);
-      border: 1px solid rgba(14,165,233,0.15);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px rgba(14,165,233,0.18), 0 0 80px rgba(14,165,233,0.07);
+      border: 1px solid rgba(14,165,233,0.2);
     }
 
     .demo-titlebar {
-      background: #111827;
-      padding: 10px 16px;
+      background: #0d1520;
+      padding: 11px 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-dots { display: flex; gap: 6px; flex-shrink: 0; }
+    .demo-dot { width: 11px; height: 11px; border-radius: 50%; }
     .demo-dot.r { background: #ef4444; }
     .demo-dot.y { background: #f59e0b; }
     .demo-dot.g { background: #10b981; }
-    .demo-titlebar-text {
+
+    .demo-urlbar {
       flex: 1;
-      text-align: center;
-      font-size: 0.75rem;
+      max-width: 220px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.68rem;
       color: var(--text-dim);
-      letter-spacing: 0.02em;
+      font-family: var(--mono);
+      overflow: hidden;
+    }
+    .demo-urlbar-lock { flex-shrink: 0; color: var(--success); opacity: 0.8; }
+
+    .demo-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--success);
+      flex-shrink: 0;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .demo-status-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(16,185,129,0.8);
+      animation: statusPulse 2.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.8); }
     }
 
     .demo-body {
-      background: #0c1222;
-      padding: 24px;
-      min-height: 260px;
+      background: #070e1a;
+      padding: 22px 26px 26px;
+      min-height: 340px;
       font-family: var(--mono);
-      font-size: 0.82rem;
-      line-height: 1.9;
+      font-size: 0.84rem;
+      line-height: 2;
     }
 
-    .demo-line { margin-bottom: 4px; white-space: nowrap; overflow: hidden; }
+    .demo-line { margin-bottom: 2px; white-space: nowrap; overflow: hidden; }
     .demo-key { color: var(--warning); }
-    .demo-masked { color: var(--error); font-weight: 600; }
-    .demo-comment { color: var(--text-dim); font-style: italic; font-size: 0.78rem; }
+    .demo-masked {
+      color: #f87171;
+      font-weight: 700;
+      background: rgba(239,68,68,0.12);
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .demo-comment { color: #3d5166; font-style: italic; font-size: 0.78rem; }
 
     .cursor {
       display: inline-block;
@@ -376,137 +414,158 @@
 
     .demo-scan {
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      margin: 12px 0;
+      background: linear-gradient(90deg, transparent, var(--primary) 40%, var(--accent) 60%, transparent);
+      margin: 16px 0;
       opacity: 0;
       transform: scaleX(0);
       transform-origin: left;
-      transition: transform 0.4s ease, opacity 0.2s;
+      transition: transform 0.5s ease, opacity 0.2s;
+      box-shadow: 0 0 12px rgba(14,165,233,0.6);
     }
     .demo-scan.active { opacity: 1; transform: scaleX(1); }
 
     .demo-toast {
-      margin-top: 16px;
-      padding: 10px 14px;
+      margin-top: 14px;
+      padding: 11px 14px;
       border-radius: 10px;
       font-family: var(--font);
       font-size: 0.78rem;
       font-weight: 500;
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      color: #f1f5f9;
+      background: rgba(14,165,233,0.07);
+      border: 1px solid rgba(14,165,233,0.22);
+      color: var(--text);
       opacity: 0;
       transform: translateY(8px);
       transition: all 0.4s ease;
       display: flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(14,165,233,0.08);
     }
     .demo-toast.show { opacity: 1; transform: translateY(0); }
 
     /* ====================== SECTIONS ====================== */
     .section {
-      padding: 72px 0;
+      padding: 104px 0;
       position: relative;
-      scroll-margin-top: 52px;
+    }
+
+    .section-anchor {
+      scroll-margin-top: 96px;
+    }
+    .section-anchor-far {
+      scroll-margin-top: 124px;
     }
 
     .section-label {
-      display: inline-block;
-      font-size: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.67rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--primary);
-      margin-bottom: 8px;
+      margin-bottom: 16px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(14, 165, 233, 0.07);
+      border: 1px solid rgba(14, 165, 233, 0.18);
     }
 
     .section-title {
-      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 12px;
+      font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.12;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
     }
 
     .section-sub {
       font-size: 1rem;
       color: var(--text-muted);
       max-width: 560px;
-      line-height: 1.6;
+      line-height: 1.75;
     }
 
     /* ===== FEATURES + PATTERNS ===== */
-    .features-section { background: var(--bg-alt); }
+    .features-section { background: var(--bg-alt); padding: 88px 0; }
+    .story-section { padding: 88px 0; }
 
     .features-top {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin-top: 32px;
+      margin-top: 40px;
     }
 
     .feat {
-      padding: 20px;
+      padding: 28px 24px;
       text-align: center;
-      transition: transform 0.25s, border-color 0.25s;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
     }
-    .feat:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.2); }
+    .feat:hover { transform: translateY(-4px); border-color: rgba(14,165,233,0.22); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
     .feat-icon {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 46px; height: 46px; border-radius: 13px;
       background: rgba(14,165,233,0.08); color: var(--primary);
       display: inline-flex; align-items: center; justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 16px;
     }
-    .feat h3 { font-size: 0.88rem; margin-bottom: 4px; font-weight: 600; }
-    .feat p { font-size: 0.78rem; color: var(--text-muted); }
+    .features-top .feat:nth-child(3n+2) .feat-icon { color: var(--accent); background: rgba(6,182,212,0.08); }
+    .features-top .feat:nth-child(3n) .feat-icon { color: var(--accent-warm); background: rgba(129,140,248,0.08); }
+    .feat h3 { font-size: 1rem; margin-bottom: 8px; font-weight: 700; }
+    .feat p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.65; }
 
     .patterns-strip {
-      margin-top: 36px;
-      padding: 28px 32px;
+      margin-top: 40px;
+      padding: 32px 40px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
+      gap: 36px;
     }
 
     .pat-col h4 {
-      font-size: 0.82rem;
+      font-size: 0.88rem;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
       color: var(--text);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
     }
     .pat-col ul { list-style: none; }
-    .pat-col li { font-size: 0.78rem; color: var(--text-muted); padding: 2px 0; }
-    .pat-col li::before { content: '\2713'; color: var(--success); margin-right: 6px; font-weight: 700; font-size: 0.7rem; }
+    .pat-col li { font-size: 0.82rem; color: var(--text-muted); padding: 4px 0; line-height: 1.5; }
+    .pat-col li::before { content: '\2713'; color: var(--success); margin-right: 7px; font-weight: 700; font-size: 0.72rem; }
 
     .patterns-note {
       text-align: center;
-      margin-top: 20px;
-      font-size: 0.85rem;
-      color: var(--text-dim);
+      margin-top: 32px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      padding: 14px 24px;
+      background: rgba(14,165,233,0.04);
+      border: 1px solid rgba(14,165,233,0.1);
+      border-radius: 10px;
     }
-    .patterns-note strong { color: var(--primary); }
+    .patterns-note strong { color: var(--primary); font-weight: 700; }
 
     .platforms-inline {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
-      margin-top: 28px;
+      margin-top: 44px;
     }
     .plat-chip {
-      padding: 8px 16px;
-      font-size: 0.8rem;
+      padding: 10px 20px;
+      font-size: 0.85rem;
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
       transition: transform 0.2s, border-color 0.2s;
     }
-    .plat-chip:hover { transform: translateY(-2px); border-color: rgba(14,165,233,0.25); }
+    .plat-chip:hover { transform: translateY(-2px); border-color: rgba(14,165,233,0.28); }
     .plat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
     /* ===== WHO IS IT FOR ===== */
@@ -515,16 +574,16 @@
       flex-wrap: wrap;
       gap: 12px;
       justify-content: center;
-      margin-top: 24px;
+      margin-top: 36px;
     }
     .audience-chip {
-      padding: 10px 20px;
-      font-size: 0.82rem;
+      padding: 12px 24px;
+      font-size: 0.85rem;
       font-weight: 500;
       color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
     }
     .audience-chip .a-icon { display: flex; align-items: center; color: var(--primary); }
 
@@ -534,39 +593,39 @@
     .trust-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-top: 32px;
+      gap: 20px;
+      margin-top: 52px;
     }
 
-    .trust-card { padding: 20px; text-align: center; }
+    .trust-card { padding: 28px 24px; text-align: center; }
     .trust-card .t-icon {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 44px; height: 44px; border-radius: 12px;
       background: rgba(14,165,233,0.08); color: var(--primary);
       display: inline-flex; align-items: center; justify-content: center;
-      margin: 0 auto 10px;
+      margin: 0 auto 14px;
     }
-    .trust-card h3 { font-size: 0.88rem; margin-bottom: 4px; }
-    .trust-card p { font-size: 0.78rem; color: var(--text-muted); }
+    .trust-card h3 { font-size: 1rem; margin-bottom: 8px; font-weight: 700; }
+    .trust-card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.65; }
 
     .esb-banner {
-      margin-top: 32px;
-      padding: 20px 24px;
-      border-radius: 12px;
+      margin-top: 48px;
+      padding: 24px 32px;
+      border-radius: 14px;
       border: 1px solid rgba(245, 158, 11, 0.15);
       background: rgba(245, 158, 11, 0.04);
       display: flex;
-      gap: 14px;
+      gap: 18px;
       align-items: flex-start;
     }
     .esb-icon { flex-shrink: 0; margin-top: 2px; color: var(--warning); display: flex; }
-    .esb-banner h4 { font-size: 0.88rem; color: var(--warning); margin-bottom: 4px; }
-    .esb-banner p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+    .esb-banner h4 { font-size: 0.92rem; color: var(--warning); margin-bottom: 6px; }
+    .esb-banner p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; }
 
     /* Video thumbnail */
     .video-thumb {
       display: block;
       margin: 20px auto 0;
-      max-width: 680px;
+      max-width: 760px;
       border-radius: var(--radius);
       overflow: hidden;
       position: relative;
@@ -592,10 +651,10 @@
 
     .testimonials-track-wrapper {
       position: relative;
-      margin-top: 28px;
+      margin-top: 40px;
       overflow: hidden;
-      mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-      -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+      mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
     }
 
     .testimonials-track {
@@ -613,8 +672,8 @@
 
     .test-card {
       flex-shrink: 0;
-      width: 340px;
-      padding: 24px;
+      width: 360px;
+      padding: 28px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -627,10 +686,10 @@
     }
 
     .test-quote {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       color: var(--text-muted);
-      line-height: 1.65;
-      margin-bottom: 16px;
+      line-height: 1.75;
+      margin-bottom: 20px;
       font-style: italic;
     }
     .test-quote::before { content: '\201C'; font-size: 1.6rem; color: var(--primary); line-height: 0; vertical-align: -0.4em; margin-right: 2px; }
@@ -679,11 +738,11 @@
     /* ===== CTA ===== */
     .cta-block {
       text-align: center;
-      padding: 56px 0 0;
+      padding: 64px 0 0;
     }
     .cta-wrap {
       position: relative;
-      padding: 64px 40px;
+      padding: 84px 56px;
       border: 1px solid rgba(14,165,233,0.15);
       border-radius: 24px;
       background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(14,165,233,0.08) 0%, transparent 70%);
@@ -711,7 +770,7 @@
       font-weight: 500;
       color: var(--text-muted);
     }
-    .cta-wrap h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 12px; }
+    .cta-wrap h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); margin-bottom: 12px; font-weight: 800; letter-spacing: -0.025em; }
     .cta-wrap > p { color: var(--text-muted); margin-bottom: 28px; font-size: 0.95rem; }
     .cta-trust-row {
       display: flex;
@@ -731,16 +790,16 @@
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
-      padding: 36px 0 28px;
+      padding: 48px 0 36px;
       text-align: center;
-      margin-top: 32px;
+      margin-top: 40px;
     }
     .footer-links {
       display: flex;
-      gap: 24px;
+      gap: 28px;
       justify-content: center;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
     .footer-links a {
       color: var(--text-muted); font-size: 0.85rem;
@@ -752,42 +811,42 @@
     .footer-copy { font-size: 0.72rem; color: var(--text-dim); opacity: 0.55; }
 
     /* ===== How It Works ===== */
-    .how-it-works { background: var(--bg); scroll-margin-top: 52px; }
+    .how-it-works { background: var(--bg); }
     .hiw-grid {
       display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 20px; margin-top: 40px;
+      gap: 24px; margin-top: 56px;
     }
     @media (max-width: 900px) { .hiw-grid { grid-template-columns: repeat(2, 1fr) !important; } }
     .hiw-step {
       text-align: center;
-      padding: 28px 20px 24px;
+      padding: 36px 28px 32px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      transition: transform 0.25s, border-color 0.25s;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
     }
-    .hiw-step:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.2); }
+    .hiw-step:hover { transform: translateY(-4px); border-color: rgba(14,165,233,0.22); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
     .hiw-num {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 44px; height: 44px; border-radius: 50%;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       color: #fff;
       font-weight: 700; font-size: 0.95rem;
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 4px 16px var(--primary-glow);
+      margin: 0 auto 18px;
+      box-shadow: 0 4px 18px var(--primary-glow);
     }
-    .hiw-step-icon { color: var(--primary); margin-bottom: 10px; }
-    .hiw-step h3 { font-size: 1rem; margin-bottom: 6px; font-weight: 600; }
-    .hiw-step p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+    .hiw-step-icon { color: var(--primary); margin-bottom: 12px; }
+    .hiw-step h3 { font-size: 1.08rem; margin-bottom: 8px; font-weight: 700; }
+    .hiw-step p { font-size: 0.87rem; color: var(--text-muted); line-height: 1.7; }
 
     /* ===== Section Divider ===== */
     .section-divider {
-      width: 48px; height: 2px; margin: 12px auto 0;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      border-radius: 1px;
-      opacity: 0.6;
+      width: 56px; height: 2px; margin: 20px auto 0;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent-warm));
+      border-radius: 2px;
+      opacity: 0.7;
     }
 
     /* ===== Scroll Animations ===== */
@@ -804,29 +863,31 @@
       .hero-left { text-align: center; }
       .hero-title { justify-content: center; }
       .hero-buttons { justify-content: center; }
-      .hero-meta { justify-content: center; flex-wrap: wrap; gap: 4px; }
+      .hero-trust-line { justify-content: center; flex-wrap: wrap; gap: 6px; }
+      .hero-trust-sep { margin: 0 4px; }
       .demo-window { max-width: 500px; margin: 0 auto; }
     }
 
     @media (max-width: 768px) {
-      .section { padding: 48px 0; }
+      .section { padding: 64px 0; }
       .features-top { grid-template-columns: repeat(2, 1fr); }
       .patterns-strip { grid-template-columns: repeat(2, 1fr); }
       .trust-row { grid-template-columns: repeat(2, 1fr); }
-      .test-card { width: 290px; }
+      .test-card { width: 300px; }
       .hiw-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
-      .hero-title { font-size: clamp(1.6rem, 7vw, 2.2rem); gap: 10px; }
-      .hero-logo-box { width: 38px; height: 38px; border-radius: 10px; }
+      .section { padding: 52px 0; }
+      .hero-title { font-size: clamp(1.5rem, 6.5vw, 2rem); gap: 10px; }
+      .hero-logo-box { width: 40px; height: 40px; border-radius: 10px; }
       .hero-logo-icon { width: 18px; height: 21px; }
       .features-top { grid-template-columns: 1fr; }
       .patterns-strip { grid-template-columns: 1fr; }
       .trust-row { grid-template-columns: 1fr; }
       .hero-buttons { flex-direction: column; align-items: center; }
-      .demo-body { padding: 16px; font-size: 0.72rem; }
-      .test-card { width: 260px; }
+      .demo-body { padding: 16px; font-size: 0.75rem; }
+      .test-card { width: 270px; }
     }
   </style>
 </head>
@@ -840,7 +901,9 @@
         <span>Secret Sanitizer</span>
       </a>
       <div class="nav-links">
+        <a href="#how-it-works">How it works</a>
         <a href="#features">Features</a>
+        <a href="#about">Story</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px"><img src="cws-logo.svg" alt="" width="14" height="14" style="filter:brightness(0) invert(1);opacity:0.9"> Add to Chrome</a>
@@ -854,20 +917,28 @@
       <div class="hero-inner">
 
         <div class="hero-left">
+
+          <!-- Featured badge -->
           <a href="https://chromewebstore.google.com/detail/secret-sanitizer-%E2%80%93-paste/genolcmpopiemhpbdnhkaefllchgekja" class="hero-featured-badge" target="_blank" rel="noopener noreferrer">
-            <img class="badge-chrome-icon" src="cws-logo.svg" alt="Chrome Web Store" width="26" height="26">
+            <span class="badge-icon-chip">
+              <img src="cws-logo.svg" alt="" width="16" height="16">
+            </span>
             <span class="badge-text">
               <span class="badge-text-top">Featured on</span>
               <span class="badge-text-bottom">Chrome Web Store</span>
             </span>
+            <svg class="badge-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </a>
+
+          <!-- Title -->
           <h1 class="hero-title">
             <span class="hero-logo-box">
               <svg class="hero-logo-icon" viewBox="0 0 24 27" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.2"/><path d="M9 12.5l2 2 4-4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
             </span>
             <span class="gradient-text">Secret Sanitizer</span>
           </h1>
-          <p class="hero-tagline">Prevent API keys, credentials &amp; client data from leaking into AI chats. Every secret is <strong style="color:var(--text)">masked locally before it's sent</strong> &mdash; paste freely, ship fast, nothing leaves your machine.</p>
+          
+          <p class="hero-tagline">Paste logs, code, and configs into AI <span class="gradient-text" style="font-weight:700">without ever exposing your secrets.</span> Built for a <span class="gradient-text" style="font-weight:700">safe, frictionless experience.</span></p>
 
           <div class="hero-buttons">
             <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
@@ -876,40 +947,65 @@
             </a>
             <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              GitHub
+              View Source
             </a>
           </div>
 
-          <div class="hero-meta">
-            <span><span class="hm-dot"></span> 100% local</span>
-            <div class="hero-meta-sep"></div>
-            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> Open source</span>
-            <div class="hero-meta-sep"></div>
-            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Lightweight</span>
-            <div class="hero-meta-sep"></div>
-            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> MIT licensed</span>
+          <!-- Single-line trust row -->
+          <div class="hero-trust-line">
+            <span class="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              100% local
+            </span>
+            <span class="hero-trust-sep">&middot;</span>
+            <span class="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+              No network calls
+            </span>
+            <span class="hero-trust-sep">&middot;</span>
+            <span class="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-warm)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              50+ patterns
+            </span>
+            <span class="hero-trust-sep">&middot;</span>
+            <span class="hero-trust-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              MIT licensed
+            </span>
           </div>
+
         </div>
 
         <!-- Live animated demo -->
-        <div class="demo-window">
-          <div class="demo-titlebar">
-            <div class="demo-dot r"></div>
-            <div class="demo-dot y"></div>
-            <div class="demo-dot g"></div>
-            <div class="demo-titlebar-text" id="demo-title">ChatGPT &mdash; paste intercepted</div>
-          </div>
-          <div class="demo-body" id="demo">
-            <div class="demo-line demo-comment" id="demo-comment">// You paste code containing secrets...</div>
-            <div id="demo-input"></div>
-            <div class="demo-scan" id="demo-scan"></div>
-            <div id="demo-output"></div>
-            <div class="demo-toast" id="demo-toast">
-              <svg width="16" height="16" viewBox="0 0 24 27" fill="none"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="#0ea5e9" fill-opacity="0.35" stroke="#0ea5e9" stroke-width="1.2"/><path d="M9 12.5l2 2 4-4.5" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-              <span id="toast-text"></span>
+        <div>
+          <div class="demo-window">
+            <div class="demo-titlebar">
+              <div class="demo-dots">
+                <div class="demo-dot r"></div>
+                <div class="demo-dot y"></div>
+                <div class="demo-dot g"></div>
+              </div>
+              <div class="demo-urlbar">
+                <svg class="demo-urlbar-lock" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                <span id="demo-title">chatgpt.com</span>
+              </div>
+              <div class="demo-status">
+                <span class="demo-status-pulse"></span>
+                Protected
+              </div>
+            </div>
+            <div class="demo-body" id="demo">
+              <div class="demo-line demo-comment" id="demo-comment">// You paste code containing secrets...</div>
+              <div id="demo-input"></div>
+              <div class="demo-scan" id="demo-scan"></div>
+              <div id="demo-output"></div>
+              <div class="demo-toast" id="demo-toast">
+                <svg width="16" height="16" viewBox="0 0 24 27" fill="none"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="#0ea5e9" fill-opacity="0.35" stroke="#0ea5e9" stroke-width="1.2"/><path d="M9 12.5l2 2 4-4.5" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                <span id="toast-text"></span>
+              </div>
             </div>
           </div>
-        </div>
+          </div>
 
       </div>
 
@@ -919,11 +1015,11 @@
   <main>
 
     <!-- ======================== HOW IT WORKS ======================== -->
-    <section id="how-it-works" class="section how-it-works">
+    <section class="section how-it-works">
       <div class="container fade-up">
-        <div style="text-align:center">
+        <div id="how-it-works" class="section-anchor-far" style="text-align:center">
           <span class="section-label">How it works</span>
-          <h2 class="section-title">Simple. Automatic. Zero effort.</h2>
+          <h2 class="section-title">Simple. <span class="gradient-text">Automatic.</span> Zero effort.</h2>
           <div class="section-divider"></div>
         </div>
         <div class="hiw-grid">
@@ -948,7 +1044,7 @@
           <div class="hiw-step">
             <div class="hiw-num">4</div>
             <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
-            <h3>Smart Restore ✦</h3>
+            <h3>Smart Restore</h3>
             <p>Copy any AI response with placeholders &mdash; originals are automatically put back in your clipboard</p>
           </div>
         </div>
@@ -956,11 +1052,12 @@
     </section>
 
     <!-- ======================== FEATURES + PATTERNS + PLATFORMS ======================== -->
-    <section id="features" class="section features-section">
+    <section class="section features-section">
       <div class="container fade-up">
-        <div style="text-align:center">
+        <div id="features" class="section-anchor" style="text-align:center">
           <span class="section-label">Features</span>
-          <h2 class="section-title">Install once, never think about it again.</h2>
+          <h2 class="section-title">Install once, <span class="gradient-text">never think about it again.</span></h2>
+          <div class="section-divider"></div>
         </div>
 
         <div class="features-top">
@@ -975,8 +1072,8 @@
             <p>Originals saved locally with AES-GCM, unmask anytime</p>
           </div>
           <div class="feat glass">
-            <div class="feat-icon" style="color:var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
-            <h3>Smart Restore <span style="font-size:10px;color:var(--accent);font-weight:600;vertical-align:middle;letter-spacing:0.04em">NEW</span></h3>
+            <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
+            <h3>Smart Restore</h3>
             <p>Copy AI responses with placeholders &mdash; secrets auto-restored in your clipboard</p>
           </div>
           <div class="feat glass">
@@ -1046,7 +1143,7 @@
             </ul>
           </div>
         </div>
-        <p class="patterns-note"><strong>50+ patterns</strong> &mdash; toggle any on/off from the popup. No false-positive headaches.</p>
+        <p class="patterns-note"><strong>50+ detection patterns</strong> &mdash; toggle any on/off from the popup. No false-positive headaches. Custom patterns coming soon.</p>
 
         <!-- Platforms -->
         <div style="text-align:center; margin-top:32px">
@@ -1075,13 +1172,75 @@
       </div>
     </section>
 
-    <!-- ======================== TRUST + ESB + VIDEO ======================== -->
-    <section id="trust" class="section trust-section">
+    <!-- ======================== ABOUT / STORY ======================== -->
+    <section class="section story-section" style="background:var(--bg)">
       <div class="container fade-up">
-        <div style="text-align:center">
+        <div style="max-width:840px;margin:0 auto">
+          <div id="about" class="section-anchor" style="text-align:center;margin-bottom:32px">
+            <span class="section-label">The story</span>
+            <h2 class="section-title">Why I built this</h2>
+            <p style="color:var(--text-muted);font-size:0.95rem;margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6">A security incident in December 2025, a growing habit I spotted in myself, and a belief that the right answer is zero trust &mdash; not less trust.</p>
+            <div class="section-divider"></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start" class="about-grid">
+            <div>
+              <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:14px;color:var(--text)">The moment that started it</h3>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.75;margin-bottom:14px">In December 2025, researchers discovered that Chrome extensions with millions of users — <em>including some with Google's "Featured" badge</em> — were silently harvesting every AI conversation and selling the data to brokers. The attack was later called <strong style="color:var(--text)">"Prompt Poaching."</strong></p>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.75;margin-bottom:14px">Meanwhile, I realised developers paste API keys, database URLs, and credentials into AI chats every day without thinking twice. Once sent, that data is logged — often permanently. Two separate problems. One shared root: <em>your private data leaving your machine without your knowledge.</em></p>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.75">I wanted to build something that worked the opposite way. No servers. No cloud. No trust required.</p>
+              <a href="https://dev.to/souvikghosh957/prompt-poaching-why-i-built-secret-sanitizer-4g32" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;margin-top:22px;font-size:0.82rem;font-weight:600;color:var(--primary);text-decoration:none;padding:10px 16px;background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.18);border-radius:8px;transition:background 0.2s,border-color 0.2s,color 0.2s" onmouseover="this.style.background='rgba(14,165,233,0.1)';this.style.borderColor='rgba(14,165,233,0.3)'" onmouseout="this.style.background='rgba(14,165,233,0.06)';this.style.borderColor='rgba(14,165,233,0.18)'">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M7.42 10.05c-.18-.16-.46-.23-.84-.23H6l.02 2.44.04 2.45.56-.02c.41 0 .63-.07.83-.26.24-.24.26-.36.26-2.2 0-1.91-.02-1.96-.29-2.18zM0 4.94v14.12h24V4.94H0zM8.56 15.3c-.44.58-1.06.77-2.53.77H4.71V8.53h1.4c1.67 0 2.16.18 2.6.9.27.43.29.6.32 2.57.05 2.23-.02 2.73-.47 3.3zm5.09-5.47h-2.47v1.77h1.52v1.28l-.72.04-.75.03v1.77l1.22.03 1.2.04v1.28h-1.6c-1.53 0-1.6-.01-1.87-.3l-.3-.28v-3.16c0-3.02.01-3.18.25-3.48.23-.31.25-.31 1.88-.31h1.64v1.29zm4.68 5.45c-.17.43-.64.79-1 .79-.18 0-.45-.15-.67-.39-.32-.32-.45-.63-.82-2.08l-.9-3.39-.45-1.67h.76c.4 0 .75.02.75.05 0 .06 1.16 4.54 1.26 4.83.04.15.32-.7.73-2.3l.66-2.52.74-.04c.4-.02.73 0 .73.04 0 .14-1.67 5.52-1.8 5.68z"/></svg>
+                Read the full story on dev.to &rarr;
+              </a>
+            </div>
+
+            <div>
+              <h3 style="font-size:1.05rem;font-weight:700;margin-bottom:16px;color:var(--text)">Built on three principles</h3>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="padding:18px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;border-left:3px solid var(--primary)">
+                  <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.88rem;margin-bottom:6px;color:var(--text)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    Local-first, always
+                  </div>
+                  <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.6">Every pattern match runs in your browser. Secrets are stored in AES-GCM encrypted local storage. Zero bytes travel to any server &mdash; ever. Disable Wi-Fi and it still works.</p>
+                </div>
+                <div style="padding:18px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;border-left:3px solid var(--accent)">
+                  <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.88rem;margin-bottom:6px;color:var(--text)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                    Fully open source
+                  </div>
+                  <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.6">Every line is on GitHub under MIT. No minification to hide logic. No build step that could swap in malicious code. Read, fork, and audit exactly what runs in your browser.</p>
+                  <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:0.78rem;font-weight:600;color:var(--accent);text-decoration:none">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    View source on GitHub &rarr;
+                  </a>
+                </div>
+                <div style="padding:18px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;border-left:3px solid #818cf8">
+                  <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.88rem;margin-bottom:6px;color:var(--text)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    Privacy by design, not policy
+                  </div>
+                  <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.6">No analytics. No telemetry. No cookies. No sign-up. The extension has no way to phone home &mdash; there&rsquo;s no server to call. Privacy isn&rsquo;t a checkbox; it&rsquo;s the entire architecture.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <style>
+    @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr !important; } }
+    </style>
+
+    <!-- ======================== TRUST + ESB + VIDEO ======================== -->
+    <section class="section trust-section">
+      <div class="container fade-up">
+        <div id="trust" class="section-anchor-far" style="text-align:center">
           <span class="section-label">Trust &amp; Privacy</span>
-          <h2 class="section-title">Don't trust us &mdash; verify</h2>
+          <h2 class="section-title">Don't trust us — <span class="gradient-text">verify</span></h2>
           <p class="section-sub" style="margin:0 auto">No servers, no tracking, no trust required. Read the source yourself.</p>
+          <div class="section-divider"></div>
         </div>
 
         <div class="trust-row">
@@ -1133,11 +1292,12 @@
     </section>
 
     <!-- ======================== TESTIMONIALS ======================== -->
-    <section id="reviews" class="section testimonials-section">
+    <section class="section testimonials-section">
       <div class="container">
-        <div style="text-align:center" class="fade-up">
+        <div id="reviews" class="section-anchor-far fade-up" style="text-align:center">
           <span class="section-label">What people are saying</span>
-          <h2 class="section-title">Loved by developers &amp; indie builders</h2>
+          <h2 class="section-title">Loved by <span class="gradient-text">developers &amp; indie builders</span></h2>
+          <div class="section-divider"></div>
         </div>
 
         <div class="testimonials-track-wrapper">
@@ -1336,16 +1496,20 @@
     <div class="container">
       <div class="footer-links">
         <a href="#features">Features</a>
+        <a href="#about">Story</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
-        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> Source
+        </a>
+        <a href="https://dev.to/souvikghosh957/prompt-poaching-why-i-built-secret-sanitizer-4g32" target="_blank" rel="noopener noreferrer">dev.to</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">
           <img src="cws-logo.svg" alt="" width="15" height="15" style="opacity:0.75">Chrome Web Store
         </a>
-        <a href="privacy.html">Privacy Policy</a>
+        <a href="privacy.html">Privacy</a>
       </div>
-      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></p>
-      <p class="footer-copy">&copy; 2025 Secret Sanitizer &mdash; MIT License</p>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; No network calls &middot; MIT License</p>
+      <p class="footer-copy">&copy; 2026 Secret Sanitizer</p>
     </div>
   </footer>
 
@@ -1371,8 +1535,8 @@
     // ======= Animated demo with authentic labels =======
     var scenarios = [
       {
-        title: 'ChatGPT \u2014 paste intercepted',
-        comment: '// You paste your .env into the chat...',
+        title: 'chatgpt.com',
+        comment: '// Pasting .env into ChatGPT...',
         lines: [
           'OPENAI_API_KEY=sk-proj-abc123xyz789def456ghi',
           'STRIPE_SECRET_KEY=sk_live_51HG7dKLMn0pQrStUvWx',
@@ -1384,8 +1548,8 @@
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
       {
-        title: 'Claude \u2014 paste intercepted',
-        comment: '// You paste database config...',
+        title: 'claude.ai',
+        comment: '// Pasting database config into Claude...',
         lines: [
           'DATABASE_URL=postgres://admin:s3cret@db.prod:5432/app',
           'AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE',
@@ -1397,8 +1561,8 @@
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
       {
-        title: 'Gemini \u2014 paste intercepted',
-        comment: '// You paste tokens for debugging...',
+        title: 'gemini.google.com',
+        comment: '// Pasting tokens into Gemini...',
         lines: [
           'ghp_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8',
           'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
@@ -1410,8 +1574,8 @@
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
       {
-        title: 'ChatGPT \u2014 paste intercepted',
-        comment: '// You paste personal info for help...',
+        title: 'chatgpt.com',
+        comment: '// Pasting personal info into ChatGPT...',
         lines: [
           'Card: 4532 0150 1234 5678',
           'UPI: yourname@oksbi',

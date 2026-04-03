@@ -9,7 +9,7 @@
   <meta name="author" content="Souvik Ghosh">
   <link rel="canonical" href="https://secretsanitizer.com/privacy.html">
   <link rel="icon" type="image/png" href="icon-128.png">
-  <meta name="theme-color" content="#060a14">
+  <meta name="theme-color" content="#0b1525">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Secret Sanitizer">
@@ -27,12 +27,12 @@
     :root {
       --primary: #0ea5e9;
       --accent: #06b6d4;
-      --bg: #060a14;
-      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg: #0b1525;
+      --bg-card: rgba(255, 255, 255, 0.05);
       --text: #e8edf5;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
-      --border: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.09);
       --radius: 16px;
       --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
@@ -47,33 +47,33 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: var(--primary); text-decoration: none; }
+    a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
     a:hover { color: var(--accent); }
 
-    .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+    .container { max-width: 800px; margin: 0 auto; padding: 0 32px; }
 
     .page-header {
-      padding: 72px 0 40px;
+      padding: 96px 0 52px;
       text-align: center;
       border-bottom: 1px solid var(--border);
     }
-    .page-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .page-header h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.03em; }
     .page-header p { color: var(--text-muted); font-size: 0.95rem; }
 
-    .back-link { display: inline-block; margin-bottom: 16px; font-size: 0.9rem; color: var(--text-dim); }
+    .back-link { display: inline-block; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-dim); }
     .back-link:hover { color: var(--primary); }
 
-    .content { padding: 48px 0 80px; }
-    .content h2 { font-size: 1.3rem; font-weight: 700; margin-top: 40px; margin-bottom: 12px; color: var(--text); }
+    .content { padding: 64px 0 104px; }
+    .content h2 { font-size: 1.35rem; font-weight: 700; margin-top: 52px; margin-bottom: 16px; color: var(--text); letter-spacing: -0.02em; }
     .content h2:first-child { margin-top: 0; }
-    .content p, .content li { color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; }
-    .content p { margin-bottom: 12px; }
-    .content ul { margin-bottom: 12px; padding-left: 20px; }
-    .content li { margin-bottom: 6px; }
+    .content p, .content li { color: var(--text-muted); font-size: 0.97rem; line-height: 1.9; }
+    .content p { margin-bottom: 14px; }
+    .content ul { margin-bottom: 16px; padding-left: 20px; }
+    .content li { margin-bottom: 8px; }
 
     .content code {
       background: rgba(255, 255, 255, 0.06);
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       font-size: 0.85rem;
       font-family: 'SF Mono', 'Fira Code', monospace;
@@ -84,34 +84,37 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
-      margin: 16px 0;
+      padding: 20px 28px;
+      margin: 12px 0;
       backdrop-filter: blur(16px);
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
+    .highlight-box:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
     .highlight-box p { margin-bottom: 0; }
 
     .tldr {
       border-left: 3px solid var(--primary);
-      padding: 20px 24px;
-      margin: 24px 0;
-      background: rgba(14, 165, 233, 0.05);
+      padding: 22px 28px;
+      margin: 32px 0;
+      background: rgba(14, 165, 233, 0.06);
       border-radius: 0 var(--radius) var(--radius) 0;
+      box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.08);
     }
     .tldr strong { color: var(--primary); }
     .tldr p { margin-bottom: 0; }
 
-    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-    th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
     th { color: var(--text); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
     td { color: var(--text-muted); }
 
     footer {
       border-top: 1px solid var(--border);
-      padding: 32px 0;
+      padding: 48px 0 36px;
       text-align: center;
     }
-    .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
-    .footer-links a { color: var(--text-muted); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px; }
+    .footer-links { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .footer-links a { color: var(--text-muted); font-size: 0.88rem; display: inline-flex; align-items: center; gap: 5px; }
     .footer-links a:hover { color: var(--primary); }
     .footer-links a img { display: block; }
     .footer-credit { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 4px; }
@@ -121,19 +124,19 @@
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 10px 0;
-      background: rgba(6, 10, 20, 0.75);
+      background: rgba(11, 21, 37, 0.75);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid transparent;
       transition: border-color 0.3s, background 0.3s;
     }
-    .navbar.scrolled { border-bottom-color: var(--border); background: rgba(6, 10, 20, 0.95); }
+    .navbar.scrolled { border-bottom-color: var(--border); background: rgba(11, 21, 37, 0.95); }
     .nav-inner {
-      max-width: 760px; margin: 0 auto; padding: 0 24px;
+      max-width: 1200px; margin: 0 auto; padding: 0 32px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .nav-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 0.92rem; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em; }
     .nav-brand:hover { color: var(--text); }
-    .nav-brand img { width: 20px; height: 20px; }
+    .nav-brand img { width: 26px; height: 26px; border-radius: 6px; }
     .nav-links { display: flex; align-items: center; gap: 22px; }
     .nav-links a { color: var(--text-muted); font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: var(--text); }
@@ -146,13 +149,26 @@
     .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,165,233,0.25); color: #fff; }
     @media (max-width: 600px) {
       .nav-links a:not(.nav-cta) { display: none; }
-      .nav-brand span { display: none; }
     }
 
     @media (max-width: 768px) {
-      .page-header { padding: 64px 0 32px; }
+      .page-header { padding: 80px 0 40px; }
+      .page-header h1 { font-size: 1.9rem; }
+      .content { padding: 40px 0 72px; }
+      .content h2 { margin-top: 40px; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 20px; }
       .page-header h1 { font-size: 1.6rem; }
-      .content { padding: 32px 0 60px; }
+      .highlight-box { padding: 16px 20px; }
+      .tldr { padding: 18px 20px; }
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8, #06b6d4, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   </style>
 </head>
@@ -162,7 +178,7 @@
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a href="index.html" class="nav-brand">
-        <img src="icon-128.png" alt="Secret Sanitizer" width="20" height="20">
+        <img src="icon-128.png" alt="Secret Sanitizer" width="26" height="26">
         <span>Secret Sanitizer</span>
       </a>
       <div class="nav-links">
@@ -175,7 +191,7 @@
   <header class="page-header">
     <div class="container">
       <a href="index.html" class="back-link">&larr; Back to Secret Sanitizer</a>
-      <h1>Privacy Policy</h1>
+      <h1>Privacy <span class="gradient-text">Policy</span></h1>
       <p>Last updated: March 7, 2026</p>
     </div>
   </header>
@@ -195,7 +211,7 @@
       <h2>Local Storage Usage</h2>
       <p>The extension uses <code>chrome.storage.local</code> exclusively to store:</p>
       <ul>
-        <li>Temporarily masked secret values (to allow user-initiated unmasking within the extension popup)</li>
+        <li>Temporarily masked secret values in an AES-GCM encrypted vault, used to restore originals when you unmask from the popup or copy AI responses via Smart Restore</li>
         <li>Aggregate user statistics (e.g., total and daily count of blocked secrets)</li>
         <li>User preferences, such as enabled or disabled detection patterns and custom websites</li>
       </ul>
@@ -268,8 +284,8 @@
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer"><img src="cws-logo.svg" alt="" width="14" height="14" style="opacity:0.75">Chrome Web Store</a>
       </div>
-      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></p>
-      <p class="footer-copy">&copy; 2025 Secret Sanitizer &mdash; MIT License</p>
+      <p class="footer-credit">Built with care by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; No network calls &middot; MIT License</p>
+      <p class="footer-copy">&copy; 2026 Secret Sanitizer</p>
     </div>
   </footer>
 
