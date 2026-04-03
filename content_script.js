@@ -988,7 +988,7 @@ function showSmartToast(secretTypes, onUndo) {
     toast.style.opacity = "0";
     toast.style.transform = "translateY(8px)";
     setTimeout(() => toast.remove(), 200);
-  }, 3000);
+  }, 5000);
 
   // Clear timeout if manually dismissed
   toast.addEventListener("click", () => {
@@ -1112,17 +1112,25 @@ window.addEventListener("paste", (e) => {
           let restored = 0;
 
           // Replace each placeholder individually in reverse order (last first)
-          // so earlier positions aren't shifted by earlier replacements
+          // so earlier positions aren't shifted by earlier replacements.
+          // Optimisation: collect text nodes once; fall back to a fresh walk only
+          // when execCommand has restructured the DOM (e.g. split a shared node).
+          const cachedNodes = [];
+          {
+            const initWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+            let n;
+            while ((n = initWalker.nextNode())) cachedNodes.push(n);
+          }
+
           for (let i = replacements.length - 1; i >= 0; i--) {
             const [placeholder, original] = replacements[i];
+            let found = false;
 
-            // Walk text nodes fresh each time (DOM changes after each replacement)
-            const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
-            let node;
-            while ((node = walker.nextNode())) {
+            // Fast path: search cached text nodes (O(1) amortised across calls)
+            for (const node of cachedNodes) {
+              if (!target.contains(node)) continue;
               const idx = node.textContent.indexOf(placeholder);
               if (idx !== -1) {
-                // Select just this placeholder and replace it
                 const range = document.createRange();
                 range.setStart(node, idx);
                 range.setEnd(node, idx + placeholder.length);
@@ -1131,7 +1139,29 @@ window.addEventListener("paste", (e) => {
                 sel.addRange(range);
                 document.execCommand('insertText', false, original);
                 restored++;
+                found = true;
                 break;
+              }
+            }
+
+            // Slow-path fallback: fresh walk when execCommand restructured the DOM
+            // (e.g. two placeholders shared one text node and it was split)
+            if (!found) {
+              const freshWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+              let node;
+              while ((node = freshWalker.nextNode())) {
+                const idx = node.textContent.indexOf(placeholder);
+                if (idx !== -1) {
+                  const range = document.createRange();
+                  range.setStart(node, idx);
+                  range.setEnd(node, idx + placeholder.length);
+                  const sel = window.getSelection();
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                  document.execCommand('insertText', false, original);
+                  restored++;
+                  break;
+                }
               }
             }
           }

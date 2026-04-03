@@ -626,15 +626,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Delete secrets
+    // Delete secrets — two-step inline confirmation to avoid unreliable confirm() in extensions
     const clearVaultBtn = document.getElementById("clearVault");
     if (clearVaultBtn) {
       clearVaultBtn.addEventListener("click", async () => {
-        if (confirm("Delete all stored secrets? This cannot be undone.")) {
-          await chrome.storage.local.set({ vault: {} });
-          showNotification("All secrets deleted", "success");
-          setTimeout(() => location.reload(), 500);
+        if (clearVaultBtn.dataset.confirming !== "true") {
+          // First click: arm the button
+          clearVaultBtn.dataset.confirming = "true";
+          clearVaultBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Click again to confirm';
+          clearVaultBtn.classList.add("btn-danger");
+          clearVaultBtn._confirmTimer = setTimeout(() => {
+            clearVaultBtn.dataset.confirming = "";
+            clearVaultBtn.innerHTML = '<i class="fas fa-eraser"></i> Delete All Secrets';
+            clearVaultBtn.classList.remove("btn-danger");
+          }, 3000);
+          return;
         }
+        // Second click: execute delete
+        clearTimeout(clearVaultBtn._confirmTimer);
+        clearVaultBtn.dataset.confirming = "";
+        clearVaultBtn.innerHTML = '<i class="fas fa-eraser"></i> Delete All Secrets';
+        clearVaultBtn.classList.remove("btn-danger");
+        await chrome.storage.local.set({ vault: {} });
+        showNotification("All secrets deleted", "success");
+        setTimeout(() => location.reload(), 500);
       });
     }
 
@@ -655,6 +670,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     if (togglesDiv) {
+      // Labels for generic fallback patterns — high false-positive risk if enabled
+      const TIER2_POPUP_LABELS = new Set(["QUOTED_SECRET", "LONG_RANDOM_STRING", "BASE64_SECRET"]);
+
       const renderPatterns = (search = "") => {
         togglesDiv.replaceChildren();
         allLabels
@@ -679,6 +697,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             const lbl = document.createElement("label");
             lbl.htmlFor = checkbox.id;
             lbl.textContent = label;
+
+            if (TIER2_POPUP_LABELS.has(label)) {
+              const warn = document.createElement("span");
+              warn.className = "pattern-warn";
+              warn.title = "High false-positive risk — may flag UUIDs, hashes, and non-secret strings";
+              warn.textContent = "⚠ noisy";
+              lbl.appendChild(warn);
+            }
 
             div.appendChild(checkbox);
             div.appendChild(lbl);

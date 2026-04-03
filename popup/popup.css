@@ -1441,6 +1441,26 @@ button {
   transform: translateY(-1px);
 }
 
+.secondary-btn.btn-danger {
+  background: var(--error) !important;
+  color: white !important;
+  border-color: var(--error) !important;
+}
+
+.secondary-btn.btn-danger:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  transform: translateY(-1px);
+}
+
+.pattern-warn {
+  font-size: 0.75em;
+  color: var(--warning);
+  margin-left: 6px;
+  cursor: help;
+  font-family: inherit;
+}
+
 .button-group {
   display: flex;
   gap: 10px;
