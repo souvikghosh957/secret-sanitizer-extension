@@ -27,9 +27,6 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License"/>
   </a>
-  <a href="https://x.com/souvik_ghosh975">
-    <img src="https://img.shields.io/badge/Follow-@souvik__ghosh975-black?style=flat-square&logo=x" alt="Follow on X"/>
-  </a>
   <a href="https://secretsanitizer.com">
     <img src="https://img.shields.io/badge/Website-secretsanitizer.com-0ea5e9?style=flat-square&logo=google-chrome&logoColor=white" alt="Website"/>
   </a>
@@ -248,5 +245,5 @@ Please open an issue first for larger changes.
 </p>
 
 <p align="center">
-  <sub>Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a></sub>
+  <sub>Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a> &nbsp;&bull;&nbsp; <a href="mailto:souvikghosh2593@gmail.com">souvikghosh2593@gmail.com</a></sub>
 </p>
