@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>Masks API keys, passwords & tokens before they reach AI chats — 100% local, open source, zero tracking.</b>
+  Masks your secrets before they reach AI chats — 100% local, open source, zero tracking.
 </p>
 
 <p align="center">
@@ -11,8 +11,7 @@
   <a href="#how-it-works">How It Works</a> &bull;
   <a href="#smart-restore">Smart Restore</a> &bull;
   <a href="#supported-platforms">Platforms</a> &bull;
-  <a href="#what-it-catches">Detection</a> &bull;
-  <a href="#features">Features</a> &bull;
+  <a href="#what-it-catches">What It Catches</a> &bull;
   <a href="#screenshots">Screenshots</a> &bull;
   <a href="#install">Install</a> &bull;
   <a href="#privacy--security">Privacy</a>
@@ -45,59 +44,57 @@
 ---
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9dc1eeb6-55a4-4be2-8a93-c21709b32469" width="720" alt="Secret Sanitizer demo — paste an API key into ChatGPT and watch it get masked instantly" />
+  <img src="https://github.com/user-attachments/assets/9dc1eeb6-55a4-4be2-8a93-c21709b32469" width="720" alt="Secret Sanitizer demo" />
 </p>
 
 <p align="center">
-  <code>Ctrl+V</code> your code into ChatGPT &rarr; secrets are replaced with <code>[MASKED]</code> before the message sends &rarr; originals stay safe in your local encrypted vault.
+  Paste your code &rarr; secrets become <code>[MASKED]</code> &rarr; originals stay safe on your machine.
 </p>
 
 ---
 
 ## The Problem
 
-In December 2025, researchers discovered that [Chrome extensions with millions of users](https://www.malwarebytes.com/blog/news/2025/12/chrome-extension-slurps-up-ai-chats-after-users-installed-it-for-privacy) — including some with Google's "Featured" badge — were **silently harvesting every AI conversation** and selling the data to brokers. The attack has been dubbed [**Prompt Poaching**](https://thehackernews.com/2026/01/two-chrome-extensions-caught-stealing.html).
+Developers paste API keys, database passwords, and credentials into AI chats every day — often without thinking twice. Once sent, that data is logged by the AI service, sometimes permanently.
 
-Meanwhile, developers paste API keys, database URLs, and credentials into AI chats every single day. Once sent, that data is logged — often permanently.
+On top of that, [researchers found in late 2025](https://www.malwarebytes.com/blog/news/2025/12/chrome-extension-slurps-up-ai-chats-after-users-installed-it-for-privacy) that popular Chrome extensions were silently reading and selling AI conversations, including some with Google's "Featured" badge.
 
-**Secret Sanitizer works the opposite way.** It intercepts your paste, masks anything sensitive using local regex matching, and never makes a single network request. Zero servers. Zero tracking. Fully auditable — you're reading the source right now.
+Secret Sanitizer flips this: it catches secrets **before** they leave your machine, replaces them with safe placeholders, and never touches a server. You can verify that yourself — you're reading the source right now.
 
 ---
 
 ## How It Works
 
 ```
-You copy:     DATABASE_URL=postgres://admin:s3cret@db.prod.internal:5432/myapp
-You paste:    DATABASE_URL=[DATABASE_URL_0]
-Vault saves:  postgres://admin:s3cret@db.prod.internal:5432/myapp  ← local, encrypted
+You paste:    DATABASE_URL=postgres://admin:s3cret@db.prod.internal:5432/myapp
+AI receives:  DATABASE_URL=[DATABASE_URL_0]
+Vault stores: postgres://admin:s3cret@db.prod.internal:5432/myapp  ← local only
 ```
 
-| Step | What happens |
-|:----:|-------------|
-| **1** | You paste text into a supported AI chat |
-| **2** | The extension intercepts the paste **before** it reaches the input field |
-| **3** | Regex patterns run **locally in your browser** — no data leaves your machine |
-| **4** | Detected secrets are replaced with readable placeholders like `[STRIPE_KEY_0]` |
-| **5** | A toast notification tells you what was caught — with a 5-second undo window |
-| **6** | Originals are stored in a local AES-GCM encrypted vault, accessible from the popup |
+1. You paste text into an AI chat
+2. The extension intercepts it before it hits the input field
+3. Patterns run locally in your browser — nothing leaves your machine
+4. Secrets are swapped with readable placeholders like `[STRIPE_KEY_0]`
+5. A toast notification shows what was caught, with a 5-second undo
+6. Originals are stored in a local AES-GCM encrypted vault
 
-> **Don't take our word for it.** Run `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
+> **Verify it yourself:** `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
 
 ---
 
 ## Smart Restore
 
-When the AI replies using your placeholders, getting the real values back is automatic.
+When the AI replies using your placeholders, you get the real values back automatically.
 
-**How it works:**
+**Example:**
 
-1. You ask the AI: *"Fix this connection string: `[DATABASE_URL_0]`"*
-2. The AI responds: *"Change `[DATABASE_URL_0]` to use port 5433."*
-3. You copy that response — Secret Sanitizer detects the placeholders and swaps them back to the originals in your clipboard instantly.
+1. You ask: *"Fix this connection string: `[DATABASE_URL_0]`"*
+2. AI replies: *"Change `[DATABASE_URL_0]` to use port 5433."*
+3. You copy the reply — Secret Sanitizer detects the placeholders and swaps them back to the originals in your clipboard instantly.
 
-No manual lookup. No copying from the vault. The clipboard you paste elsewhere already has the real values.
+No manual lookup. No digging through the vault. Just paste and it works.
 
-The vault keeps originals for 24 hours. If you need them later, they're always accessible from the popup under **Recent**.
+Originals are kept for 24 hours and are always accessible from the popup under **Recent**.
 
 ---
 
@@ -107,106 +104,84 @@ Works out of the box on every major AI chat:
 
 | ChatGPT | Claude | Gemini | Grok | Custom Sites |
 |:-------:|:------:|:------:|:----:|:------------:|
-| &check; | &check; | &check; | &check; | &check; One-click add |
+| ✓ | ✓ | ✓ | ✓ | ✓ One-click add |
 
 ---
 
 ## What It Catches
 
-<table>
-<tr>
-<td width="50%">
-
 **Credentials & Tokens**
-- Passwords & password hints
-- Bearer tokens & JWTs
-- OTP codes & PINs
-- OAuth tokens & refresh tokens
+- Passwords, bearer tokens, JWTs
+- OTP codes, PINs, OAuth & refresh tokens
 
-**API Keys & Platforms**
+**API Keys**
 - AWS, Google Cloud, Azure
 - OpenAI, Anthropic, Groq, HuggingFace
 - Stripe, Square, Razorpay, Paytm
-- GitHub, GitLab (PATs & trigger tokens)
+- GitHub, GitLab (personal access tokens)
 - Slack, Twilio, SendGrid, Mailgun
 - Discord webhooks, Telegram bot tokens
 
-</td>
-<td width="50%">
-
-**Infrastructure & Cloud**
-- PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ URLs
-- Firebase, Vercel, DigitalOcean, Supabase
-- Heroku, Cloudflare, Datadog (contextual)
+**Infrastructure**
+- PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ connection URLs
+- Firebase, Vercel, DigitalOcean, Supabase, Heroku, Cloudflare
 - Shopify, NPM, PyPI tokens
-- `.env` key-value pairs (`API_KEY=`, `SECRET_KEY=`, etc.)
+- `.env` key-value pairs
 
-**Private Data**
-- RSA, SSH (OpenSSH), PGP private key blocks
+**Private & Sensitive Data**
+- RSA, SSH, PGP private keys
 - Aadhaar, PAN, GSTIN, UPI IDs
 - Credit card numbers
-- High-entropy & base64-encoded secrets
+- High-entropy and base64-encoded secrets
 
-</td>
-</tr>
-</table>
-
-> Toggle any pattern on/off from the popup — no false-positive headaches.
+> Toggle any pattern on or off from the popup to avoid false positives.
 
 ---
 
 ## Features
 
-<table>
-<tr>
-<td align="center" width="25%"><strong>Instant Interception</strong><br><sub>Secrets never reach the chat input</sub></td>
-<td align="center" width="25%"><strong>Encrypted Vault</strong><br><sub>AES-GCM encrypted, local only</sub></td>
-<td align="center" width="25%"><strong>Smart Restore</strong><br><sub>Copy AI responses — secrets auto-restored in your clipboard</sub></td>
-<td align="center" width="25%"><strong>Undo on Every Paste</strong><br><sub>5-second window to restore originals in-place</sub></td>
-</tr>
-<tr>
-<td align="center"><strong>Test Mode</strong><br><sub>Preview masking before committing</sub></td>
-<td align="center"><strong>Stats Dashboard</strong><br><sub>Track blocks per day with history</sub></td>
-<td align="center"><strong>Pattern Controls</strong><br><sub>Enable/disable individual detection patterns</sub></td>
-<td align="center"><strong>Custom Sites</strong><br><sub>Protect any domain, one click</sub></td>
-</tr>
-<tr>
-<td align="center"><strong>Backup & Restore</strong><br><sub>Export/import your config as JSON</sub></td>
-<td align="center"><strong>Dark Mode</strong><br><sub>Dark by default, matches your system</sub></td>
-<td align="center"><strong>Interactive Demos</strong><br><sub>Try sample secrets right in the popup</sub></td>
-<td align="center"><strong>Lightweight &amp; Fast</strong><br><sub>Zero dependencies, no slowdown</sub></td>
-</tr>
-</table>
+| | |
+|---|---|
+| **Instant interception** | Secrets never reach the chat input |
+| **Encrypted vault** | AES-GCM encrypted, stored locally only |
+| **Smart Restore** | Copy AI responses and secrets auto-restore in your clipboard |
+| **Undo on paste** | 5-second window to revert any masked paste |
+| **Test mode** | Preview what would be masked before committing |
+| **Pattern controls** | Enable or disable individual detection patterns |
+| **Custom sites** | Add any domain with one click |
+| **Stats dashboard** | See how many secrets were caught and when |
+| **Backup & restore** | Export and import your config as JSON |
+| **Dark mode** | Matches your system theme |
 
 ---
 
 ## Screenshots
 
 <p align="center">
-  <img width="720" alt="Instant feedback when a secret is detected and masked" src="https://github.com/user-attachments/assets/53c82a0b-75d0-467c-bd49-322ad0eab5d5" />
+  <img width="720" alt="Instant feedback when a secret is detected" src="https://github.com/user-attachments/assets/53c82a0b-75d0-467c-bd49-322ad0eab5d5" />
   <br><em>Instant feedback when a secret is detected and masked</em>
 </p>
 
 <p align="center">
-  <img width="720" alt="Clean, animated popup with intuitive controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
-  <br><em>Clean, animated popup with intuitive controls</em>
+  <img width="720" alt="Popup with controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
+  <br><em>Clean popup with intuitive controls</em>
 </p>
 
 <p align="center">
-  <img width="720" alt="Custom sites, pattern controls, and configuration export" src="https://github.com/user-attachments/assets/270e6b89-0e73-4e6f-ae8a-bbe2a7e56db7" />
-  <br><em>Custom sites, pattern controls, and configuration export</em>
+  <img width="720" alt="Pattern controls and custom sites" src="https://github.com/user-attachments/assets/270e6b89-0e73-4e6f-ae8a-bbe2a7e56db7" />
+  <br><em>Pattern controls, custom sites, and config export</em>
 </p>
 
 <p align="center">
-  <img width="720" alt="One-click unmask from the secure local vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
-  <br><em>One-click unmask from the secure local vault</em>
+  <img width="720" alt="Local encrypted vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
+  <br><em>One-click unmask from the local encrypted vault</em>
 </p>
 
 ---
 
 ## Install
 
-**One click** &rarr; [Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja) (recommended, auto-updates)
+**[Add from Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja)** — one click, auto-updates.
 
 <details>
 <summary><strong>Manual / Developer install</strong></summary>
@@ -218,7 +193,7 @@ cd secret-sanitizer-extension
 
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
-3. Click **Load unpacked** &rarr; select the cloned folder
+3. Click **Load unpacked** and select the cloned folder
 
 </details>
 
@@ -226,34 +201,35 @@ cd secret-sanitizer-extension
 
 ## Privacy & Security
 
-| Claim | How to verify |
-|-------|--------------|
-| **No network requests** | `grep -r "fetch\|XMLHttpRequest" content_script.js` &rarr; zero results |
-| **No tracking** | No Google Analytics, no Mixpanel, no telemetry of any kind |
-| **No remote code** | All pattern matching is local regex — inspect `content_script.js` |
-| **Works offline** | Disable Wi-Fi and try it. It works. |
-| **Open source** | You're reading it right now. MIT licensed. |
+| Claim | How to check |
+|-------|-------------|
+| No network requests | `grep -r "fetch\|XMLHttpRequest" content_script.js` → zero results |
+| No tracking | No analytics, no telemetry, no third-party scripts |
+| No remote code | All pattern matching is local regex |
+| Works offline | Disable Wi-Fi and try it |
+| Open source | MIT licensed — you're reading it right now |
 
 ---
 
 ## Roadmap
 
-- [ ] Firefox support
 - [x] Smart Restore — auto-restore secrets when copying AI responses
+- [ ] Firefox support
+- [ ] Coding agent support — Cursor, Windsurf, Bolt.new, v0.dev, Lovable
+- [ ] CLI tool support — Claude Code, OpenAI Codex CLI, Gemini CLI
 - [ ] Pattern sharing — community-contributed pattern packs
-- [ ] VS Code extension variant
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Some ideas:
+Contributions are welcome.
 
-- **Add new secret patterns** — know a format we're missing? Open a PR
-- **Report false positives** — help us fine-tune detection
-- **Request platform support** — want a new AI chat site added?
+- **New patterns** — know a secret format we're missing? Open a PR
+- **False positives** — help fine-tune detection
+- **Platform requests** — want a new AI chat or coding tool added?
 
-Please open an issue first for larger changes so we can discuss the approach.
+Please open an issue first for larger changes.
 
 ---
 
@@ -262,7 +238,7 @@ Please open an issue first for larger changes so we can discuss the approach.
 [MIT](LICENSE) — use it, fork it, improve it.
 
 <p align="center">
-  <br>If Secret Sanitizer has saved you from a secret leak, consider giving it a star — it helps others find it.
+  <br>If Secret Sanitizer has saved you from a leak, a star helps others find it.
 </p>
 
 <p align="center">
@@ -272,5 +248,5 @@ Please open an issue first for larger changes so we can discuss the approach.
 </p>
 
 <p align="center">
-  <sub>Built with care by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a></sub>
+  <sub>Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a></sub>
 </p>
