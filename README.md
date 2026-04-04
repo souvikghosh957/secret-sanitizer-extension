@@ -14,7 +14,8 @@
   <a href="#what-it-catches">What It Catches</a> &bull;
   <a href="#screenshots">Screenshots</a> &bull;
   <a href="#install">Install</a> &bull;
-  <a href="#privacy--security">Privacy</a>
+  <a href="#privacy--security">Privacy</a> &bull;
+  <a href="#contact">Contact</a>
 </p>
 
 <p align="center">
@@ -220,13 +221,27 @@ cd secret-sanitizer-extension
 
 ## Contributing
 
-Contributions are welcome.
+Contributions are welcome — whether it's a bug report, a new pattern, or a feature idea.
 
-- **New patterns** — know a secret format we're missing? Open a PR
-- **False positives** — help fine-tune detection
-- **Platform requests** — want a new AI chat or coding tool added?
+**Ways to contribute:**
 
-Please open an issue first for larger changes.
+- **New secret patterns** — know a format we don't catch yet? Open a PR with the regex and a test case
+- **False positives** — found something getting masked that shouldn't be? File an issue with an example
+- **Platform support** — want Secret Sanitizer on a new AI chat or coding tool? Open a feature request
+
+**Before submitting a PR**, please open an issue first so we can align on the approach. This avoids wasted effort on both sides.
+
+[Open an issue →](https://github.com/souvikghosh957/secret-sanitizer-extension/issues/new)
+
+---
+
+## Contact
+
+Have a question, idea, or found a security issue?
+
+- **GitHub Issues** — [github.com/souvikghosh957/secret-sanitizer-extension/issues](https://github.com/souvikghosh957/secret-sanitizer-extension/issues) — best for bugs and feature requests
+- **Email** — [souvikghosh2593@gmail.com](mailto:souvikghosh2593@gmail.com) — for anything else, including security disclosures
+- **X** — [@souvik_ghosh975](https://x.com/souvik_ghosh975)
 
 ---
 
@@ -245,5 +260,7 @@ Please open an issue first for larger changes.
 </p>
 
 <p align="center">
-  <sub>Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a> &nbsp;&bull;&nbsp; <a href="mailto:souvikghosh2593@gmail.com">souvikghosh2593@gmail.com</a></sub>
+  <sub>
+    Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a> &nbsp;&bull;&nbsp; <a href="mailto:souvikghosh2593@gmail.com">souvikghosh2593@gmail.com</a>
+  </sub>
 </p>
