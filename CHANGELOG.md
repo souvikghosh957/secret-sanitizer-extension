@@ -5,16 +5,21 @@ All notable changes to Secret Sanitizer are documented here.
 ## [2.2.7] - 2026-04-10
 
 ### Fixed
-- Settings export now includes all exportable keys — `removedDefaults`, `autoDarkMode`, and `darkMode` were handled by import but missing from export, so removing a default site or dark mode preference was silently lost on backup/restore
-- "Delete All Secrets" button now uses `createElement`/`textContent` instead of `innerHTML` — consistent with the rest of the popup's XSS-hardened DOM construction
-- Review toast icon no longer shows as a broken image on custom sites — added `onerror` handler to hide it gracefully when not accessible (e.g. user-added custom domains outside `web_accessible_resources`)
-- Message handler in content script now correctly returns `false` instead of `true` — response is sent synchronously so the channel no longer stays open unnecessarily
+- **Unmask broken in popup** — `regex.test()` on a `g`-flag regex advances `lastIndex`, causing the subsequent `.replace()` to skip the match entirely. Switched to a replacer function; also fixes secrets containing `$` characters (e.g. `P@$$w0rd`) being silently corrupted by `String.replace()` special `$` patterns
+- **Alarms lost after browser restart** — `vaultCleanup` and `weeklySummary` alarms were only created on `onInstalled`. MV3 service workers can be killed at any time; alarms are now checked and re-created on `onStartup` if missing
+- **Weekly summary wrong day for non-UTC users** — `getWeekStart` used `toISOString()` (always UTC) after setting local midnight, shifting the date by a day for users west of UTC. Now uses local date arithmetic throughout
+- **`document.body` null crash in clipboard interceptor** — `triggerCopyEvent` called `document.body.appendChild` at `document_start` where `body` can be null on some pages; added null guard
+- **Settings import not restoring `removedDefaults`** — export included this key but import silently dropped it, so removed default sites were lost on backup/restore
+- Settings export now includes all keys — `autoDarkMode` and `darkMode` were handled by import but missing from export
+- "Delete All Secrets" button now uses `createElement`/`textContent` instead of `innerHTML`
+- Review toast icon gracefully hides on custom sites outside `web_accessible_resources`
+- Message handler in content script returns `false` for synchronous responses (was incorrectly `true`)
 
 ### Changed
-- Added `short_name: "Secret Sanitizer"` to manifest for better display in Chrome UI contexts
-- README vault TTL corrected from "24 hours" to "15 minutes" to match the actual `CONFIG.vaultTTLMinutes` value
-- CONTRIBUTING.md updated to reflect the current `[regex, label]` pattern format in `patterns.js` and the actual project file structure
-- `activeTab` permission clarification: re-added in v2.2.0 after v2.1.3 removal — required for popup to query the current tab's URL for the site status indicator
+- Added `short_name: "Secret Sanitizer"` to manifest
+- Updated manifest description — shorter and more direct
+- README vault TTL corrected from "24 hours" to "15 minutes"
+- CONTRIBUTING.md updated to current pattern format and file structure
 
 ## [2.2.5] - 2026-03-24
 

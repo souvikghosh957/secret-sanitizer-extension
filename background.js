@@ -46,14 +46,24 @@ function debouncedRegister() {
   registerTimer = setTimeout(() => registerContentScripts(), 150);
 }
 
+async function ensureAlarms() {
+  // MV3 service workers can be killed at any time; re-create alarms if missing
+  const [cleanup, weekly] = await Promise.all([
+    chrome.alarms.get("vaultCleanup"),
+    chrome.alarms.get("weeklySummary")
+  ]);
+  if (!cleanup) chrome.alarms.create("vaultCleanup", { periodInMinutes: 5 });
+  if (!weekly)  chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   registerContentScripts();
-  // Periodic vault cleanup (every 5 minutes)
-  chrome.alarms.create("vaultCleanup", { periodInMinutes: 5 });
-  // Weekly summary (check daily, show on Sundays)
-  chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 });
+  ensureAlarms();
 });
-chrome.runtime.onStartup.addListener(() => registerContentScripts());
+chrome.runtime.onStartup.addListener(() => {
+  registerContentScripts();
+  ensureAlarms();
+});
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "vaultCleanup") {
@@ -201,10 +211,12 @@ async function checkWeeklySummary() {
 function getWeekStart(date) {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = d.getDate() - day;
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().split('T')[0];
+  // Use local date arithmetic throughout — toISOString() returns UTC which
+  // can differ from local date by up to a day for users west of UTC
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const dd   = String(d.getDate() - day).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 async function showWeeklyNotification(weekBlocked, totalBlocked) {

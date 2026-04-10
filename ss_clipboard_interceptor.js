@@ -51,6 +51,7 @@
   // dispatches '__ss_resolved' → MAIN world's handler above calls setData().
   // All synchronous; user-gesture context is preserved.
   function triggerCopyEvent(text) {
+    if (!document.body) return false; // guard: body not yet available at document_start
     const prev = document.activeElement;
     const el = document.createElement('textarea');
     el.value = text;

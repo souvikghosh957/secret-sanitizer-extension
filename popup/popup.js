@@ -408,8 +408,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             for (const [placeholder, original] of replacements) {
               const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
               const regex = new RegExp(escaped, "g");
-              if (regex.test(unmasked)) {
-                unmasked = unmasked.replace(regex, original);
+              // Use replacer function to avoid String.replace() misinterpreting
+              // '$' characters in secrets (e.g. passwords like "P@$$w0rd")
+              const next = unmasked.replace(regex, () => original);
+              if (next !== unmasked) {
+                unmasked = next;
                 replacedCount++;
               }
             }
@@ -896,6 +899,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const safeData = {};
           if (Array.isArray(data.disabledPatterns)) safeData.disabledPatterns = data.disabledPatterns.filter(p => typeof p === 'string');
           if (Array.isArray(data.customSites)) safeData.customSites = data.customSites.filter(s => typeof s === 'string');
+          if (Array.isArray(data.removedDefaults)) safeData.removedDefaults = data.removedDefaults.filter(s => typeof s === 'string');
           if (typeof data.useEncryption === 'boolean') safeData.useEncryption = data.useEncryption;
           if (typeof data.autoDarkMode === 'boolean') safeData.autoDarkMode = data.autoDarkMode;
           if (typeof data.darkMode === 'boolean') safeData.darkMode = data.darkMode;
