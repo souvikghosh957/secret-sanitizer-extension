@@ -1412,6 +1412,7 @@ function showReviewToast(milestone, total) {
   reviewImg.src = chrome.runtime.getURL("icons/icon-128.png");
   reviewImg.width = 26;
   reviewImg.height = 26;
+  reviewImg.onerror = () => { reviewImg.style.display = "none"; };
   Object.assign(reviewImg.style, { display: "block" });
   icon.appendChild(reviewImg);
 
@@ -1808,5 +1809,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     console.warn("Message handler error:", err);
     sendResponse({ success: false, error: err.message });
   }
-  return true;
+  // sendResponse is always called synchronously above — return false to close the message channel
+  return false;
 });

@@ -26,14 +26,16 @@ cd secret-sanitizer-extension
 ### Project Structure
 
 ```
-├── manifest.json          # Extension manifest (v3)
-├── content_script.js      # Core logic — paste interception, pattern matching, encryption
-├── background.js          # Service worker — vault cleanup, stats, milestones
+├── manifest.json                  # Extension manifest (v3)
+├── patterns.js                    # Shared detection patterns — single source of truth for content script + popup
+├── content_script.js              # Core logic — paste interception, pattern matching, encryption
+├── ss_clipboard_interceptor.js    # MAIN world script — wraps clipboard.writeText/write for Smart Restore
+├── background.js                  # Service worker — vault cleanup, stats, milestones
 ├── popup/
-│   ├── popup.html         # Extension popup markup
-│   ├── popup.js           # Popup logic — settings, vault, stats
-│   └── popup.css          # Popup styles
-└── icons/                 # Extension icons (16, 48, 128)
+│   ├── popup.html                 # Extension popup markup
+│   ├── popup.js                   # Popup logic — settings, vault, stats, test mode
+│   └── popup.css                  # Popup styles
+└── icons/                         # Extension icons (16, 48, 128)
 ```
 
 ### Making Changes
@@ -46,23 +48,22 @@ cd secret-sanitizer-extension
 
 ## Adding a New Secret Pattern
 
-Patterns live in `content_script.js` inside the `SECRET_PATTERNS` array. Each pattern has:
+Patterns live in `patterns.js` inside the `SHARED_PATTERNS` array — this is the single source of truth used by both the content script and the popup test mode. Each entry is a 2-element array:
 
 ```js
-{
-  name: "Pattern Name",
-  pattern: /your-regex-here/g,
-  description: "What this pattern detects"
-}
+[/your-regex-here/gi, "LABEL_NAME"]
 ```
+
+- The first element is the regex
+- The second element is a short uppercase label (e.g. `"STRIPE_KEY"`, `"GITHUB_TOKEN"`) — this becomes the placeholder name shown to the user
 
 When adding a new pattern:
 
-1. Add it to the `SECRET_PATTERNS` array
-2. Use the `g` (global) flag
-3. Test against real examples and edge cases
-4. Make sure it doesn't cause excessive false positives
-5. Add it to the README's "Supported Patterns" table if it's a new category
+1. Add it to the correct section in `SHARED_PATTERNS` (cloud keys, tokens, PII, etc.) with a comment
+2. Use the `gi` flag for case-insensitive matching; use `g` only if case matters (e.g. `JWT`, `CREDIT_CARD`)
+3. Prefer specific prefixed patterns over generic ones — add generic fallbacks at the end
+4. Test against real examples and edge cases
+5. Make sure it doesn't cause excessive false positives on common non-secret strings
 
 ## Reporting Bugs
 

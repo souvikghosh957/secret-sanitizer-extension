@@ -628,16 +628,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Delete secrets — two-step inline confirmation to avoid unreliable confirm() in extensions
     const clearVaultBtn = document.getElementById("clearVault");
+    const setVaultBtnLabel = (icon, text) => {
+      clearVaultBtn.textContent = "";
+      const i = document.createElement("i");
+      i.className = icon;
+      clearVaultBtn.appendChild(i);
+      clearVaultBtn.appendChild(document.createTextNode(" " + text));
+    };
     if (clearVaultBtn) {
       clearVaultBtn.addEventListener("click", async () => {
         if (clearVaultBtn.dataset.confirming !== "true") {
           // First click: arm the button
           clearVaultBtn.dataset.confirming = "true";
-          clearVaultBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Click again to confirm';
+          setVaultBtnLabel("fas fa-exclamation-triangle", "Click again to confirm");
           clearVaultBtn.classList.add("btn-danger");
           clearVaultBtn._confirmTimer = setTimeout(() => {
             clearVaultBtn.dataset.confirming = "";
-            clearVaultBtn.innerHTML = '<i class="fas fa-eraser"></i> Delete All Secrets';
+            setVaultBtnLabel("fas fa-eraser", "Delete All Secrets");
             clearVaultBtn.classList.remove("btn-danger");
           }, 3000);
           return;
@@ -645,7 +652,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Second click: execute delete
         clearTimeout(clearVaultBtn._confirmTimer);
         clearVaultBtn.dataset.confirming = "";
-        clearVaultBtn.innerHTML = '<i class="fas fa-eraser"></i> Delete All Secrets';
+        setVaultBtnLabel("fas fa-eraser", "Delete All Secrets");
         clearVaultBtn.classList.remove("btn-danger");
         await chrome.storage.local.set({ vault: {} });
         showNotification("All secrets deleted", "success");
@@ -855,7 +862,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportBtn = document.getElementById("exportSettings");
     if (exportBtn) {
       exportBtn.addEventListener("click", async () => {
-        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "useEncryption"]);
+        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "removedDefaults", "useEncryption", "autoDarkMode", "darkMode"]);
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");

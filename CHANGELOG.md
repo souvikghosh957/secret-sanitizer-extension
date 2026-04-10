@@ -2,6 +2,20 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.2.7] - 2026-04-10
+
+### Fixed
+- Settings export now includes all exportable keys — `removedDefaults`, `autoDarkMode`, and `darkMode` were handled by import but missing from export, so removing a default site or dark mode preference was silently lost on backup/restore
+- "Delete All Secrets" button now uses `createElement`/`textContent` instead of `innerHTML` — consistent with the rest of the popup's XSS-hardened DOM construction
+- Review toast icon no longer shows as a broken image on custom sites — added `onerror` handler to hide it gracefully when not accessible (e.g. user-added custom domains outside `web_accessible_resources`)
+- Message handler in content script now correctly returns `false` instead of `true` — response is sent synchronously so the channel no longer stays open unnecessarily
+
+### Changed
+- Added `short_name: "Secret Sanitizer"` to manifest for better display in Chrome UI contexts
+- README vault TTL corrected from "24 hours" to "15 minutes" to match the actual `CONFIG.vaultTTLMinutes` value
+- CONTRIBUTING.md updated to reflect the current `[regex, label]` pattern format in `patterns.js` and the actual project file structure
+- `activeTab` permission clarification: re-added in v2.2.0 after v2.1.3 removal — required for popup to query the current tab's URL for the site status indicator
+
 ## [2.2.5] - 2026-03-24
 
 ### Fixed

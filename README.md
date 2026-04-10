@@ -92,7 +92,7 @@ When the AI replies using your placeholders, you get the real values back automa
 
 No manual lookup. No digging through the vault. Just paste and it works.
 
-Originals are kept for 24 hours and are always accessible from the popup under **Recent**.
+Originals are kept for 15 minutes and are always accessible from the popup under **Recent**.
 
 ---
 
