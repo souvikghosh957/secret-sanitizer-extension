@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Secret Sanitizer — Paste Safely to AI Chats</title>
   <meta name="description" content="Secret Sanitizer masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking. Your secrets never leave your machine.">
-  <meta name="keywords" content="secret sanitizer, API key protection, ChatGPT security, AI chat privacy, mask secrets, Chrome extension, open source security">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Souvik Ghosh">
   <link rel="canonical" href="https://secretsanitizer.com/">
@@ -36,12 +35,53 @@
     "name": "Secret Sanitizer",
     "applicationCategory": "BrowserApplication",
     "operatingSystem": "Chrome",
+    "softwareVersion": "2.2.7",
     "description": "Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.",
     "url": "https://secretsanitizer.com/",
     "downloadUrl": "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja",
     "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
     "license": "https://opensource.org/licenses/MIT",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "8",
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does Secret Sanitizer send my data anywhere?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Secret Sanitizer runs entirely in your browser. It makes zero network requests — there is no server to send data to. Your secrets never leave your machine. You can verify this by reading the open-source code or disabling your internet and using it offline."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which AI sites does it work on?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Secret Sanitizer works on ChatGPT, Claude, Gemini, Grok, and other popular AI chat sites out of the box. You can also add any custom website in the extension settings."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from just being careful?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Humans miss things — especially in large config files or logs. Secret Sanitizer automatically scans for 70+ secret patterns (API keys, tokens, passwords, database URLs) the instant you paste. It catches what you overlook, every time, without slowing you down."
+        }
+      }
+    ]
   }
   </script>
 
@@ -979,8 +1019,8 @@
             </span>
             <span class="gradient-text">Secret Sanitizer</span>
           </h1>
-          
-          <p class="hero-tagline">Paste logs, code, and configs into AI <span class="gradient-text" style="font-weight:700">without ever exposing your secrets.</span> Built for a <span class="gradient-text" style="font-weight:700">safe, frictionless experience.</span></p>
+
+          <p class="hero-tagline">Paste logs, code, and configs into AI <span class="gradient-text" style="font-weight:700">without exposing your secrets.</span> <span class="gradient-text" style="font-weight:700">100% local, open source, and free.</span></p>
 
           <div class="hero-buttons">
             <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
@@ -1007,7 +1047,7 @@
             <span class="hero-trust-sep">&middot;</span>
             <span class="hero-trust-item">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-warm)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              50+ patterns
+              70+ patterns
             </span>
             <span class="hero-trust-sep">&middot;</span>
             <span class="hero-trust-item">
@@ -1069,13 +1109,13 @@
             <div class="hiw-num">1</div>
             <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
             <h3>Paste your code</h3>
-            <p>Paste code containing secrets into any AI chat &mdash; ChatGPT, Claude, Gemini, or your custom sites</p>
+            <p>Paste code containing secrets into any AI chat &mdash; ChatGPT, Claude, Gemini, Grok, or your custom sites</p>
           </div>
           <div class="hiw-step">
             <div class="hiw-num">2</div>
             <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg></div>
             <h3>Auto-detect secrets</h3>
-            <p>50+ regex patterns instantly catch API keys, tokens, credentials &amp; private data</p>
+            <p>70+ regex patterns instantly catch API keys, tokens, credentials &amp; private data</p>
           </div>
           <div class="hiw-step">
             <div class="hiw-num">3</div>
@@ -1185,7 +1225,7 @@
             </ul>
           </div>
         </div>
-        <p class="patterns-note"><strong>50+ detection patterns</strong> &mdash; toggle any on/off from the popup. No false-positive headaches. Custom patterns coming soon.</p>
+        <p class="patterns-note"><strong>70+ detection patterns</strong> &mdash; toggle any on/off from the popup. No false-positive headaches. Custom patterns coming soon.</p>
 
         <!-- Platforms -->
         <div style="text-align:center; margin-top:32px">
@@ -1550,6 +1590,33 @@
       </div>
     </section>
 
+    <!-- ======================== FAQ ======================== -->
+    <section class="section" id="faq" style="background:var(--bg)">
+      <div class="container fade-up">
+        <div style="max-width:720px;margin:0 auto">
+          <div style="text-align:center;margin-bottom:40px">
+            <span class="section-label">Common questions</span>
+            <h2 class="section-title">Frequently asked</h2>
+            <div class="section-divider"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="glass" style="padding:24px 28px;border-radius:14px">
+              <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px">Does Secret Sanitizer send my data anywhere?</h3>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin:0">No. It runs entirely in your browser and makes zero network requests &mdash; there is no server to send data to. Your secrets never leave your machine. You can verify this by reading the source code or using it offline.</p>
+            </div>
+            <div class="glass" style="padding:24px 28px;border-radius:14px">
+              <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px">Which AI sites does it work on?</h3>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin:0">ChatGPT, Claude, Gemini, Grok, and other popular AI chat sites are supported out of the box. You can also add any custom website in the extension settings.</p>
+            </div>
+            <div class="glass" style="padding:24px 28px;border-radius:14px">
+              <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px">How is this different from just being careful?</h3>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin:0">Humans miss things &mdash; especially in large config files or logs. Secret Sanitizer automatically scans for 70+ secret patterns (API keys, tokens, passwords, database URLs) the instant you paste. It catches what you overlook, every time, without slowing you down.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ======================== CONTACT ======================== -->
     <section class="section" id="contact" style="background:var(--bg-alt)">
       <div class="container fade-up">
@@ -1587,6 +1654,7 @@
       <div class="footer-links">
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
+        <a href="#faq">FAQ</a>
         <a href="#contact">Contact</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
