@@ -240,7 +240,6 @@ Contributions are welcome — whether it's a bug report, a new pattern, or a fea
 Have a question, idea, or found a security issue?
 
 - **GitHub Issues** — [github.com/souvikghosh957/secret-sanitizer-extension/issues](https://github.com/souvikghosh957/secret-sanitizer-extension/issues) — best for bugs and feature requests
-- **Email** — [souvikghosh2593@gmail.com](mailto:souvikghosh2593@gmail.com) — for anything else, including security disclosures
 - **X** — [@souvik_ghosh975](https://x.com/souvik_ghosh975)
 
 ---
@@ -261,6 +260,6 @@ Have a question, idea, or found a security issue?
 
 <p align="center">
   <sub>
-    Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a> &nbsp;&bull;&nbsp; <a href="mailto:souvikghosh2593@gmail.com">souvikghosh2593@gmail.com</a>
+    Built by <a href="https://x.com/souvik_ghosh975">@souvik_ghosh975</a>
   </sub>
 </p>
