@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secret Sanitizer — Paste Safely to AI Chats</title>
-  <meta name="description" content="Secret Sanitizer masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking. Your secrets never leave your machine.">
+  <title>Secret Sanitizer — Paste Freely, Leak Nothing | Mask Secrets in AI Chats</title>
+  <meta name="description" content="Secret Sanitizer masks API keys, passwords & tokens locally before they reach ChatGPT, Claude, or Gemini. 70+ patterns, 100% open source, zero tracking. Your secrets never leave your machine.">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Souvik Ghosh">
   <link rel="canonical" href="https://secretsanitizer.com/">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Secret Sanitizer">
-  <meta property="og:title" content="Secret Sanitizer — Paste Safely to AI Chats">
-  <meta property="og:description" content="Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.">
+  <meta property="og:title" content="Secret Sanitizer — Paste Freely, Leak Nothing">
+  <meta property="og:description" content="API keys, tokens & credentials are masked locally before they reach ChatGPT, Claude, or Gemini. 70+ patterns, open source, zero tracking.">
   <meta property="og:url" content="https://secretsanitizer.com/">
   <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
   <meta property="og:image:alt" content="Secret Sanitizer — Mask API Keys & Secrets in AI Chats">
   <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="557">
+  <meta property="og:image:height" content="602">
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@souvik_ghosh975">
-  <meta name="twitter:title" content="Secret Sanitizer — Paste Safely to AI Chats">
-  <meta name="twitter:description" content="Your secrets never leave your machine. 100% local Chrome extension.">
+  <meta name="twitter:title" content="Secret Sanitizer — Paste Freely, Leak Nothing">
+  <meta name="twitter:description" content="API keys, tokens & credentials are masked locally before they reach AI chats. 70+ patterns, open source, zero tracking.">
   <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
   <meta name="twitter:creator" content="@souvik_ghosh975">
   <link rel="icon" type="image/png" href="icon-128.png">
@@ -36,7 +36,7 @@
     "applicationCategory": "BrowserApplication",
     "operatingSystem": "Chrome",
     "softwareVersion": "2.2.7",
-    "description": "Masks API keys, passwords & tokens before they reach AI chats. 100% local, open source, zero tracking.",
+    "description": "Masks API keys, passwords & tokens locally before they reach ChatGPT, Claude, or Gemini. 70+ patterns, 100% open source, zero tracking.",
     "url": "https://secretsanitizer.com/",
     "downloadUrl": "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja",
     "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
@@ -243,71 +243,36 @@
       z-index: 1;
       display: grid;
       grid-template-columns: 46fr 54fr;
-      gap: 64px;
-      align-items: center;
+      gap: 56px;
+      align-items: start;
+      padding-top: 24px;
     }
 
     .hero-left { text-align: left; }
 
     .hero-title {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: clamp(2.2rem, 4.8vw, 3.2rem);
+      font-size: clamp(2.4rem, 5.2vw, 3.6rem);
       font-weight: 800;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.035em;
       line-height: 1.1;
       margin-bottom: 18px;
     }
 
-    .hero-logo-box {
-      width: 60px;
-      height: 60px;
-      flex-shrink: 0;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 60%, var(--accent-warm) 100%);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 28px var(--primary-glow), 0 0 0 1px rgba(255,255,255,0.12) inset;
-      animation: logoFloat 6s ease-in-out infinite;
-      position: relative;
-    }
-    .hero-logo-box::after {
-      content: '';
-      position: absolute;
-      inset: -6px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(6,182,212,0.08), rgba(129,140,248,0.15));
-      z-index: -1;
-      animation: logoRing 6s ease-in-out infinite;
-    }
-    .hero-logo-icon { width: 30px; height: 34px; }
-
-    @keyframes logoFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-    @keyframes logoRing {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 0.55; transform: scale(1.06); }
-    }
-
     .hero-tagline {
-      font-size: clamp(1.08rem, 2vw, 1.18rem);
-      color: var(--text);
-      margin-bottom: 32px;
+      font-size: clamp(1.1rem, 2vw, 1.22rem);
+      color: var(--text-muted);
+      margin-bottom: 28px;
       line-height: 1.65;
       max-width: 480px;
     }
 
-    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
 
     .hero-featured-badge {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       padding: 6px 14px 6px 6px;
       border-radius: 10px;
       background: rgba(255,255,255,0.04);
@@ -338,7 +303,7 @@
     .hero-trust-line {
       display: flex;
       align-items: center;
-      margin-top: 22px;
+      margin-top: 4px;
       white-space: nowrap;
     }
     .hero-trust-item {
@@ -904,9 +869,9 @@
     /* ===== Responsive ===== */
     @media (max-width: 900px) {
       .hero { min-height: auto; padding: 88px 0 52px; }
-      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 40px; padding-top: 0; }
       .hero-left { text-align: center; }
-      .hero-title { justify-content: center; }
+      .hero-featured-badge { margin-left: auto; margin-right: auto; }
       .hero-buttons { justify-content: center; }
       .hero-trust-line { justify-content: center; flex-wrap: wrap; gap: 6px; }
       .hero-trust-sep { margin: 0 4px; }
@@ -936,9 +901,7 @@
       .features-section { padding: 52px 0; }
       .story-section { padding: 52px 0; }
       .hero { padding: 76px 0 40px; }
-      .hero-title { font-size: clamp(1.5rem, 6.5vw, 2rem); gap: 10px; }
-      .hero-logo-box { width: 40px; height: 40px; border-radius: 10px; }
-      .hero-logo-icon { width: 18px; height: 21px; }
+      .hero-title { font-size: clamp(1.6rem, 7vw, 2.2rem); }
       .hero-tagline { font-size: 1rem; }
       .hero-buttons { flex-direction: column; align-items: center; }
       .hero-buttons .btn { width: 100%; justify-content: center; }
@@ -1014,13 +977,10 @@
 
           <!-- Title -->
           <h1 class="hero-title">
-            <span class="hero-logo-box">
-              <svg class="hero-logo-icon" viewBox="0 0 24 27" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L4 5.5V11c0 5.25 3.4 10.2 8 11.5 4.6-1.3 8-6.25 8-11.5V5.5L12 2z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.2"/><path d="M9 12.5l2 2 4-4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            </span>
-            <span class="gradient-text">Secret Sanitizer</span>
+            <span class="gradient-text">Paste freely.<br>Leak nothing.</span>
           </h1>
 
-          <p class="hero-tagline">Paste logs, code, and configs into AI <span class="gradient-text" style="font-weight:700">without exposing your secrets.</span> <span class="gradient-text" style="font-weight:700">100% local, open source, and free.</span></p>
+          <p class="hero-tagline">API keys, tokens, and credentials are <span class="gradient-text" style="font-weight:700">masked locally before reaching AI chats</span>.</p>
 
           <div class="hero-buttons">
             <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
@@ -1077,7 +1037,7 @@
               </div>
             </div>
             <div class="demo-body" id="demo">
-              <div class="demo-line demo-comment" id="demo-comment">// You paste code containing secrets...</div>
+              <div class="demo-line demo-comment" id="demo-comment">// Pasting .env into ChatGPT...</div>
               <div id="demo-input"></div>
               <div class="demo-scan" id="demo-scan"></div>
               <div id="demo-output"></div>
@@ -1346,12 +1306,14 @@
 
         <p style="text-align:center; margin-top:20px; font-size:0.82rem"><a href="privacy.html" style="color:var(--text-dim)">Read our Privacy Policy &rarr;</a></p>
 
-        <!-- ESB warning -->
-        <div class="esb-banner">
-          <div class="esb-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+        <!-- What Google says -->
+        <div class="esb-banner" style="border-color:rgba(14,165,233,0.18);background:rgba(14,165,233,0.04)">
+          <div class="esb-icon" style="color:var(--primary)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
           <div>
-            <h4>Chrome "Enhanced Safe Browsing" warning</h4>
-            <p>You may see this warning during installation. It appears for <strong>most indie extensions</strong> &mdash; it simply means Google hasn't manually reviewed it yet, not that there's any issue. Secret Sanitizer is fully open source, makes zero network requests, and every line of code is <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">auditable on GitHub</a>.</p>
+            <h4 style="color:var(--primary)">What Google says about this extension</h4>
+            <p>Secret Sanitizer is <strong style="color:var(--text)">Featured</strong> on the Chrome Web Store. Google confirms it follows recommended practices for Chrome extensions, that the publisher has a good record with no history of violations, and that the developer has declared it will not collect or use your data. All four signals are verifiable on the <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store listing</a>.</p>
           </div>
         </div>
 

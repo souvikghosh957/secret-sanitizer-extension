@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  Masks your secrets before they reach AI chats — 100% local, open source, zero tracking.
+  Paste freely. Leak nothing. API keys, tokens, and credentials are masked locally before they reach AI chats — 70+ patterns, open source, zero tracking.
 </p>
 
 <p align="center">
