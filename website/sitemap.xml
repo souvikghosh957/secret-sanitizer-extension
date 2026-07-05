@@ -13,6 +13,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://secretsanitizer.com/blog/why-i-built-secret-sanitizer.html</loc>
+    <lastmod>2026-07-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://secretsanitizer.com/blog/pasted-api-key-into-chatgpt.html</loc>
     <lastmod>2026-07-05</lastmod>
     <changefreq>monthly</changefreq>

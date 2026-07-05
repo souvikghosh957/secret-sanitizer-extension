@@ -96,7 +96,7 @@
       <div class="callout"><strong>Rule of thumb:</strong> any extension that can read your AI chat pages can read everything you and the AI say to each other. Grant that power only to code you can verify — or code that verifiably can't phone home.</div>
 
       <h2>Why this incident shaped Secret Sanitizer</h2>
-      <p>Prompt Poaching and accidental key-pasting look like different problems, but they share one root: <em>your private data leaving your machine without your knowledge.</em> One is theft by an extension; the other is a self-inflicted paste. The fix for both is the same architecture — process everything locally and give the data no path out.</p>
+      <p>This is the incident that led me to build Secret Sanitizer &mdash; I tell the full story in <a href="why-i-built-secret-sanitizer.html">Why I built Secret Sanitizer</a>. The short version: Prompt Poaching and accidental key-pasting look like different problems, but they share one root: <em>your private data leaving your machine without your knowledge.</em> One is theft by an extension; the other is a self-inflicted paste. The fix for both is the same architecture — process everything locally and give the data no path out.</p>
       <p>That's why <a href="../">Secret Sanitizer</a> is built the way it is:</p>
       <ul>
         <li><strong>Zero network calls.</strong> There is no server to send data to. Disable your Wi-Fi and it keeps working.</li>
