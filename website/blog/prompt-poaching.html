@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Poaching: When Browser Extensions Read Your AI Chats | Secret Sanitizer</title>
+  <meta name="description" content="How trusted-looking Chrome extensions harvested AI conversations at scale, why chat pages are such a rich target, and how to audit the extensions in your own browser.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Souvik Ghosh">
+  <link rel="canonical" href="https://secretsanitizer.com/blog/prompt-poaching.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Secret Sanitizer">
+  <meta property="og:title" content="Prompt Poaching: When Browser Extensions Read Your AI Chats">
+  <meta property="og:description" content="How trusted-looking Chrome extensions harvested AI conversations at scale — and how to audit your own browser.">
+  <meta property="og:url" content="https://secretsanitizer.com/blog/prompt-poaching.html">
+  <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Prompt Poaching: When Browser Extensions Read Your AI Chats">
+  <meta name="twitter:description" content="How trusted-looking Chrome extensions harvested AI conversations at scale — and how to audit your own browser.">
+  <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
+  <link rel="icon" type="image/png" href="../icon-128.png">
+  <meta name="theme-color" content="#0b1525">
+  <link rel="stylesheet" href="blog.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Prompt Poaching: When Browser Extensions Read Your AI Chats",
+    "description": "How trusted-looking Chrome extensions harvested AI conversations at scale, why chat pages are such a rich target, and how to audit your own browser.",
+    "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
+    "publisher": { "@type": "Organization", "name": "Secret Sanitizer", "url": "https://secretsanitizer.com/" },
+    "datePublished": "2026-07-05",
+    "dateModified": "2026-07-05",
+    "image": "https://secretsanitizer.com/og-card.png",
+    "mainEntityOfPage": "https://secretsanitizer.com/blog/prompt-poaching.html"
+  }
+  </script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="../" class="nav-brand">
+        <img src="../icon-128.png" alt="Secret Sanitizer" width="26" height="26">
+        <span>Secret Sanitizer</span>
+      </a>
+      <div class="nav-links">
+        <a href="../">Home</a>
+        <a href="./">Blog</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="article-header">
+      <span class="post-date">July 5, 2026 &middot; 5 min read</span>
+      <h1><span class="gradient-text">Prompt Poaching:</span> when browser extensions read your AI chats</h1>
+      <p class="article-lede">In December 2025, researchers found that popular Chrome extensions — installed by millions — were silently harvesting AI conversations and selling them to data brokers. This is the incident that led to Secret Sanitizer being built.</p>
+    </header>
+
+    <article>
+      <h2>What happened</h2>
+      <p>In late 2025, security researchers discovered that a number of Chrome extensions were quietly capturing the full text of users' AI conversations — prompts and responses — from sites like ChatGPT, and shipping that data off to third-party servers, where it was packaged and sold to data brokers. The technique earned a name: <strong>Prompt Poaching</strong>.</p>
+      <p>What made it alarming wasn't the technique — content-script data theft is an old trick. It was the scale and the trust signals. These weren't shady, zero-install extensions. Some had millions of users. Some carried badges that users reasonably interpret as a stamp of safety. They passed store review because their <em>declared</em> functionality was legitimate; the harvesting rode along underneath.</p>
+
+      <h2>Why AI chats are the perfect target</h2>
+      <p>Think about what people type into an AI assistant compared to a search box. Search queries are a few words. AI conversations are:</p>
+      <ul>
+        <li><strong>Long and contextual</strong> — whole config files, log dumps, contracts, emails, medical questions, business plans.</li>
+        <li><strong>Candid</strong> — people talk to AI chats the way they talk to a colleague, not the way they fill in a form.</li>
+        <li><strong>Dense with credentials</strong> — developers routinely paste <code>.env</code> files, connection strings, and API keys mid-debugging.</li>
+      </ul>
+      <p>A year of someone's AI conversations is one of the most complete profiles of them that has ever existed in one place. To a data broker, that's premium inventory. To an attacker, the pasted credentials alone are a payday.</p>
+
+      <h2>How the attack actually works</h2>
+      <p>Browser extensions can request <em>host permissions</em> — the right to run JavaScript (a "content script") inside specific websites, or all of them. That's legitimate and necessary: it's how ad blockers block ads and how password managers fill forms. But a content script running in your ChatGPT tab can read everything on that page, including:</p>
+      <ul>
+        <li>the message you're typing, as you type it,</li>
+        <li>every message in the conversation, and</li>
+        <li>your chat history sidebar.</li>
+      </ul>
+      <p>From there, exfiltration is one <code>fetch()</code> call to the attacker's server. Nothing about it looks unusual to you — the page works perfectly. The only reliable defenses are the permissions you grant and the code the extension actually contains.</p>
+
+      <h2>How to audit your own browser (10 minutes)</h2>
+      <ol>
+        <li><strong>Open <code>chrome://extensions</code> and remove what you don't use.</strong> Every extension is standing attack surface; unused ones are pure downside.</li>
+        <li><strong>Review site access for what remains.</strong> Click <em>Details</em> on each extension and check "Site access." Anything with access to <em>all sites</em> — or specifically to your AI chat domains — deserves scrutiny. Where possible, switch access to "On click."</li>
+        <li><strong>Be suspicious of ownership changes.</strong> A common pattern: a legitimate extension gets sold, and the new owner ships a malicious update to an installed base that trusted the old one. If an extension you rely on changes hands, re-evaluate it.</li>
+        <li><strong>Prefer open source you can read.</strong> An extension whose exact store-published code is on GitHub can be audited by anyone. Closed-source extensions that handle sensitive pages ask you to take their word for it.</li>
+        <li><strong>Treat store badges as one signal, not a verdict.</strong> Featured badges and install counts reflect review at a point in time. The Prompt Poaching extensions had both.</li>
+      </ol>
+
+      <div class="callout"><strong>Rule of thumb:</strong> any extension that can read your AI chat pages can read everything you and the AI say to each other. Grant that power only to code you can verify — or code that verifiably can't phone home.</div>
+
+      <h2>Why this incident shaped Secret Sanitizer</h2>
+      <p>Prompt Poaching and accidental key-pasting look like different problems, but they share one root: <em>your private data leaving your machine without your knowledge.</em> One is theft by an extension; the other is a self-inflicted paste. The fix for both is the same architecture — process everything locally and give the data no path out.</p>
+      <p>That's why <a href="../">Secret Sanitizer</a> is built the way it is:</p>
+      <ul>
+        <li><strong>Zero network calls.</strong> There is no server to send data to. Disable your Wi-Fi and it keeps working.</li>
+        <li><strong>Fully open source, unminified.</strong> The exact code in the store listing is readable on <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a> — no build step where malicious code could hide.</li>
+        <li><strong>Local encrypted vault.</strong> Masked secrets are stored on your device with AES-GCM, never transmitted anywhere.</li>
+      </ul>
+      <p>An extension that guards your secrets must be held to a higher standard than the extensions that caused the problem. "Trust us" isn't that standard — "verify it yourself" is.</p>
+    </article>
+
+    <div class="article-cta">
+      <h2>Guard the paste, locally</h2>
+      <p>Secret Sanitizer masks API keys, tokens, and credentials before they reach ChatGPT, Claude, Gemini, or Grok — with zero network calls, ever. Free and open source.</p>
+      <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn-primary" target="_blank" rel="noopener noreferrer">Add to Chrome &mdash; Free</a>
+    </div>
+
+    <p style="padding-bottom:56px"><a href="./" class="back-link">&larr; All posts</a></p>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="../">Home</a>
+        <a href="./">Blog</a>
+        <a href="../privacy.html">Privacy</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+      </div>
+      <p class="footer-credit">Built by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; MIT License</p>
+      <p class="footer-copy">&copy; 2026 Secret Sanitizer</p>
+    </div>
+  </footer>
+
+</body>
+</html>

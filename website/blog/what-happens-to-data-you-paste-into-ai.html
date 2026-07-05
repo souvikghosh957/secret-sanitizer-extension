@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Happens to the Code You Paste Into ChatGPT, Claude, or Gemini? | Secret Sanitizer</title>
+  <meta name="description" content="Pasted code doesn't vanish when the chat ends. A plain-English look at retention, training, human review, and the safe assumption to work from when using AI chats.">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Souvik Ghosh">
+  <link rel="canonical" href="https://secretsanitizer.com/blog/what-happens-to-data-you-paste-into-ai.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Secret Sanitizer">
+  <meta property="og:title" content="What Happens to the Code You Paste Into ChatGPT, Claude, or Gemini?">
+  <meta property="og:description" content="It doesn't vanish when the chat ends. A plain-English look at retention, training, human review, and the safe assumption to work from.">
+  <meta property="og:url" content="https://secretsanitizer.com/blog/what-happens-to-data-you-paste-into-ai.html">
+  <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="What Happens to the Code You Paste Into ChatGPT, Claude, or Gemini?">
+  <meta name="twitter:description" content="It doesn't vanish when the chat ends. A plain-English look at retention, training, human review, and the safe assumption to work from.">
+  <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
+  <link rel="icon" type="image/png" href="../icon-128.png">
+  <meta name="theme-color" content="#0b1525">
+  <link rel="stylesheet" href="blog.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "What Happens to the Code You Paste Into ChatGPT, Claude, or Gemini?",
+    "description": "Pasted code doesn't vanish when the chat ends. A plain-English look at retention, training, human review, and the safe assumption to work from.",
+    "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
+    "publisher": { "@type": "Organization", "name": "Secret Sanitizer", "url": "https://secretsanitizer.com/" },
+    "datePublished": "2026-07-05",
+    "dateModified": "2026-07-05",
+    "image": "https://secretsanitizer.com/og-card.png",
+    "mainEntityOfPage": "https://secretsanitizer.com/blog/what-happens-to-data-you-paste-into-ai.html"
+  }
+  </script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="../" class="nav-brand">
+        <img src="../icon-128.png" alt="Secret Sanitizer" width="26" height="26">
+        <span>Secret Sanitizer</span>
+      </a>
+      <div class="nav-links">
+        <a href="../">Home</a>
+        <a href="./">Blog</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <header class="article-header">
+      <span class="post-date">July 5, 2026 &middot; 5 min read</span>
+      <h1>What actually happens to the code you paste into <span class="gradient-text">ChatGPT, Claude, or Gemini</span></h1>
+      <p class="article-lede">The chat window feels ephemeral — type, get an answer, close the tab. But your paste has a life of its own after you hit Enter. Here's where it goes, in plain English.</p>
+    </header>
+
+    <article>
+      <h2>The mental model most people have is wrong</h2>
+      <p>It's easy to think of an AI chat like a calculator: input goes in, output comes back, nothing sticks. That's not how any major AI chat product works. When you paste a config file into ChatGPT, Claude, or Gemini, that text is:</p>
+      <ol>
+        <li><strong>Transmitted</strong> to the provider's servers (encrypted in transit, but it leaves your machine),</li>
+        <li><strong>Processed</strong> by the model to generate a response, and</li>
+        <li><strong>Stored</strong> — in your chat history, in operational logs, and often in backups.</li>
+      </ol>
+      <p>None of that is sinister. It's how cloud software works. The problem is only what's <em>inside</em> your paste — because API keys, database passwords, and customer data get exactly the same treatment as the rest of your debugging question.</p>
+
+      <h2>The four things that can happen to your paste</h2>
+
+      <h3>1. It's retained — usually longer than you'd guess</h3>
+      <p>Your conversation history is the obvious copy, but it's not the only one. Providers keep operational and safety logs, and even "deleted" conversations are typically only scheduled for deletion after a retention window rather than erased instantly. Some data may persist longer in backups, or indefinitely if the provider is under a legal preservation order. The exact windows vary by provider and plan and change over time — which is precisely why you shouldn't build your safety on remembering them.</p>
+
+      <h3>2. It may be used for training</h3>
+      <p>On consumer plans, several providers use conversations to improve their models, depending on your plan and settings — some as a default you must opt out of, others as a choice presented at signup. Business and enterprise tiers generally exclude customer data from training. If you've never looked at the data-control settings in the products you use, assume the default is not the private option, and go check.</p>
+
+      <h3>3. A human might read it</h3>
+      <p>Every major provider reserves the right to have staff or contractors review conversations — for abuse detection, safety enforcement, or quality evaluation. It's a small fraction of traffic, but it's not zero, and you don't get to pick which conversations are sampled. "Nobody will ever see this" is not a property these systems promise.</p>
+
+      <h3>4. It inherits every risk of the account and platform</h3>
+      <p>Your chat history is only as safe as your account. If your password or session token is stolen, the attacker gets every secret you've ever pasted, neatly organized and searchable. The same applies to provider-side incidents, subpoenas and legal discovery, and — as we covered in <a href="prompt-poaching.html">the Prompt Poaching post</a> — malicious browser extensions reading the chat page itself.</p>
+
+      <div class="callout"><strong>The safe assumption:</strong> anything you paste into an AI chat is written to storage you don't control, for a duration you can't verify, visible to processes and people you can't enumerate. Paste accordingly.</div>
+
+      <h2>"So should I stop using AI chats?"</h2>
+      <p>No — that ship has sailed, and rightly so. AI assistants are genuinely useful for debugging, refactoring, and explaining unfamiliar code. The answer isn't abstinence; it's making sure the useful part of your paste goes through while the dangerous part doesn't.</p>
+      <p>Here's the thing about secrets in a debugging context: <strong>the model doesn't need them.</strong> Whether your header says <code>Authorization: Bearer eyJhbGc...</code> or <code>Authorization: Bearer [JWT_0]</code> makes zero difference to the quality of the answer. The secret is pure risk with no upside.</p>
+
+      <h2>Practical steps, in order of effort</h2>
+      <ul>
+        <li><strong>Check your data controls</strong> in each AI product you use. Turn off training on your conversations if the option exists, and prefer temporary/incognito chat modes for sensitive sessions.</li>
+        <li><strong>Use business tiers for work</strong> when your employer offers them — they typically carry stronger retention and no-training guarantees.</li>
+        <li><strong>Trim before you paste.</strong> The three lines around the error are usually enough; the full <code>.env</code> is not required.</li>
+        <li><strong>Automate the scrubbing.</strong> Humans are bad at spotting one live key in 200 lines of logs — that's a pattern-matching job. <a href="../">Secret Sanitizer</a> does it on every paste: 70+ secret patterns checked locally in your browser, matches replaced with placeholders before the text touches the page, originals kept in an encrypted local vault so you can restore them from the AI's answer. No cloud, no network calls, open source.</li>
+      </ul>
+
+      <h2>The bottom line</h2>
+      <p>AI chat providers aren't villains — most publish detailed policies and offer real controls. But policies change, defaults favor the provider, and retention is opaque by nature. The only copy of your API key you fully control is the one that never leaves your machine. Everything else is trust.</p>
+    </article>
+
+    <div class="article-cta">
+      <h2>Scrub every paste, automatically</h2>
+      <p>Secret Sanitizer masks API keys, tokens, and credentials locally — before they ever reach ChatGPT, Claude, Gemini, or Grok. Free, open source, zero network calls.</p>
+      <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn-primary" target="_blank" rel="noopener noreferrer">Add to Chrome &mdash; Free</a>
+    </div>
+
+    <p style="padding-bottom:56px"><a href="./" class="back-link">&larr; All posts</a></p>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="../">Home</a>
+        <a href="./">Blog</a>
+        <a href="../privacy.html">Privacy</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+      </div>
+      <p class="footer-credit">Built by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; MIT License</p>
+      <p class="footer-copy">&copy; 2026 Secret Sanitizer</p>
+    </div>
+  </footer>
+
+</body>
+</html>

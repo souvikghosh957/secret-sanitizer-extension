@@ -850,6 +850,51 @@
     .hiw-step h3 { font-size: 1.08rem; margin-bottom: 8px; font-weight: 700; }
     .hiw-step p { font-size: 0.87rem; color: var(--text-muted); line-height: 1.7; }
 
+    /* ===== Screenshots carousel ===== */
+    .shots-carousel { position: relative; max-width: 860px; margin: 44px auto 0; }
+    .shots-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .shots-track::-webkit-scrollbar { display: none; }
+    .shot-slide { flex: 0 0 100%; scroll-snap-align: center; margin: 0; }
+    .shot-slide img { width: 100%; height: auto; display: block; }
+    .shots-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--border);
+      background: rgba(11,21,37,0.8); color: var(--text);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 2;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+    .shots-arrow:hover { border-color: rgba(14,165,233,0.45); background: rgba(11,21,37,0.95); }
+    .shots-arrow.prev { left: -20px; }
+    .shots-arrow.next { right: -20px; }
+    .shots-dots { display: flex; gap: 8px; justify-content: center; margin-top: 18px; }
+    .shots-dot {
+      width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0;
+      background: rgba(255,255,255,0.18); cursor: pointer;
+      transition: background 0.25s, width 0.25s;
+    }
+    .shots-dot:hover { background: rgba(255,255,255,0.35); }
+    .shots-dot.active { background: var(--primary); width: 22px; }
+    @media (max-width: 960px) {
+      .shots-arrow.prev { left: 10px; }
+      .shots-arrow.next { right: 10px; }
+    }
+    @media (max-width: 600px) {
+      .shots-arrow { display: none; }
+      .shots-carousel { margin-top: 32px; }
+    }
+
     /* ===== Section Divider ===== */
     .section-divider {
       width: 56px; height: 2px; margin: 20px auto 0;
@@ -947,9 +992,11 @@
       </a>
       <div class="nav-links">
         <a href="#how-it-works">How it works</a>
+        <a href="#tour">Tour</a>
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
         <a href="#reviews">Reviews</a>
+        <a href="blog/">Blog</a>
         <a href="#contact">Contact</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px"><img src="cws-logo.svg" alt="" width="14" height="14" style="filter:brightness(0) invert(1);opacity:0.9"> Add to Chrome</a>
       </div>
@@ -1088,6 +1135,47 @@
             <div class="hiw-step-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
             <h3>Smart Restore</h3>
             <p>Copy any AI response with placeholders &mdash; originals are automatically put back in your clipboard</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== SCREENSHOTS ======================== -->
+    <section class="section" style="background:var(--bg); padding-top:0">
+      <div class="container fade-up">
+        <div id="tour" class="section-anchor-far" style="text-align:center">
+          <span class="section-label">Product tour</span>
+          <h2 class="section-title">See it <span class="gradient-text">for real</span></h2>
+          <p class="section-sub" style="margin:0 auto">No mockups &mdash; these are the actual Chrome Web Store screenshots of Secret Sanitizer at work.</p>
+          <div class="section-divider"></div>
+        </div>
+        <div class="shots-carousel" id="shots-carousel">
+          <div class="shots-track" id="shots-track" aria-label="Product screenshots" aria-live="polite">
+            <figure class="shot-slide">
+              <picture>
+                <source type="image/avif" srcset="shot-flow.avif">
+                <img src="shot-flow.jpg" alt="Secrets pasted into an AI chat are detected and masked with placeholders before they leave your device — paste, protect, done" width="1200" height="720" loading="lazy" decoding="async">
+              </picture>
+            </figure>
+            <figure class="shot-slide">
+              <picture>
+                <source type="image/avif" srcset="shot-popup.avif">
+                <img src="shot-popup.jpg" alt="Secret Sanitizer popup showing protection stats, test masking, and Smart Restore for unmasking secrets" width="1200" height="720" loading="lazy" decoding="async">
+              </picture>
+            </figure>
+            <figure class="shot-slide">
+              <picture>
+                <source type="image/avif" srcset="shot-sites.avif">
+                <img src="shot-sites.jpg" alt="Extension settings with built-in support for ChatGPT, Claude, Gemini, and Grok, plus custom domains you can add" width="1200" height="720" loading="lazy" decoding="async">
+              </picture>
+            </figure>
+          </div>
+          <button class="shots-arrow prev" id="shots-prev" aria-label="Previous screenshot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="shots-arrow next" id="shots-next" aria-label="Next screenshot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <div class="shots-dots" id="shots-dots" role="tablist" aria-label="Screenshot navigation">
+            <button class="shots-dot active" aria-label="Screenshot 1"></button>
+            <button class="shots-dot" aria-label="Screenshot 2"></button>
+            <button class="shots-dot" aria-label="Screenshot 3"></button>
           </div>
         </div>
       </div>
@@ -1611,6 +1699,7 @@
         <a href="#features">Features</a>
         <a href="#trust">Trust</a>
         <a href="#faq">FAQ</a>
+        <a href="blog/">Blog</a>
         <a href="#contact">Contact</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
@@ -1642,6 +1731,51 @@
       fades.forEach(function(f) { obs.observe(f); });
     } else {
       fades.forEach(function(f) { f.classList.add('vis'); });
+    }
+
+    // ======= Screenshots carousel =======
+    var track = document.getElementById('shots-track');
+    if (track) {
+      var carousel = document.getElementById('shots-carousel');
+      var dots = document.querySelectorAll('.shots-dot');
+      var count = track.children.length;
+      var cur = 0;
+      var timer = null;
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function goTo(i, smooth) {
+        cur = ((i % count) + count) % count;
+        track.scrollTo({ left: track.clientWidth * cur, behavior: smooth === false ? 'auto' : 'smooth' });
+      }
+      function syncDots() {
+        var i = Math.round(track.scrollLeft / track.clientWidth);
+        if (i !== cur) cur = Math.max(0, Math.min(count - 1, i));
+        dots.forEach(function(d, di) { d.classList.toggle('active', di === cur); });
+      }
+      var userTookOver = false;
+      function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
+      function startAuto() {
+        if (reduceMotion || userTookOver || timer) return;
+        timer = setInterval(function() { goTo(cur + 1); }, 4500);
+      }
+      function takeOver() { userTookOver = true; stopAuto(); }
+
+      track.addEventListener('scroll', function() { window.requestAnimationFrame(syncDots); });
+      document.getElementById('shots-prev').addEventListener('click', function() { takeOver(); goTo(cur - 1); });
+      document.getElementById('shots-next').addEventListener('click', function() { takeOver(); goTo(cur + 1); });
+      dots.forEach(function(d, di) { d.addEventListener('click', function() { takeOver(); goTo(di); }); });
+      carousel.addEventListener('mouseenter', stopAuto);
+      carousel.addEventListener('mouseleave', startAuto);
+      track.addEventListener('touchstart', takeOver, { passive: true });
+
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function(entries) {
+          entries.forEach(function(e) { e.isIntersecting ? startAuto() : stopAuto(); });
+        }, { threshold: 0.4 }).observe(carousel);
+      } else {
+        startAuto();
+      }
+      window.addEventListener('resize', function() { goTo(cur, false); });
     }
 
     // ======= Animated demo with authentic labels =======
