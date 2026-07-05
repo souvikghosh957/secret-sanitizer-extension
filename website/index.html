@@ -1142,8 +1142,8 @@
       <div class="container fade-up">
         <div id="tour" class="section-anchor-far" style="text-align:center">
           <span class="section-label">Product tour</span>
-          <h2 class="section-title">See it <span class="gradient-text">for real</span></h2>
-          <p class="section-sub" style="margin:0 auto">No mockups &mdash; these are the actual Chrome Web Store screenshots of Secret Sanitizer at work.</p>
+          <h2 class="section-title">Secret Sanitizer <span class="gradient-text">in action</span></h2>
+          <p class="section-sub" style="margin:0 auto">A quick look at masking on paste, live protection stats, and the sites it guards.</p>
           <div class="section-divider"></div>
         </div>
         <div class="shots-carousel" id="shots-carousel">
@@ -1347,7 +1347,7 @@
 
         <!-- Video -->
         <div style="text-align:center; margin-top:44px">
-          <span class="section-label">See it in action</span>
+          <span class="section-label">Video demo</span>
           <h3 style="font-size:1.1rem; margin-bottom:4px">Watch the full demo</h3>
         </div>
         <a href="https://www.youtube.com/watch?v=tyu12wvCDNg" target="_blank" rel="noopener noreferrer" class="video-thumb glass" aria-label="Watch demo on YouTube">
@@ -1693,21 +1693,22 @@
         if (i !== cur) cur = Math.max(0, Math.min(count - 1, i));
         dots.forEach(function(d, di) { d.classList.toggle('active', di === cur); });
       }
-      var userTookOver = false;
+      var hovering = false;
       function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
       function startAuto() {
-        if (reduceMotion || userTookOver || timer) return;
-        timer = setInterval(function() { goTo(cur + 1); }, 4500);
+        if (reduceMotion || hovering || timer) return;
+        timer = setInterval(function() { goTo(cur + 1); }, 3000);
       }
-      function takeOver() { userTookOver = true; stopAuto(); }
+      function manual(i) { stopAuto(); goTo(i); startAuto(); }
 
       track.addEventListener('scroll', function() { window.requestAnimationFrame(syncDots); });
-      document.getElementById('shots-prev').addEventListener('click', function() { takeOver(); goTo(cur - 1); });
-      document.getElementById('shots-next').addEventListener('click', function() { takeOver(); goTo(cur + 1); });
-      dots.forEach(function(d, di) { d.addEventListener('click', function() { takeOver(); goTo(di); }); });
-      carousel.addEventListener('mouseenter', stopAuto);
-      carousel.addEventListener('mouseleave', startAuto);
-      track.addEventListener('touchstart', takeOver, { passive: true });
+      document.getElementById('shots-prev').addEventListener('click', function() { manual(cur - 1); });
+      document.getElementById('shots-next').addEventListener('click', function() { manual(cur + 1); });
+      dots.forEach(function(d, di) { d.addEventListener('click', function() { manual(di); }); });
+      carousel.addEventListener('mouseenter', function() { hovering = true; stopAuto(); });
+      carousel.addEventListener('mouseleave', function() { hovering = false; startAuto(); });
+      track.addEventListener('touchstart', stopAuto, { passive: true });
+      track.addEventListener('touchend', function() { stopAuto(); startAuto(); }, { passive: true });
 
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(function(entries) {
