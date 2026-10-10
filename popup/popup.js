@@ -36,77 +36,17 @@ function animateCount(element, target, duration = 1000) {
   requestAnimationFrame(update);
 }
 
-// Decrypt vault data
-async function decryptData(encryptedData) {
-  try {
-    return await Promise.race([
-      new Promise((resolve) => {
-        chrome.runtime.sendMessage(
-          { action: "decrypt", data: encryptedData },
-          (response) => {
-            resolve(response?.decrypted || encryptedData);
-          }
-        );
-      }),
-      new Promise((resolve) => setTimeout(() => resolve(encryptedData), 3000))
-    ]);
-  } catch (err) {
-    console.warn("[SecretSanitizer] decryptData error:", err);
-    try {
-      if (typeof encryptedData === 'string' && !encryptedData.startsWith('[')) {
-        const decoded = new TextDecoder().decode(Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0)));
-        return JSON.parse(decoded);
-      }
-    } catch (_) {
-      // Legacy decode failed — return raw encrypted data as fallback
-    }
-    return encryptedData;
-  }
+// Test masking with the same engine the content script uses (detector.js + patterns.js),
+// honouring the user's disabled patterns so the result matches what a real paste does.
+function testSanitize(text, disabledLabels) {
+  const { matches } = findSecrets(text, compilePatterns(SHARED_PATTERNS, disabledLabels));
+  const { maskedText, replacements } = maskText(text, matches, (label) => `[${label}]`);
+  return { maskedText, count: replacements.length };
 }
 
-// Test sanitization using shared patterns from patterns.js (single source of truth)
-function testSanitize(text) {
-  const patterns = SHARED_PATTERNS;
-
-  // Phase 1: Collect all matches on original text
-  const allMatches = [];
-  for (const [pattern, label] of patterns) {
-    const regex = new RegExp(pattern.source, pattern.flags);
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      if (match[0].length === 0) { regex.lastIndex++; continue; }
-      allMatches.push({ start: match.index, end: match.index + match[0].length, label, original: match[0] });
-      if (!regex.global) break;
-    }
-  }
-
-  // Phase 2: Remove overlapping matches (prefer earlier, then longer)
-  allMatches.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
-  const filtered = [];
-  for (const m of allMatches) {
-    if (filtered.length === 0 || m.start >= filtered[filtered.length - 1].end) {
-      filtered.push(m);
-    }
-  }
-
-  // Phase 3: Build masked text
-  const parts = [];
-  let cursor = 0;
-  for (const m of filtered) {
-    if (m.start > cursor) parts.push(text.substring(cursor, m.start));
-    parts.push(`[${m.label}]`);
-    cursor = m.end;
-  }
-  if (cursor < text.length) parts.push(text.substring(cursor));
-
-  return { maskedText: parts.join(''), count: filtered.length };
-}
-
-// Detect if text contains placeholders (unmask mode)
+// Detect if text contains placeholders produced by a paste (unmask mode)
 function detectMode(text) {
-  // Look for [PLACEHOLDER] patterns from our sanitizer
-  const placeholderPattern = /\[(AWS_KEY|GITHUB_TOKEN|JWT|PAN|INDIAN_PHONE|OPENAI_KEY|STRIPE_TEST_KEY|PRIVATE_KEY|API_KEY_FORMAT|PLACEHOLDER_\d+|[A-Z_]+_\d+)\]/;
-  return placeholderPattern.test(text) ? 'unmask' : 'test';
+  return PLACEHOLDER_TEST_RE.test(text) ? 'unmask' : 'test';
 }
 
 // ==================== MAIN ====================
@@ -114,25 +54,25 @@ function detectMode(text) {
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const {
-      vault = {},
       stats = { totalBlocked: 0, todayBlocked: 0 },
       disabledPatterns = [],
-      customSites = [],
+      customSites: storedCustomSites = [],
       removedDefaults = [],
       darkMode = null,
       autoDarkMode = true,
-      useEncryption = true,
       hasSeenWelcome = false
     } = await chrome.storage.local.get([
-      "vault", "stats", "disabledPatterns", "customSites", "removedDefaults",
-      "darkMode", "autoDarkMode", "useEncryption", "hasSeenWelcome"
+      "stats", "disabledPatterns", "customSites", "removedDefaults",
+      "darkMode", "autoDarkMode", "hasSeenWelcome"
     ]);
+    // The vault is memory-only (chrome.storage.session), owned by the background worker
+    const { vault = {} } = await chrome.storage.session.get("vault");
+    const customSites = (Array.isArray(storedCustomSites) ? storedCustomSites : [])
+      .map(normalizeSite).filter(Boolean);
 
     // Site status indicator
 
-    const defaultSites = [
-      "chatgpt.com", "claude.ai", "gemini.google.com", "grok.com"
-    ];
+    const defaultSites = DEFAULT_SITES;
     const activeDefaults = defaultSites.filter(s => !removedDefaults.includes(s));
 
     const allProtectedSites = [...activeDefaults, ...customSites];
@@ -143,9 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (tab?.url && siteStatus) {
         const url = new URL(tab.url);
         const hostname = url.hostname;
-        const isProtected = allProtectedSites.some(site =>
-          hostname === site || hostname.endsWith('.' + site)
-        );
+        const isProtected = allProtectedSites.some(site => hostname === siteHostname(site));
 
         if (isProtected) {
           siteStatus.className = "site-status active";
@@ -268,16 +206,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Clean expired vault entries
+    // Hide expired vault entries (the background worker owns deletion, so the popup
+    // never rewrites the vault and can't race a paste being saved)
 
-    let cleaned = false;
     Object.keys(vault).forEach(key => {
-      if (vault[key] && vault[key].expires < now) {
-        delete vault[key];
-        cleaned = true;
-      }
+      if (!vault[key] || vault[key].expires < now) delete vault[key];
     });
-    if (cleaned) await chrome.storage.local.set({ vault });
 
     // Hero stats
 
@@ -288,7 +222,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       animateCount(heroTotal, stats.totalBlocked || 0, 800);
     }
     if (heroToday) {
-      heroToday.textContent = stats.todayBlocked || 0;
+      // todayBlocked is only reset on the next paste — don't show yesterday's count
+      heroToday.textContent = stats.lastDate === new Date().toDateString() ? (stats.todayBlocked || 0) : 0;
     }
 
     // Action area
@@ -390,20 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           for (const entry of Object.values(vault)) {
             if (!entry || entry.expires < currentTime) continue;
 
-            let replacements = entry.replacements;
-            if (entry.encrypted) {
-              try {
-                replacements = await decryptData({ encrypted: true, data: replacements });
-              } catch (err) {
-                console.warn("Decryption error:", err);
-                continue;
-              }
-            } else if (typeof replacements === 'string' && !replacements.startsWith('[')) {
-              try {
-                replacements = await decryptData({ encrypted: false, data: replacements });
-              } catch (err) {}
-            }
-
+            const replacements = entry.replacements;
             if (!Array.isArray(replacements)) continue;
             for (const [placeholder, original] of replacements) {
               const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -429,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
           // Test mode
           requestAnimationFrame(() => {
-            const result = testSanitize(text);
+            const result = testSanitize(text, disabled);
             actionOutput.textContent = result.maskedText;
             actionOutput.classList.remove('hidden');
 
@@ -465,7 +387,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       let traceIds = Object.keys(vault)
         .filter(id => {
           if (!searchTerm) return true;
-          return id.toLowerCase().includes(searchTerm.toLowerCase());
+          const term = searchTerm.toLowerCase();
+          return id.toLowerCase().includes(term) || (vault[id]?.origin || "").toLowerCase().includes(term);
         })
         .sort((a, b) => (vault[b]?.expires || 0) - (vault[a]?.expires || 0))
         .slice(0, limit);
@@ -480,15 +403,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           const entry = vault[id];
           if (!entry) return;
           const minsLeft = Math.max(1, Math.round((entry.expires - Date.now()) / 60000));
-          const count = entry.encrypted
-            ? (typeof entry.replacements === 'string' ? '?' : entry.replacements?.length || 0)
-            : (Array.isArray(entry.replacements) ? entry.replacements.length : 0);
+          const count = Array.isArray(entry.replacements) ? entry.replacements.length : 0;
           const li = document.createElement("li");
           li.className = "vault-item";
           const contentDiv = document.createElement("div");
           contentDiv.className = "vault-item-content";
           const strong = document.createElement("strong");
-          strong.textContent = id.slice(0, 8) + "...";
+          let site = "";
+          try { site = new URL(entry.origin).hostname; } catch (_) {}
+          strong.textContent = site || id.slice(0, 8) + "...";
+          strong.title = id;
           const rightDiv = document.createElement("div");
           const badgeSpan = document.createElement("span");
           badgeSpan.className = "vault-badge";
@@ -604,16 +528,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Settings (auto-save)
 
-    // Encryption toggle (auto-save)
-    const encryptionCheckbox = document.getElementById("useEncryption");
-    if (encryptionCheckbox) {
-      encryptionCheckbox.checked = useEncryption;
-      encryptionCheckbox.addEventListener("change", async (e) => {
-        await chrome.storage.local.set({ useEncryption: e.target.checked });
-        showNotification("Encryption " + (e.target.checked ? "enabled" : "disabled"), "success");
-      });
-    }
-
     // Auto dark mode toggle (auto-save)
     const autoDarkModeCheckbox = document.getElementById("autoDarkMode");
     if (autoDarkModeCheckbox) {
@@ -657,7 +571,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         clearVaultBtn.dataset.confirming = "";
         setVaultBtnLabel("fas fa-eraser", "Delete All Secrets");
         clearVaultBtn.classList.remove("btn-danger");
-        await chrome.storage.local.set({ vault: {} });
+        await chrome.storage.session.set({ vault: {} });
         showNotification("All secrets deleted", "success");
         setTimeout(() => location.reload(), 500);
       });
@@ -752,7 +666,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       try {
         if (customSites.length > 0) {
-          const origins = customSites.map(s => `*://${s}/*`);
+          const origins = customSites.map(siteMatchPattern);
           await chrome.permissions.request({ origins });
         }
       } catch (err) {
@@ -832,30 +746,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const input = document.getElementById("newSite");
         if (!input) return;
 
-        let urlStr = input.value.trim();
+        const urlStr = input.value.trim();
         if (!urlStr) return;
 
-        try {
-          const url = new URL(urlStr.startsWith("http") ? urlStr : "https://" + urlStr);
-          if (url.protocol !== "http:" && url.protocol !== "https:") {
-            showNotification("Only http:// and https:// URLs are allowed", "error");
-            return;
-          }
-          const host = url.host;
-
-          if (defaultSites.includes(host)) {
-            showNotification("Use the + button above to restore this default", "warning");
-          } else if (customSites.includes(host)) {
-            showNotification("Site already added", "warning");
-          } else if (host) {
-            customSites.push(host);
-            input.value = "";
-            renderSiteChips();
-            await saveSitesAndRegister();
-            showNotification("Site added", "success");
-          }
-        } catch (_) {
-          showNotification("Invalid URL format", "error");
+        const host = normalizeSite(urlStr);
+        if (!host) {
+          showNotification("Enter a valid http(s) site, e.g. example.com", "error");
+        } else if (defaultSites.includes(host)) {
+          showNotification("Use the + button above to restore this default", "warning");
+        } else if (customSites.includes(host)) {
+          showNotification("Site already added", "warning");
+        } else {
+          customSites.push(host);
+          input.value = "";
+          renderSiteChips();
+          await saveSitesAndRegister();
+          showNotification("Site added", "success");
         }
       });
     }
@@ -865,7 +771,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportBtn = document.getElementById("exportSettings");
     if (exportBtn) {
       exportBtn.addEventListener("click", async () => {
-        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "removedDefaults", "useEncryption", "autoDarkMode", "darkMode"]);
+        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "removedDefaults", "autoDarkMode", "darkMode"]);
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -898,9 +804,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           // Only import known safe settings keys with type validation
           const safeData = {};
           if (Array.isArray(data.disabledPatterns)) safeData.disabledPatterns = data.disabledPatterns.filter(p => typeof p === 'string');
-          if (Array.isArray(data.customSites)) safeData.customSites = data.customSites.filter(s => typeof s === 'string');
-          if (Array.isArray(data.removedDefaults)) safeData.removedDefaults = data.removedDefaults.filter(s => typeof s === 'string');
-          if (typeof data.useEncryption === 'boolean') safeData.useEncryption = data.useEncryption;
+          // Sites are normalized + validated so a malformed entry can't break registration
+          if (Array.isArray(data.customSites)) {
+            safeData.customSites = [...new Set(data.customSites.map(normalizeSite).filter(Boolean))]
+              .filter(s => !DEFAULT_SITES.includes(s));
+          }
+          if (Array.isArray(data.removedDefaults)) safeData.removedDefaults = data.removedDefaults.filter(s => DEFAULT_SITES.includes(s));
           if (typeof data.autoDarkMode === 'boolean') safeData.autoDarkMode = data.autoDarkMode;
           if (typeof data.darkMode === 'boolean') safeData.darkMode = data.darkMode;
 

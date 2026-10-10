@@ -212,7 +212,7 @@
     <div class="container">
       <a href="index.html" class="back-link">&larr; Back to Secret Sanitizer</a>
       <h1>Privacy <span class="gradient-text">Policy</span></h1>
-      <p>Last updated: March 7, 2026</p>
+      <p>Last updated: October 11, 2026</p>
     </div>
   </header>
 
@@ -229,11 +229,11 @@
       <p>All data processing performed by Secret Sanitizer occurs entirely on your local device. The extension does not transmit, sync, upload, or share any data with external servers or third parties.</p>
 
       <h2>Local Storage Usage</h2>
-      <p>The extension uses <code>chrome.storage.local</code> exclusively to store:</p>
+      <p>The extension stores data only in your browser's extension storage:</p>
       <ul>
-        <li>Temporarily masked secret values in an AES-GCM encrypted vault, used to restore originals when you unmask from the popup or copy AI responses via Smart Restore</li>
+        <li>Temporarily masked secret values in a memory-only vault (<code>chrome.storage.session</code>: never written to disk, deleted after 15 minutes or when the browser closes), used to restore originals when you unmask from the popup or copy AI responses via Smart Restore</li>
         <li>Aggregate user statistics (e.g., total and daily count of blocked secrets)</li>
-        <li>User preferences, such as enabled or disabled detection patterns and custom websites</li>
+        <li>User preferences, such as enabled or disabled detection patterns and custom websites (<code>chrome.storage.local</code>)</li>
       </ul>
       <p>All stored data remains local to your browser and is never accessible outside the extension.</p>
 

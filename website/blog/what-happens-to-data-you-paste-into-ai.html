@@ -89,14 +89,14 @@
 
       <h2>"So should I stop using AI chats?"</h2>
       <p>No — that ship has sailed, and rightly so. AI assistants are genuinely useful for debugging, refactoring, and explaining unfamiliar code. The answer isn't abstinence; it's making sure the useful part of your paste goes through while the dangerous part doesn't.</p>
-      <p>Here's the thing about secrets in a debugging context: <strong>the model doesn't need them.</strong> Whether your header says <code>Authorization: Bearer eyJhbGc...</code> or <code>Authorization: Bearer [JWT_0]</code> makes zero difference to the quality of the answer. The secret is pure risk with no upside.</p>
+      <p>Here's the thing about secrets in a debugging context: <strong>the model doesn't need them.</strong> Whether your header says <code>Authorization: Bearer eyJhbGc...</code> or <code>Authorization: Bearer [JWT_k3f9_0]</code> makes zero difference to the quality of the answer. The secret is pure risk with no upside.</p>
 
       <h2>Practical steps, in order of effort</h2>
       <ul>
         <li><strong>Check your data controls</strong> in each AI product you use. Turn off training on your conversations if the option exists, and prefer temporary/incognito chat modes for sensitive sessions.</li>
         <li><strong>Use business tiers for work</strong> when your employer offers them — they typically carry stronger retention and no-training guarantees.</li>
         <li><strong>Trim before you paste.</strong> The three lines around the error are usually enough; the full <code>.env</code> is not required.</li>
-        <li><strong>Automate the scrubbing.</strong> Humans are bad at spotting one live key in 200 lines of logs — that's a pattern-matching job. <a href="../">Secret Sanitizer</a> does it on every paste: 70+ secret patterns checked locally in your browser, matches replaced with placeholders before the text touches the page, originals kept in an encrypted local vault so you can restore them from the AI's answer. No cloud, no network calls, open source.</li>
+        <li><strong>Automate the scrubbing.</strong> Humans are bad at spotting one live key in 200 lines of logs — that's a pattern-matching job. <a href="../">Secret Sanitizer</a> does it on every paste: 70+ secret patterns checked locally in your browser, matches replaced with placeholders before the text touches the page, originals kept in a memory-only vault so you can restore them from the AI's answer. No cloud, no network calls, open source.</li>
       </ul>
 
       <h2>The bottom line</h2>

@@ -65,16 +65,16 @@ Secret Sanitizer flips this: it catches secrets **before** they leave your machi
 
 ```
 You paste:    DATABASE_URL=postgres://admin:s3cret@db.prod.internal:5432/myapp
-AI receives:  DATABASE_URL=[DATABASE_URL_0]
-Vault stores: postgres://admin:s3cret@db.prod.internal:5432/myapp  ← local only
+AI receives:  DATABASE_URL=[DB_CONN_k3f9_0]
+Vault stores: postgres://admin:s3cret@db.prod.internal:5432/myapp  ← in memory only
 ```
 
 1. You paste text into an AI chat
 2. The extension intercepts it before it hits the input field
 3. Patterns run locally in your browser — nothing leaves your machine
-4. Secrets are swapped with readable placeholders like `[STRIPE_KEY_0]`
+4. Secrets are swapped with readable placeholders like `[STRIPE_KEY_k3f9_0]` (the short id is unique per paste, so two different keys never share a name)
 5. A toast notification shows what was caught, with a 5-second undo
-6. Originals are stored in a local AES-GCM encrypted vault
+6. Originals are kept in a memory-only vault: never written to disk, deleted after 15 minutes or when the browser closes
 
 > **Verify it yourself:** `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
 
@@ -86,13 +86,15 @@ When the AI replies using your placeholders, you get the real values back automa
 
 **Example:**
 
-1. You ask: *"Fix this connection string: `[DATABASE_URL_0]`"*
-2. AI replies: *"Change `[DATABASE_URL_0]` to use port 5433."*
+1. You ask: *"Fix this connection string: `[DB_CONN_k3f9_0]`"*
+2. AI replies: *"Change `[DB_CONN_k3f9_0]` to use port 5433."*
 3. You copy the reply — Secret Sanitizer detects the placeholders and swaps them back to the originals in your clipboard instantly.
 
 No manual lookup. No digging through the vault. Just paste and it works.
 
 Originals are kept for 15 minutes and are always accessible from the popup under **Recent**.
+
+Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only after a real click or keypress, and only on the site where you pasted it. It switches itself off on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
 
 ---
 
@@ -141,7 +143,7 @@ Works out of the box on every major AI chat:
 | | |
 |---|---|
 | **Instant interception** | Secrets never reach the chat input |
-| **Encrypted vault** | AES-GCM encrypted, stored locally only |
+| **Memory-only vault** | Originals never touch disk, expire after 15 minutes |
 | **Smart Restore** | Copy AI responses and secrets auto-restore in your clipboard |
 | **Undo on paste** | 5-second window to revert any masked paste |
 | **Test mode** | Preview what would be masked before committing |
@@ -171,8 +173,8 @@ Works out of the box on every major AI chat:
 </p>
 
 <p align="center">
-  <img width="720" alt="Local encrypted vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
-  <br><em>One-click unmask from the local encrypted vault</em>
+  <img width="720" alt="Memory-only vault" src="https://github.com/user-attachments/assets/72d03545-0ed8-4737-8d99-bc6f109439ad" />
+  <br><em>One-click unmask from the memory-only vault</em>
 </p>
 
 ---

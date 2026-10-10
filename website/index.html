@@ -35,7 +35,7 @@
     "name": "Secret Sanitizer",
     "applicationCategory": "BrowserApplication",
     "operatingSystem": "Chrome",
-    "softwareVersion": "2.2.7",
+    "softwareVersion": "2.3.0",
     "description": "Masks API keys, passwords & tokens locally before they reach ChatGPT, Claude, or Gemini. 70+ patterns, 100% open source, zero tracking.",
     "url": "https://secretsanitizer.com/",
     "downloadUrl": "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja",
@@ -70,7 +70,7 @@
         "name": "Which AI sites does it work on?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Secret Sanitizer works on ChatGPT, Claude, Gemini, Grok, and other popular AI chat sites out of the box. You can also add any custom website in the extension settings."
+          "text": "Secret Sanitizer works on ChatGPT, Claude, Gemini, and Grok out of the box. You can also add any custom website in the extension settings."
         }
       },
       {
@@ -394,7 +394,7 @@
       line-height: 2;
     }
 
-    .demo-line { margin-bottom: 2px; white-space: nowrap; overflow: hidden; }
+    .demo-line { margin-bottom: 2px; overflow-wrap: anywhere; }
     .demo-key { color: var(--warning); }
     .demo-masked {
       color: #f87171;
@@ -1195,8 +1195,8 @@
           </div>
           <div class="feat glass">
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <h3>Encrypted Vault</h3>
-            <p>Originals saved locally with AES-GCM, unmask anytime</p>
+            <h3>Memory-Only Vault</h3>
+            <p>Originals never touch disk and expire after 15 minutes</p>
           </div>
           <div class="feat glass">
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><path d="M13 21l3-3-3-3"/><path d="M16 18H8"/></svg></div>
@@ -1216,7 +1216,7 @@
           <div class="feat glass">
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
             <h3>Stats Dashboard</h3>
-            <p>Track blocks per day with history</p>
+            <p>See secrets caught today and all-time</p>
           </div>
           <div class="feat glass">
             <div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
@@ -1596,7 +1596,7 @@
             </div>
             <div class="glass" style="padding:24px 28px;border-radius:14px">
               <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px">Which AI sites does it work on?</h3>
-              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin:0">ChatGPT, Claude, Gemini, Grok, and other popular AI chat sites are supported out of the box. You can also add any custom website in the extension settings.</p>
+              <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin:0">ChatGPT, Claude, Gemini, and Grok are supported out of the box. You can also add any custom website in the extension settings.</p>
             </div>
             <div class="glass" style="padding:24px 28px;border-radius:14px">
               <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px">How is this different from just being careful?</h3>
@@ -1726,12 +1726,13 @@
         title: 'chatgpt.com',
         comment: '// Pasting .env into ChatGPT...',
         lines: [
-          'OPENAI_API_KEY=sk-proj-abc123xyz789def456ghi',
-          'STRIPE_SECRET_KEY=sk_live_51HG7dKLMn0pQrStUvWx',
+          'OPENAI_API_KEY=sk-proj-abc123xyz789def456ghi012jkl345mn',
+          // Split so secret scanners (e.g. GitHub push protection) don't flag this fake demo key
+          'STRIPE_SECRET_KEY=sk_' + 'live_51HG7dKLMn0pQrStUvWxYz012',
         ],
         masked: [
-          { key: 'OPENAI_API_KEY=', label: '[OPENAI_KEY_0]' },
-          { key: 'STRIPE_SECRET_KEY=', label: '[STRIPE_KEY_0]' },
+          { key: 'OPENAI_API_KEY=', label: '[OPENAI_KEY_k3f9_0]' },
+          { key: 'STRIPE_SECRET_KEY=', label: '[STRIPE_KEY_k3f9_1]' },
         ],
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
@@ -1743,8 +1744,8 @@
           'AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE',
         ],
         masked: [
-          { key: 'DATABASE_URL=', label: '[DB_CONN_0]' },
-          { key: 'AWS_ACCESS_KEY_ID=', label: '[AWS_KEY_0]' },
+          { key: 'DATABASE_URL=', label: '[DB_CONN_p7x2_0]' },
+          { key: 'AWS_ACCESS_KEY_ID=', label: '[AWS_KEY_p7x2_1]' },
         ],
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
@@ -1753,11 +1754,11 @@
         comment: '// Pasting tokens into Gemini...',
         lines: [
           'ghp_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8',
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.dozjgNryP4J3jVmN',
         ],
         masked: [
-          { key: '', label: '[GITHUB_TOKEN_0]' },
-          { key: 'Bearer ', label: '[JWT_0]' },
+          { key: '', label: '[GITHUB_TOKEN_m4q8_0]' },
+          { key: 'Bearer ', label: '[JWT_m4q8_1]' },
         ],
         toast: '2 secrets masked \u2014 originals saved to vault'
       },
@@ -1765,12 +1766,12 @@
         title: 'chatgpt.com',
         comment: '// Pasting personal info into ChatGPT...',
         lines: [
-          'Card: 4532 0150 1234 5678',
+          'Card: 4532 0151 1283 0366',
           'UPI: yourname@oksbi',
         ],
         masked: [
-          { key: 'Card: ', label: '[CREDIT_CARD_0]' },
-          { key: 'UPI: ', label: '[UPI_ID_0]' },
+          { key: 'Card: ', label: '[CREDIT_CARD_c2w5_0]' },
+          { key: 'UPI: ', label: '[UPI_ID_c2w5_1]' },
         ],
         toast: '2 secrets masked \u2014 originals saved to vault'
       }

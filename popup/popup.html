@@ -176,11 +176,11 @@
         </div>
         <div class="accordion-content" id="security-content">
           <div class="setting-item">
-            <label>
-              <input type="checkbox" id="useEncryption" checked>
-              <span>Encrypt stored secrets</span>
+            <label class="setting-info">
+              <i class="fas fa-memory"></i>
+              <span>Memory-only vault</span>
             </label>
-            <small>Protect secrets with encryption (recommended)</small>
+            <small>Originals are never written to disk. They expire after 15 minutes and are cleared when the browser closes.</small>
           </div>
           <div class="setting-item">
             <label>
@@ -224,6 +224,8 @@
     </div>
   </div>
   <script src="../patterns.js"></script>
+  <script src="../detector.js"></script>
+  <script src="../sites.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

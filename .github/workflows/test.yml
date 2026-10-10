@@ -1,0 +1,19 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check extension scripts
+        run: for f in *.js popup/*.js; do node --check "$f"; done
+      - name: Run tests
+        run: node --test 'tests/*.test.js'

@@ -104,7 +104,7 @@
       <ul>
         <li><strong>Use a secrets manager</strong> (AWS Secrets Manager, 1Password, Doppler, Vault) instead of long-lived keys in plain-text files where possible.</li>
         <li><strong>Prefer short-lived credentials</strong> — temporary AWS STS tokens, fine-grained GitHub PATs with expiry dates, restricted API keys. A leaked key that expires in an hour is a very different incident.</li>
-        <li><strong>Mask before you paste.</strong> This is exactly why <a href="../">Secret Sanitizer</a> exists: it scans everything you paste into ChatGPT, Claude, Gemini, or Grok against 70+ secret patterns and replaces matches with placeholders like <code>[AWS_KEY_0]</code> — locally, before the text ever reaches the page. The AI still gets working context; your key never leaves your machine.</li>
+        <li><strong>Mask before you paste.</strong> This is exactly why <a href="../">Secret Sanitizer</a> exists: it scans everything you paste into ChatGPT, Claude, Gemini, or Grok against 70+ secret patterns and replaces matches with placeholders like <code>[AWS_KEY_k3f9_0]</code> — locally, before the text ever reaches the page. The AI still gets working context; your key never leaves your machine.</li>
       </ul>
 
       <h2>The 5-minute checklist</h2>

@@ -2,6 +2,10 @@
 // If you add/change a pattern here, both contexts pick it up automatically.
 //
 // Order: specific prefixed patterns first, then contextual, then generic (last resort)
+//
+// A pattern may wrap the sensitive part in a named group `(?<secret>...)`; only that
+// span is then masked, so surrounding context (e.g. "password: ") stays readable.
+// Extra false-positive checks (Luhn, Verhoeff, ...) live in detector.js PATTERN_VALIDATORS.
 const SHARED_PATTERNS = [
   // === CLOUD PROVIDER KEYS ===
   // AWS
@@ -22,7 +26,11 @@ const SHARED_PATTERNS = [
   [/\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, "JWT"],
 
   // === DATABASE CONNECTIONS ===
-  [/(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi, "DB_CONN"],
+  // Scheme variants: mongodb+srv, postgresql, rediss, SQLAlchemy dialects (postgresql+psycopg2), ...
+  // User may be empty (redis://:password@host).
+  [/\b(?:mongodb(?:\+srv)?|postgres(?:ql)?|mysql|mariadb|mssql|sqlserver|rediss?|amqps?|clickhouse|cockroachdb|neo4j(?:\+s)?)(?:\+[a-z0-9]+)?:\/\/[^:\s\/@]*:[^@\s]+@[^\s'"`<>]+/gi, "DB_CONN"],
+  // Credentials embedded in any other URL (https://user:token@host) — masks only the password
+  [/\b[a-z][a-z0-9+.\-]*:\/\/[^\s:\/@'"`]*:(?<secret>[^\s@\/'"`]+)@/gi, "URL_CREDENTIALS"],
 
   // === CREDIT CARDS ===
   // Visa, Mastercard, Amex, Diners Club (30x/36x/38x), Discover
@@ -107,19 +115,25 @@ const SHARED_PATTERNS = [
   [/(?:vehicle|registration|reg[\s-]?no|number[\s-]?plate|license[\s-]?plate)[\s:=]+['"]?\b[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}\b['"]?/gi, "VEHICLE_REG"],
 
   // === SENSITIVE CONTEXT PATTERNS ===
-  [/(?:otp|pin|code|verification)[\s:=]+['"]?(\d{4,8})['"]?/gi, "OTP_CODE"],
-  [/\b(?:enter|your|the)[\s]+(?:otp|pin|code)[\s:]+(\d{4,8})\b/gi, "OTP_CODE"],
+  // Bare "code" is deliberately excluded ("exit code 1234", "error code 5001")
+  [/\b(?:otp|pin|passcode|verification(?:\s+code)?|security\s+code|auth(?:entication)?\s+code|login\s+code|one[\s-]time\s+(?:password|code|pin))\b(?:\s+is)?\s*[:=]?\s*['"]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
+  [/\b(?:enter|use|your)\s+(?:the\s+)?(?:otp|pin|code)(?:\s+is)?[\s:]+(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
   [/(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
-  [/(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi, "PASSWORD_HINT"],
-  // Negative lookahead: skip values that start with a known specific-pattern prefix
-  // (those are better matched by their dedicated patterns above)
-  [/\b(bearer|token)[\s:]+(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_)[A-Za-z0-9\-_.]{20,}\b/gi, "BEARER_TOKEN"],
+  // Masks only the value. Any non-space characters, 6+ long. Skips obvious non-values:
+  // template/env references ($X, <x>, {x}, %s), redactions (****), paths (PWD=/home/..),
+  // function calls (getenv(...)) and type/doc words (password: string).
+  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
+  // Value-only, so "Bearer " stays readable and a specific pattern on the same value (JWT)
+  // wins the overlap. The negative lookahead skips values with a known specific prefix.
+  [/\b(?:bearer|token)[\s:]+(?<secret>(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_)[A-Za-z0-9\-_.]{20,})\b/gi, "BEARER_TOKEN"],
 
   // === KEY=VALUE FORMAT PATTERNS ===
-  [/(?:api[_-]?key|apikey|api_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "API_KEY_FORMAT"],
-  [/(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "SECRET_KEY_FORMAT"],
-  [/(?:access[_-]?key|accesskey|access_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "ACCESS_KEY_FORMAT"],
-  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi, "AUTH_SECRET_FORMAT"],
+  // Value-only, so the key name stays readable and a more specific pattern matching the
+  // same value (e.g. OPENAI_KEY in OPENAI_API_KEY=sk-...) wins the overlap.
+  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
+  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
+  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
+  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
 
   // === PRIVATE KEYS ===
   [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],

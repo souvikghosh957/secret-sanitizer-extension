@@ -1,94 +1,52 @@
-// ss_clipboard_interceptor.js — runs in MAIN world (document_start)
-// Intercepts programmatic clipboard writes (AI copy buttons) and provides the
-// clipboard write side of the Smart Restore feature.
+// ss_clipboard_interceptor.js — runs in the page's MAIN world (document_start).
+// Lets Smart Restore work with AI "copy" buttons, which call navigator.clipboard.writeText()
+// or navigator.clipboard.write() from page JavaScript.
 //
-// Architecture:
-//   1. For manual Ctrl+C / right-click copy:
-//      - Captures every copy event to store the event object (_activeCopyEvent)
-//      - Listens for '__ss_resolved' dispatched synchronously by the isolated-world
-//        copy handler; calls e.clipboardData.setData() from MAIN world (works here,
-//        silently fails in isolated world).
-//
-//   2. For programmatic copy buttons (navigator.clipboard.writeText/write):
-//      - Intercepts the call, fires execCommand('copy') on a hidden textarea so
-//        the isolated-world copy handler runs and dispatches '__ss_resolved'.
-//      - MAIN world's '__ss_resolved' handler then calls e.clipboardData.setData().
-//      - No clipboardWrite permission required.
+// SECURITY: this file runs alongside the page's own scripts, so anything it can see the
+// page can see too. Information therefore only flows ONE way — page → extension:
+//   1. A copy button writes text containing placeholders like [OPENAI_KEY_k3f9_0].
+//   2. We dispatch a cancelable '__ss_restore_request' event carrying that (already
+//      masked) text. The isolated-world content script decides whether to handle it
+//      (it requires a recent trusted user gesture) and cancels the event if it does.
+//   3. The content script writes the restored text to the system clipboard itself, from
+//      the isolated world. Original secrets are never placed on a DOM event, a DOM node,
+//      or anywhere else this world (or the page) can read.
 (function () {
   if (window.__ssClipboardInterceptorInstalled) return;
   window.__ssClipboardInterceptorInstalled = true;
 
-  const PLACEHOLDER_RE = /\[[A-Z][A-Z0-9_]+_\d+\]/;
+  const clipboard = navigator.clipboard;
+  if (!clipboard) return; // insecure context (http://) — no async clipboard API to wrap
 
-  const _origWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
-  const _origWrite     = navigator.clipboard.write.bind(navigator.clipboard);
+  const PLACEHOLDER_RE = /\[[A-Z][A-Z0-9_]*_[a-z0-9]{4}_\d+\]/;
+  const _origWriteText = clipboard.writeText.bind(clipboard);
+  const _origWrite = clipboard.write.bind(clipboard);
 
-  // ── Copy-event capture ────────────────────────────────────────────────────
-  // Store the active copy event so '__ss_resolved' can call setData() on it.
-  // Registered at document_start so it runs before any later-registered listener.
-  let _activeCopyEvent = null;
-
-  document.addEventListener('copy', (e) => {
-    _activeCopyEvent = e;
-    // Safety: clear after event dispatch completes (all listeners have run)
-    setTimeout(() => { _activeCopyEvent = null; }, 0);
-  }, true); // capture phase = fires before isolated-world listener
-
-  // '__ss_resolved' is dispatched synchronously by the isolated-world copy handler.
-  // Calling setData() here (MAIN world) reliably updates the system clipboard.
-  document.addEventListener('__ss_resolved', (e) => {
-    if (!_activeCopyEvent) return;
-    const text = e.detail?.text;
-    if (typeof text !== 'string') return;
-    _activeCopyEvent.preventDefault();
-    _activeCopyEvent.clipboardData.setData('text/plain', text);
-    _activeCopyEvent = null; // consumed
-  });
-
-  // ── Programmatic-copy interception ────────────────────────────────────────
-  // Fire execCommand('copy') on a hidden textarea containing the masked text.
-  // This triggers a copy DOM event → isolated world resolves tokens →
-  // dispatches '__ss_resolved' → MAIN world's handler above calls setData().
-  // All synchronous; user-gesture context is preserved.
-  function triggerCopyEvent(text) {
-    if (!document.body) return false; // guard: body not yet available at document_start
-    const prev = document.activeElement;
-    const el = document.createElement('textarea');
-    el.value = text;
-    el.setAttribute('readonly', '');
-    el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
-    document.body.appendChild(el);
-    el.focus();
-    el.select();
-    let ok = false;
-    try { ok = document.execCommand('copy'); } catch (_) {}
-    document.body.removeChild(el);
-    // Restore prior focus so the user's editing context is unaffected
-    try { if (prev && typeof prev.focus === 'function') prev.focus(); } catch (_) {}
-    return ok;
+  // Returns true when the content script took over the clipboard write.
+  function requestRestore(text) {
+    const ev = new CustomEvent('__ss_restore_request', { detail: text, cancelable: true });
+    return !document.dispatchEvent(ev);
   }
 
-  navigator.clipboard.writeText = function (text) {
-    if (text && typeof text === 'string' && PLACEHOLDER_RE.test(text)) {
-      if (triggerCopyEvent(text)) return Promise.resolve();
+  clipboard.writeText = function (text) {
+    if (typeof text === 'string' && PLACEHOLDER_RE.test(text) && requestRestore(text)) {
+      return Promise.resolve();
     }
     return _origWriteText(text);
   };
 
-  navigator.clipboard.write = async function (items) {
-    // Extract text/plain from ClipboardItems (ChatGPT code-block copy buttons).
-    // User activation persists through microtask awaits, so execCommand still works.
+  clipboard.write = async function (items) {
+    // Extract text/plain from ClipboardItems (e.g. ChatGPT code-block copy buttons)
     try {
       for (const item of items) {
         if (!item.types.includes('text/plain')) continue;
-        const blob = await item.getType('text/plain');
-        const text = await blob.text();
-        if (PLACEHOLDER_RE.test(text)) {
-          if (triggerCopyEvent(text)) return;
-          break; // execCommand failed — fall through to original write
-        }
+        const text = await (await item.getType('text/plain')).text();
+        if (PLACEHOLDER_RE.test(text) && requestRestore(text)) return;
+        break;
       }
-    } catch (_) {}
+    } catch (_) {
+      // Unreadable item — fall through to the original write
+    }
     return _origWrite(items);
   };
 })();

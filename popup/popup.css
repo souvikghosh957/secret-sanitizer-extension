@@ -1363,6 +1363,16 @@ body.dark-mode .accordion-header:hover {
   font-size: 0.95em;
 }
 
+.setting-item label.setting-info {
+  cursor: default;
+}
+
+.setting-item label.setting-info i {
+  width: 18px;
+  text-align: center;
+  color: var(--primary);
+}
+
 .setting-item input[type="checkbox"] {
   width: 18px;
   height: 18px;

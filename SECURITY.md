@@ -28,9 +28,10 @@ Secret Sanitizer is built with a security-first architecture:
 
 | Principle | Implementation |
 |-----------|---------------|
-| **Zero network requests** | No fetch, XMLHttpRequest, or sendMessage calls. Verify: `grep -r "fetch\|XMLHttpRequest" content_script.js` |
+| **Zero network requests** | No fetch or XMLHttpRequest anywhere; messages only travel between the extension's own components. Verify: `grep -rn "fetch\|XMLHttpRequest" *.js popup/*.js` |
 | **Local-only processing** | All pattern matching runs in your browser via regex |
-| **Encrypted vault** | Secrets stored with AES-GCM encryption (PBKDF2, 100K iterations) |
+| **Memory-only vault** | Originals live in `chrome.storage.session`: held in memory, never written to disk, deleted after 15 minutes or when the browser closes. Only the background worker and popup can read it; content scripts can only resolve placeholders created on their own site |
+| **Page isolation** | Paste interception runs before any page script. Smart Restore writes to the clipboard from the extension's isolated world only after a trusted user gesture — plaintext is never exposed to the page's DOM or JavaScript |
 | **No tracking** | No analytics, telemetry, or third-party scripts |
 | **Minimal permissions** | Only requests permissions strictly needed for functionality |
 | **Open source** | Full source code is auditable on GitHub |
@@ -39,8 +40,8 @@ Secret Sanitizer is built with a security-first architecture:
 
 | Version | Supported |
 |---------|-----------|
-| 2.1.x   | Yes       |
-| < 2.1   | No        |
+| 2.3.x   | Yes       |
+| < 2.3   | No — earlier versions stored the vault on disk and exposed Smart Restore results to page scripts |
 
 We recommend always using the latest version from the [Chrome Web Store](https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja).
 
@@ -48,4 +49,6 @@ We recommend always using the latest version from the [Chrome Web Store](https:/
 
 - **Pattern-based detection is not exhaustive.** Custom or unusual secret formats may not be caught. Users can add patterns or request new ones via GitHub issues.
 - **Vault entries expire after 15 minutes** by default. Secrets pasted earlier cannot be unmasked.
+- **Smart Restore places originals on the system clipboard.** Anything that can read your clipboard (clipboard managers, sites you granted clipboard-read) can see them. Smart Restore turns itself off on sites that have clipboard-read permission.
+- **Very large pastes (over 500 KB)** are only checked for known key formats; the toast says "partial scan" when this happens.
 - **High-entropy detection may cause false positives** on long random strings that aren't secrets. Individual patterns can be disabled in settings.

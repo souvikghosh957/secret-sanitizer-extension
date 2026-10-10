@@ -2,6 +2,41 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.3.0] - 2026-10-11
+
+### Security
+- **Smart Restore no longer exposes originals to the page.** Restored text used to be broadcast on a DOM `CustomEvent` (`__ss_resolved`) that any script on the AI site could read — and trigger by placing placeholders in a hidden textarea. Restored text is now written to the clipboard only from the extension's isolated world, never via DOM events or `clipboardData.setData()`, and only after a trusted user click/keypress. The MAIN-world interceptor now only relays masked text one way (page → extension)
+- **Smart Restore is scoped to the originating site** — placeholders created on one site can't be resolved on another — and switches off on sites that have clipboard-read permission
+- **Vault moved to memory-only storage.** The "AES-GCM encrypted" vault was keyed from the public extension ID, so anything that could read the profile could decrypt it. Originals now live in `chrome.storage.session` (never written to disk, cleared when the browser closes), accessible only to the background worker and popup. The old on-disk vault is deleted on update, and the encryption toggle is removed
+- **Re-pasting restored text into the AI chat is masked again** — previously the next paste after a Smart Restore skipped masking entirely
+- **Undo can't be triggered by page script** — the Undo button ignores synthetic (untrusted) clicks
+- Content scripts now run at `document_start`, so the paste listener is registered before any page script can see or block the paste
+- Pastes arriving before settings load are scanned with all patterns instead of being skipped
+
+### Fixed
+- **Placeholder collisions** — numbering restarted at 0 on every paste, so two different keys both became `[OPENAI_KEY_0]` and Smart Restore could return the wrong one. Placeholders now carry a per-paste id: `[OPENAI_KEY_k3f9_0]`
+- **Database URLs** — `postgresql://`, `mongodb+srv://`, `rediss://`, `mariadb://`, `mssql://`, SQLAlchemy dialects and empty-user URLs are now detected
+- **Credentials in any URL** (`https://user:token@host`) are now masked (password part only)
+- **Secrets missed when combined** — entropy detection only ran when no pattern matched, so a `postgresql://` password next to an AWS key leaked. Entropy and generic fallbacks now fill every gap left by specific patterns
+- **Large pastes** — anything over 5 KB skipped generic and entropy checks and showed nothing. Pastes up to 500 KB now get the full scan (~40 ms); larger ones still get every prefixed pattern and the toast says "partial scan". Hitting the match cap is reported the same way instead of silently skipping later patterns
+- **Repeated secrets** — entropy detection only masked the first occurrence of an identical value
+- **Passwords** — any characters, 6+ long (`password: hunter2`, `DB_PASSWORD=p@ss/w0rd?2024~xy`), masking only the value
+- **Key names preserved** — `KEY=value` patterns and entropy matches mask only the value, so the AI keeps context; specific patterns win over generic ones (`OPENAI_API_KEY=[OPENAI_KEY_…]`)
+- **False positives** — Luhn check for cards, Verhoeff check for Aadhaar, no Aadhaar match on UUID tails, no OTP match on "exit code 1234", git SHAs, long identifiers and file paths, `PWD=/path`, `password: string`, `password = getenv(...)`
+- **One bad custom site disabled protection everywhere** — default and custom sites are now registered separately, and sites are validated on add and on import
+- **Weekly summary dates** — `getWeekStart` produced dates like `2026-10--3` when a week spanned two months
+- **Bearer tokens** — `Bearer <JWT>` is labelled `JWT` and the `Bearer` keyword stays readable
+- **Stale "Today" count** — the popup and toolbar badge showed yesterday's count until the first paste of a new day
+- Pattern toggles apply to open tabs immediately; custom sites with a port now match correctly
+
+### Changed
+- Detection engine extracted to `detector.js`, shared by the content script, the popup test mode and the new test suite — the popup's separate copy of the engine and the three copies of the crypto code are gone
+- Stats are updated by the background worker (single writer, no cross-tab races)
+- Popup **Recent** list shows the site each paste came from
+- Added a dependency-free test suite (`node --test 'tests/*.test.js'`) and a GitHub Actions workflow
+- `minimum_chrome_version` set to 102 (required by `chrome.storage.session` and MAIN-world content scripts)
+- Website and privacy policy updated: memory-only vault, new placeholder format, accurate demo, supported sites and stats wording
+
 ## [2.2.7] - 2026-04-10
 
 ### Fixed

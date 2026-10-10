@@ -28,9 +28,13 @@ cd secret-sanitizer-extension
 ```
 ├── manifest.json                  # Extension manifest (v3)
 ├── patterns.js                    # Shared detection patterns — single source of truth for content script + popup
-├── content_script.js              # Core logic — paste interception, pattern matching, encryption
-├── ss_clipboard_interceptor.js    # MAIN world script — wraps clipboard.writeText/write for Smart Restore
-├── background.js                  # Service worker — vault cleanup, stats, milestones
+├── detector.js                    # Shared detection engine — matching, validators, entropy, masking (no DOM)
+├── sites.js                       # Default sites + hostname validation (background + popup)
+├── content_script.js              # Paste interception, Smart Restore, toasts
+├── ss_clipboard_interceptor.js    # MAIN world script — relays copy-button text (masked only) for Smart Restore
+├── background.js                  # Service worker — memory-only vault, stats, site registration
+├── tests/                         # Node test suite (no dependencies): node --test 'tests/*.test.js'
+
 ├── popup/
 │   ├── popup.html                 # Extension popup markup
 │   ├── popup.js                   # Popup logic — settings, vault, stats, test mode
@@ -43,8 +47,9 @@ cd secret-sanitizer-extension
 1. Fork the repo and create a branch from `master`
 2. Make your changes
 3. Test the extension locally on at least one AI platform (ChatGPT, Claude, etc.)
-4. Verify no regressions — paste a known secret and confirm it gets masked
-5. Open a PR with a clear description of what changed and why
+4. Run the test suite: `node --test 'tests/*.test.js'` (Node 20+, no install needed)
+5. Verify no regressions — paste a known secret and confirm it gets masked
+6. Open a PR with a clear description of what changed and why
 
 ## Adding a New Secret Pattern
 
@@ -57,12 +62,14 @@ Patterns live in `patterns.js` inside the `SHARED_PATTERNS` array — this is th
 - The first element is the regex
 - The second element is a short uppercase label (e.g. `"STRIPE_KEY"`, `"GITHUB_TOKEN"`) — this becomes the placeholder name shown to the user
 
+To mask only part of a match (e.g. the value after `password:`), wrap it in a named group: `(?<secret>...)`. To reject structurally invalid matches (checksums, context), add a validator to `PATTERN_VALIDATORS` in `detector.js`. If the pattern needs a literal substring to ever match, add it to `PATTERN_GUARDS` so the regex is skipped on text that can't contain it.
+
 When adding a new pattern:
 
 1. Add it to the correct section in `SHARED_PATTERNS` (cloud keys, tokens, PII, etc.) with a comment
 2. Use the `gi` flag for case-insensitive matching; use `g` only if case matters (e.g. `JWT`, `CREDIT_CARD`)
 3. Prefer specific prefixed patterns over generic ones — add generic fallbacks at the end
-4. Test against real examples and edge cases
+4. Add true-positive and false-positive cases to `tests/detector.test.js` and run the suite
 5. Make sure it doesn't cause excessive false positives on common non-secret strings
 
 ## Reporting Bugs
