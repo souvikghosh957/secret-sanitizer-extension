@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — Secret Sanitizer</title>
-  <meta name="description" content="Privacy Policy for Secret Sanitizer Chrome extension. We collect nothing. All data stays on your machine.">
+  <meta name="description" content="Privacy Policy for Secret Sanitizer Chrome extension. Nothing is sent to us or anyone else. All data stays on your machine.">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Souvik Ghosh">
   <link rel="canonical" href="https://secretsanitizer.com/privacy.html">
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Secret Sanitizer">
   <meta property="og:title" content="Privacy Policy — Secret Sanitizer">
-  <meta property="og:description" content="We collect nothing. All data stays on your machine.">
+  <meta property="og:description" content="Nothing is sent to us or anyone else. All data stays on your machine.">
   <meta property="og:url" content="https://secretsanitizer.com/privacy.html">
   <meta property="og:image" content="https://secretsanitizer.com/og-card.png">
   <meta property="og:image:width" content="1200">
@@ -25,7 +25,7 @@
   <meta name="twitter:site" content="@souvik_ghosh975">
   <meta name="twitter:creator" content="@souvik_ghosh975">
   <meta name="twitter:title" content="Privacy Policy — Secret Sanitizer">
-  <meta name="twitter:description" content="We collect nothing. All data stays on your machine. 100% local Chrome extension.">
+  <meta name="twitter:description" content="Nothing is sent to us or anyone else. All data stays on your machine. 100% local Chrome extension.">
   <meta name="twitter:image" content="https://secretsanitizer.com/og-card.png">
 
   <style>
@@ -212,7 +212,7 @@
     <div class="container">
       <a href="index.html" class="back-link">&larr; Back to Secret Sanitizer</a>
       <h1>Privacy <span class="gradient-text">Policy</span></h1>
-      <p>Last updated: October 11, 2026</p>
+      <p>Last updated: November 7, 2026</p>
     </div>
   </header>
 
@@ -227,18 +227,25 @@
 
       <h2>Data Processing</h2>
       <p>All data processing performed by Secret Sanitizer occurs entirely on your local device. The extension does not transmit, sync, upload, or share any data with external servers or third parties.</p>
+      <p>To do its job, the extension handles the following on your device only:</p>
+      <ul>
+        <li>Text you paste into a protected site, and text you copy there, which it checks for placeholders and secrets</li>
+        <li>Anything that text contains, which can include passwords, API keys, card numbers and identification numbers such as Aadhaar or PAN. Masked values are kept only in the memory-only vault described below</li>
+        <li>The address of the current tab when you open the popup, to show its status</li>
+      </ul>
 
       <h2>Local Storage Usage</h2>
       <p>The extension stores data only in your browser's extension storage:</p>
       <ul>
         <li>Temporarily masked secret values in a memory-only vault (<code>chrome.storage.session</code>: never written to disk, deleted after 15 minutes or when the browser closes), used to restore originals when you unmask from the popup or copy AI responses via Smart Restore</li>
         <li>Aggregate user statistics (e.g., total and daily count of blocked secrets)</li>
-        <li>User preferences, such as enabled or disabled detection patterns and custom websites (<code>chrome.storage.local</code>)</li>
+        <li>User preferences, such as enabled or disabled detection patterns, custom websites and pause state (<code>chrome.storage.local</code>)</li>
+        <li>Values you chose not to mask, kept only as salted hashes that don't reveal the value (<code>chrome.storage.local</code>)</li>
       </ul>
       <p>All stored data remains local to your browser and is never accessible outside the extension.</p>
 
       <h2>Permissions Used</h2>
-      <p>Secret Sanitizer requests only the minimum permissions needed for its single purpose. None of these permissions allow data collection or transmission:</p>
+      <p>Secret Sanitizer requests only the minimum permissions needed for its single purpose. None of them are used to send data anywhere:</p>
 
       <div class="highlight-box">
         <p><strong>storage</strong> &mdash; Saves user preferences and local statistics.</p>
@@ -247,42 +254,45 @@
         <p><strong>scripting</strong> &mdash; Injects lightweight content scripts to detect and mask secrets on AI chat pages.</p>
       </div>
       <div class="highlight-box">
-        <p><strong>alarms</strong> &mdash; Cleans up expired vault entries every 5 minutes and checks for weekly summary notifications daily.</p>
+        <p><strong>alarms</strong> &mdash; Cleans up expired vault entries every 5 minutes, ends a timed pause on schedule, and checks for the weekly summary daily.</p>
       </div>
       <div class="highlight-box">
-        <p><strong>notifications</strong> &mdash; Displays a weekly protection summary notification (Sundays) showing aggregate counts only.</p>
+        <p><strong>notifications</strong> &mdash; Displays an optional weekly summary notification (Sundays) showing aggregate counts only. It is off by default for new installs.</p>
       </div>
       <div class="highlight-box">
-        <p><strong>activeTab</strong> &mdash; Reads only the current tab's URL when you open the popup, to show whether the extension is active on that site. No page content is accessed.</p>
+        <p><strong>activeTab</strong> &mdash; Reads only the current tab's URL when you open the popup, to show whether the extension is active on that site and to offer adding or pausing it. No page content is accessed this way.</p>
       </div>
       <div class="highlight-box">
         <p><strong>Host permissions</strong> &mdash; Limited to major AI chat domains (chatgpt.com, claude.ai, gemini.google.com, grok.com, and any sites you explicitly add).</p>
       </div>
 
-      <h2>No Data Collection</h2>
-      <p>Secret Sanitizer does not collect or transmit:</p>
+      <h2>Nothing Leaves Your Browser</h2>
+      <p>Secret Sanitizer never sends us or anyone else:</p>
       <ul>
         <li>Personally identifiable information</li>
         <li>Browsing history or web activity</li>
-        <li>Clipboard contents beyond user-initiated paste events</li>
-        <li>Health, financial, authentication, or location data</li>
-        <li>Analytics, telemetry, or usage tracking</li>
+        <li>Clipboard contents or anything you paste</li>
+        <li>Financial, authentication, health, or location data</li>
+        <li>Analytics, telemetry, or usage data</li>
       </ul>
 
       <h2>No External Communication</h2>
       <p>The extension makes no network requests and does not communicate with any remote servers. No data is sold, shared, or disclosed to any third party.</p>
 
+      <h2>Uninstall Page</h2>
+      <p>When you uninstall, Chrome opens a static page on this site asking why you left. It contains no scripts or analytics and nothing about you is added to its address. Answering is optional and simply opens a public GitHub issue that you can review before posting.</p>
+
       <h2>Code Execution</h2>
       <p>Secret Sanitizer does not execute remote code. All scripts are bundled with the extension package and run locally within the browser.</p>
 
       <h2>Supported Websites</h2>
-      <p>By default, Secret Sanitizer works on ChatGPT, Claude, Gemini, and Grok. You can add any custom website with explicit permission.</p>
+      <p>By default, Secret Sanitizer works on ChatGPT, Claude, Gemini, and Grok. You can add other AI chats or any custom website with explicit permission, and removing a custom website also gives up that permission.</p>
 
       <h2>Data Retention</h2>
-      <p>Vault entries automatically expire after a short retention period (default 15 minutes) and are cleaned up by a periodic background task. All other data (settings, statistics) is stored locally until you manually clear it, uninstall the extension, or clear browser data. There is no external storage.</p>
+      <p>Vault entries automatically expire after a short retention period (default 15 minutes) and are cleaned up by a periodic background task. Settings and statistics stay in your browser until you uninstall the extension. There is no external storage.</p>
 
       <h2>Your Rights</h2>
-      <p>You have full control over all data stored locally. You can view, modify, export, or delete everything at any time through the extension settings.</p>
+      <p>You control the data stored locally. From the extension's popup you can change or export your settings and delete vault entries and allowed values at any time. Uninstalling the extension removes everything, including statistics.</p>
 
       <h2>Updates to This Policy</h2>
       <p>We may update this privacy policy to reflect new features. The latest version will always be available at the URL where you accessed this page, with the updated date shown above.</p>

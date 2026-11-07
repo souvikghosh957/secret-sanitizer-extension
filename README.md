@@ -76,7 +76,7 @@ Vault stores: postgres://admin:s3cret@db.prod.internal:5432/myapp  ← in memory
 5. A toast notification shows what was caught, with a 5-second undo
 6. Originals are kept in a memory-only vault: never written to disk, deleted after 15 minutes or when the browser closes
 
-> **Verify it yourself:** `grep -r "fetch\|XMLHttpRequest" content_script.js` — zero results.
+> **Verify it yourself:** `grep -n "fetch\|XMLHttpRequest" *.js popup/*.js` — zero results.
 
 ---
 
@@ -92,9 +92,9 @@ When the AI replies using your placeholders, you get the real values back automa
 
 No manual lookup. No digging through the vault. Just paste and it works.
 
-Originals are kept for 15 minutes and are always accessible from the popup under **Recent**.
+Originals are kept for 15 minutes. Until then, you can also paste a placeholder into the popup to see its original.
 
-Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only after a real click or keypress, and only on the site where you pasted it. It switches itself off on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
+Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only after a real click or keypress, and only on the site where you pasted it. It switches itself off while masking is paused and on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
 
 ---
 
@@ -111,7 +111,7 @@ Works out of the box on every major AI chat:
 ## What It Catches
 
 **Credentials & Tokens**
-- Passwords, bearer tokens, JWTs
+- Passwords, bearer tokens, Basic auth headers, JWTs
 - OTP codes, PINs, OAuth & refresh tokens
 
 **API Keys**
@@ -120,7 +120,7 @@ Works out of the box on every major AI chat:
 - Stripe, Square, Razorpay, Paytm
 - GitHub, GitLab (personal access tokens)
 - Slack, Twilio, SendGrid, Mailgun
-- Discord webhooks, Telegram bot tokens
+- Discord, Slack and Teams webhooks, Telegram bot tokens
 
 **Infrastructure**
 - PostgreSQL, MySQL, MongoDB, Redis, RabbitMQ connection URLs
@@ -132,9 +132,9 @@ Works out of the box on every major AI chat:
 - RSA, SSH, PGP private keys
 - Aadhaar, PAN, GSTIN, UPI IDs
 - Credit card numbers
-- High-entropy and base64-encoded secrets
+- Random-looking tokens and base64-encoded secrets
 
-> Toggle any pattern on or off from the popup to avoid false positives.
+> Stack traces, hashes, pod names, ARNs and other everyday debugging output stay readable. If something still gets masked by mistake, click **Not a secret?** on the toast, or turn that rule off in the popup.
 
 ---
 
@@ -146,9 +146,11 @@ Works out of the box on every major AI chat:
 | **Memory-only vault** | Originals never touch disk, expire after 15 minutes |
 | **Smart Restore** | Copy AI responses and secrets auto-restore in your clipboard |
 | **Undo on paste** | 5-second window to revert any masked paste |
+| **Pause** | Pause for 10 minutes or on one site, with a clear `OFF` badge |
+| **Not a secret?** | Allow one value (stored only as a salted hash) or turn off a guessing rule, right from the toast |
 | **Test mode** | Preview what would be masked before committing |
-| **Pattern controls** | Enable or disable individual detection patterns |
-| **Custom sites** | Add any domain with one click |
+| **Rule controls** | Turn individual rules on or off, in plain language with an example each |
+| **More AI chats** | One-click opt-in for Perplexity, DeepSeek, Copilot, Mistral and Meta AI, or add any domain |
 | **Stats dashboard** | See how many secrets were caught and when |
 | **Backup & restore** | Export and import your config as JSON |
 | **Dark mode** | Matches your system theme |
@@ -203,10 +205,11 @@ cd secret-sanitizer-extension
 
 | Claim | How to check |
 |-------|-------------|
-| No network requests | `grep -r "fetch\|XMLHttpRequest" content_script.js` → zero results |
+| No network requests | `grep -n "fetch\|XMLHttpRequest" *.js popup/*.js` → zero results |
 | No tracking | No analytics, no telemetry, no third-party scripts |
 | No remote code | All pattern matching is local regex |
 | Works offline | Disable Wi-Fi and try it |
+| Uninstall page | Chrome opens one static page when you uninstall. It has no scripts or analytics, and nothing about you is in its address |
 | Open source | MIT licensed — you're reading it right now |
 
 ---
@@ -239,7 +242,7 @@ Contributions are welcome — whether it's a bug report, a new pattern, or a fea
 
 ## Contact
 
-Have a question, idea, or found a security issue?
+Have a question or idea? Found a security issue? Please report it privately, as described in [SECURITY.md](SECURITY.md), not in a public issue.
 
 - **GitHub Issues** — [github.com/souvikghosh957/secret-sanitizer-extension/issues](https://github.com/souvikghosh957/secret-sanitizer-extension/issues) — best for bugs and feature requests
 - **X** — [@souvik_ghosh975](https://x.com/souvik_ghosh975)

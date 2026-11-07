@@ -11,7 +11,7 @@ Describe the text that was incorrectly flagged (use dummy/example values, NOT re
 
 ## Which Pattern Triggered It
 
-The pattern name shown in the toast notification (e.g., "AWS Access Key", "High Entropy String").
+Hover over the toast's "secrets masked" text to see the rule (e.g. "AWS access key", "Random-looking tokens"), or copy the placeholder name (e.g. `QUOTED_SECRET`).
 
 ## Where It Happened
 

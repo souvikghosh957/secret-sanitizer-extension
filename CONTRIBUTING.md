@@ -28,8 +28,10 @@ cd secret-sanitizer-extension
 ```
 ├── manifest.json                  # Extension manifest (v3)
 ├── patterns.js                    # Shared detection patterns — single source of truth for content script + popup
-├── detector.js                    # Shared detection engine — matching, validators, entropy, masking (no DOM)
-├── sites.js                       # Default sites + hostname validation (background + popup)
+├── detector.js                    # Shared detection engine — matching, validators, randomness, allow-list, masking (no DOM)
+├── sites.js                       # Default and suggested sites, hostname validation, pause state (all contexts)
+├── i18n.js                        # Translation helpers (content script + popup)
+├── _locales/                      # UI strings
 ├── content_script.js              # Paste interception, Smart Restore, toasts
 ├── ss_clipboard_interceptor.js    # MAIN world script — relays copy-button text (masked only) for Smart Restore
 ├── background.js                  # Service worker — memory-only vault, stats, site registration
@@ -37,7 +39,8 @@ cd secret-sanitizer-extension
 
 ├── popup/
 │   ├── popup.html                 # Extension popup markup
-│   ├── popup.js                   # Popup logic — settings, vault, stats, test mode
+│   ├── popup.js                   # Popup logic — pause, settings, vault, stats, test mode
+│   ├── pattern_examples.js        # One-line example for each detection rule
 │   └── popup.css                  # Popup styles
 └── icons/                         # Extension icons (16, 48, 128)
 ```
@@ -69,8 +72,13 @@ When adding a new pattern:
 1. Add it to the correct section in `SHARED_PATTERNS` (cloud keys, tokens, PII, etc.) with a comment
 2. Use the `gi` flag for case-insensitive matching; use `g` only if case matters (e.g. `JWT`, `CREDIT_CARD`)
 3. Prefer specific prefixed patterns over generic ones — add generic fallbacks at the end
-4. Add true-positive and false-positive cases to `tests/detector.test.js` and run the suite
-5. Make sure it doesn't cause excessive false positives on common non-secret strings
+4. Add a plain-language name (`pattern_<LABEL>`) to every file in `_locales/` and an example to `popup/pattern_examples.js`
+5. Add true-positive and false-positive cases to `tests/detector.test.js` or `tests/false_positives.test.js` and run the suite
+6. Make sure it doesn't cause excessive false positives on common non-secret strings, and can't backtrack: bound any repeated class that sits between optional parts or follows a broad prefix
+
+UI text goes through `_locales/` as well: `t("key")` in scripts, `data-i18n="key"` in markup. The test suite fails if a key is missing from any locale.
+
+New default AI sites go in `SUGGESTED_SITES`, not `host_permissions`: a new required host permission makes Chrome disable the extension for every existing user until they re-approve it.
 
 ## Reporting Bugs
 
@@ -86,7 +94,7 @@ Open a [GitHub issue](https://github.com/souvikghosh957/secret-sanitizer-extensi
 
 If a legitimate (non-secret) string is being masked:
 
-1. Note which pattern triggered it (shown in the toast notification)
+1. Note which rule triggered it (hover over the toast's "secrets masked" text, or look at the placeholder name)
 2. Open an issue with the text that was incorrectly flagged
 3. Do NOT include actual secrets in issues -- use dummy/example values
 

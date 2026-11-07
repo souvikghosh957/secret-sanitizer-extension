@@ -1,0 +1,662 @@
+{
+  "ext_name": {
+    "message": "Secret Sanitizer – Paste Safely into AI Chats"
+  },
+  "ext_description": {
+    "message": "Masks API keys, passwords and tokens before they reach AI chats. Runs locally. Nothing leaves your browser."
+  },
+  "locale_code": {
+    "message": "en"
+  },
+  "status_checking": {
+    "message": "Checking..."
+  },
+  "status_active": {
+    "message": "Active on $1"
+  },
+  "status_paused_on": {
+    "message": "Paused on $1"
+  },
+  "status_not_active": {
+    "message": "Not active on $1"
+  },
+  "status_enable_hint": {
+    "message": "Click to enable on this site"
+  },
+  "status_not_web": {
+    "message": "Not a web page"
+  },
+  "status_unavailable": {
+    "message": "Status unavailable"
+  },
+  "header_about": {
+    "message": "About"
+  },
+  "header_dark_mode": {
+    "message": "Toggle dark mode"
+  },
+  "header_share": {
+    "message": "Share"
+  },
+  "header_share_title": {
+    "message": "Share with others"
+  },
+  "welcome_subtitle": {
+    "message": "Protect sensitive data when pasting into AI chats"
+  },
+  "welcome_you_paste": {
+    "message": "You paste"
+  },
+  "welcome_ai_sees": {
+    "message": "AI sees"
+  },
+  "welcome_local": {
+    "message": "100% local"
+  },
+  "welcome_instant": {
+    "message": "Instant"
+  },
+  "welcome_reversible": {
+    "message": "Reversible"
+  },
+  "welcome_start": {
+    "message": "Get Started"
+  },
+  "tab_main": {
+    "message": "Main"
+  },
+  "tab_settings": {
+    "message": "Settings"
+  },
+  "no_sites_warning": {
+    "message": "No websites active. Go to Settings → Custom Websites to add sites."
+  },
+  "pause_10min": {
+    "message": "Pause 10 min"
+  },
+  "pause_site": {
+    "message": "Pause on this site"
+  },
+  "pause_resume": {
+    "message": "Resume masking"
+  },
+  "pause_state_timed": {
+    "message": "Masking is paused for $1 more min. Pastes go through unmasked."
+  },
+  "pause_state_site": {
+    "message": "Masking is paused on $1. Pastes here go through unmasked."
+  },
+  "label_secrets_protected": {
+    "message": "secrets protected"
+  },
+  "hero_today_prefix": {
+    "message": "Today:"
+  },
+  "hero_today_suffix": {
+    "message": "blocked"
+  },
+  "action_title": {
+    "message": "Test or Unmask"
+  },
+  "action_desc": {
+    "message": "Paste text to test masking, or paste AI response with placeholders to unmask"
+  },
+  "try_header": {
+    "message": "Try with a sample to see it in action"
+  },
+  "try_password": {
+    "message": "Password"
+  },
+  "try_api_key": {
+    "message": "API Key"
+  },
+  "try_env": {
+    "message": ".env file"
+  },
+  "action_placeholder": {
+    "message": "Paste text here, or tap a sample above..."
+  },
+  "action_analyze": {
+    "message": "Analyze"
+  },
+  "action_unmask": {
+    "message": "Unmask Secrets"
+  },
+  "action_test": {
+    "message": "Test Masking"
+  },
+  "mode_auto": {
+    "message": "Auto-detect"
+  },
+  "mode_unmask": {
+    "message": "Unmask mode"
+  },
+  "mode_test": {
+    "message": "Test mode"
+  },
+  "recent_title": {
+    "message": "Recent"
+  },
+  "recent_show_more": {
+    "message": "Show more"
+  },
+  "recent_search": {
+    "message": "Search vault..."
+  },
+  "recent_no_matches": {
+    "message": "No matches"
+  },
+  "recent_empty": {
+    "message": "No recent sanitizations"
+  },
+  "recent_minutes": {
+    "message": "$1m"
+  },
+  "report_wrong_mask": {
+    "message": "Something masked that shouldn't be? Report it"
+  },
+  "sites_title": {
+    "message": "Custom Websites"
+  },
+  "sites_suggested": {
+    "message": "Other AI chats (one click to add)"
+  },
+  "sites_add_placeholder": {
+    "message": "Add custom domain..."
+  },
+  "sites_add": {
+    "message": "Add site"
+  },
+  "sites_add_named": {
+    "message": "Protect $1"
+  },
+  "sites_remove": {
+    "message": "Remove"
+  },
+  "sites_restore": {
+    "message": "Restore"
+  },
+  "sites_needs_permission": {
+    "message": "Not protected yet: click to grant access to this site"
+  },
+  "security_title": {
+    "message": "Security"
+  },
+  "security_vault": {
+    "message": "Memory-only vault"
+  },
+  "security_vault_desc": {
+    "message": "Originals are never written to disk. They expire after 15 minutes and are cleared when the browser closes."
+  },
+  "security_auto_dark": {
+    "message": "Auto dark mode"
+  },
+  "security_auto_dark_desc": {
+    "message": "Match system appearance preference"
+  },
+  "security_weekly": {
+    "message": "Weekly report"
+  },
+  "security_weekly_desc": {
+    "message": "A Sunday notification with your weekly count"
+  },
+  "vault_delete_all": {
+    "message": "Delete All Secrets"
+  },
+  "vault_delete_desc": {
+    "message": "Remove all stored secrets from vault"
+  },
+  "vault_confirm": {
+    "message": "Click again to confirm"
+  },
+  "allowed_clear": {
+    "message": "Clear allowed values"
+  },
+  "allowed_count": {
+    "message": "$1 value(s) you chose not to mask. Stored as salted hashes only."
+  },
+  "patterns_title": {
+    "message": "What Gets Masked"
+  },
+  "patterns_desc": {
+    "message": "Turn off anything you don't want masked"
+  },
+  "patterns_search": {
+    "message": "Search..."
+  },
+  "patterns_generic_tag": {
+    "message": "best guess"
+  },
+  "patterns_generic_title": {
+    "message": "Judged by how random a value looks, so it can occasionally catch something that isn't a secret"
+  },
+  "backup_title": {
+    "message": "Backup & Restore"
+  },
+  "backup_export": {
+    "message": "Export"
+  },
+  "backup_import": {
+    "message": "Import"
+  },
+  "share_text": {
+    "message": "Secret Sanitizer - Masks API keys, passwords & tokens before they reach AI chats. 100% local, zero tracking."
+  },
+  "note_paste_first": {
+    "message": "Paste some text first"
+  },
+  "note_unmasked": {
+    "message": "Unmasked: $1"
+  },
+  "note_no_placeholders": {
+    "message": "No matching placeholders in vault"
+  },
+  "note_found": {
+    "message": "Potential secrets found: $1"
+  },
+  "note_none_found": {
+    "message": "No secrets detected"
+  },
+  "note_link_copied": {
+    "message": "Link copied! Share it with others"
+  },
+  "note_link_failed": {
+    "message": "Could not copy link"
+  },
+  "note_auto_dark_on": {
+    "message": "Auto dark mode enabled"
+  },
+  "note_auto_dark_off": {
+    "message": "Auto dark mode disabled"
+  },
+  "note_vault_deleted": {
+    "message": "All secrets deleted"
+  },
+  "note_allowed_cleared": {
+    "message": "Allowed values cleared"
+  },
+  "note_site_added": {
+    "message": "Site added. Reload any tabs already open on it."
+  },
+  "note_site_denied": {
+    "message": "Access wasn't granted, so this site isn't protected"
+  },
+  "note_site_removed": {
+    "message": "$1 removed"
+  },
+  "note_site_remove_incomplete": {
+    "message": "Removed $1, but Chrome kept its access. You can remove it on the extensions page."
+  },
+  "note_site_restored": {
+    "message": "$1 restored"
+  },
+  "note_site_invalid": {
+    "message": "Enter a valid http(s) site, e.g. example.com"
+  },
+  "note_site_default": {
+    "message": "Use the + button above to restore this default"
+  },
+  "note_site_exists": {
+    "message": "Site already added"
+  },
+  "note_exported": {
+    "message": "Settings exported"
+  },
+  "note_import_too_large": {
+    "message": "Settings file too large (max 100 KB)"
+  },
+  "note_import_empty": {
+    "message": "No valid settings found in file"
+  },
+  "note_imported": {
+    "message": "Settings imported!"
+  },
+  "note_import_invalid": {
+    "message": "Invalid settings file"
+  },
+  "toast_active": {
+    "message": "Secret Sanitizer is active: nothing to mask here"
+  },
+  "toast_paused": {
+    "message": "Masking is paused: this paste wasn't scanned"
+  },
+  "toast_masked_one": {
+    "message": "1 secret masked"
+  },
+  "toast_masked_many": {
+    "message": "$1 secrets masked"
+  },
+  "toast_partial": {
+    "message": "partial scan"
+  },
+  "toast_partial_detail": {
+    "message": "very large paste: only known key formats were checked, review before sending"
+  },
+  "toast_undo": {
+    "message": "Undo"
+  },
+  "toast_undo_done": {
+    "message": "Restored original text"
+  },
+  "toast_undo_failed": {
+    "message": "Couldn't restore text"
+  },
+  "toast_not_secret": {
+    "message": "Not a secret?"
+  },
+  "toast_allow_one": {
+    "message": "Don't mask this value again"
+  },
+  "toast_allow_many": {
+    "message": "Don't mask these $1 values again"
+  },
+  "toast_stop_rule": {
+    "message": "Stop masking: $1"
+  },
+  "toast_allowed": {
+    "message": "Restored. It won't be masked again; change this in Settings."
+  },
+  "toast_allow_failed": {
+    "message": "Couldn't save that, so it may be masked again. Try Undo instead."
+  },
+  "toast_dismiss": {
+    "message": "Dismiss"
+  },
+  "toast_large_paste": {
+    "message": "Very large paste: only known key formats were checked"
+  },
+  "toast_vault_failed": {
+    "message": "Couldn't save for Smart Restore. Secrets were still masked."
+  },
+  "toast_insert_failed": {
+    "message": "Insertion failed! Try pasting again."
+  },
+  "toast_restore_blocked": {
+    "message": "Smart Restore is off here: this site can read your clipboard"
+  },
+  "toast_restore_paused": {
+    "message": "Masking is paused, so placeholders were copied as they are"
+  },
+  "toast_restored_one": {
+    "message": "1 secret restored in clipboard"
+  },
+  "toast_restored_many": {
+    "message": "$1 secrets restored in clipboard"
+  },
+  "toast_restored_expired": {
+    "message": "$1 restored · $2 expired"
+  },
+  "toast_restore_failed": {
+    "message": "Couldn't restore secrets to the clipboard"
+  },
+  "review_trusted": {
+    "message": "Trusted with $1 secrets. Help others stay safe."
+  },
+  "review_loving_it": {
+    "message": "Loving it? A quick rating goes a long way."
+  },
+  "review_rate": {
+    "message": "Rate on Chrome Store"
+  },
+  "review_later": {
+    "message": "Later"
+  },
+  "milestone_tier": {
+    "message": "Milestone • $1"
+  },
+  "milestone_reached": {
+    "message": "Milestone reached"
+  },
+  "milestone_100": {
+    "message": "Getting started!"
+  },
+  "milestone_500": {
+    "message": "Privacy champion"
+  },
+  "milestone_1000": {
+    "message": "Security pro"
+  },
+  "milestone_5000": {
+    "message": "Elite protector"
+  },
+  "milestone_10000": {
+    "message": "Legendary guardian"
+  },
+  "milestone_50000": {
+    "message": "Unstoppable force"
+  },
+  "milestone_100000": {
+    "message": "God-tier security"
+  },
+  "weekly_title": {
+    "message": "Weekly Protection Report"
+  },
+  "weekly_message": {
+    "message": "This week you protected $1 secrets!\nAll Time Protection: $2"
+  },
+  "pattern_AWS_KEY": {
+    "message": "AWS access key"
+  },
+  "pattern_AWS_TEMP_KEY": {
+    "message": "AWS temporary key"
+  },
+  "pattern_AZURE_SECRET": {
+    "message": "Azure tenant or secret"
+  },
+  "pattern_GOOGLE_API_KEY": {
+    "message": "Google API key"
+  },
+  "pattern_GITHUB_TOKEN": {
+    "message": "GitHub token"
+  },
+  "pattern_GITHUB_FINE_PAT": {
+    "message": "GitHub fine-grained token"
+  },
+  "pattern_GITLAB_TOKEN": {
+    "message": "GitLab token"
+  },
+  "pattern_GITLAB_TRIGGER_TOKEN": {
+    "message": "GitLab trigger token"
+  },
+  "pattern_JWT": {
+    "message": "JWT"
+  },
+  "pattern_DB_CONN": {
+    "message": "Database URL with password"
+  },
+  "pattern_URL_CREDENTIALS": {
+    "message": "Password or token in a URL"
+  },
+  "pattern_CREDIT_CARD": {
+    "message": "Credit card number"
+  },
+  "pattern_STRIPE_KEY": {
+    "message": "Stripe secret key"
+  },
+  "pattern_STRIPE_TEST_KEY": {
+    "message": "Stripe test key"
+  },
+  "pattern_STRIPE_PUB_KEY": {
+    "message": "Stripe publishable key"
+  },
+  "pattern_STRIPE_TEST_PUB_KEY": {
+    "message": "Stripe test publishable key"
+  },
+  "pattern_SQUARE_ACCESS_TOKEN": {
+    "message": "Square access token"
+  },
+  "pattern_SQUARE_SECRET": {
+    "message": "Square secret"
+  },
+  "pattern_RAZORPAY_KEY": {
+    "message": "Razorpay key"
+  },
+  "pattern_RAZORPAY_TEST_KEY": {
+    "message": "Razorpay test key"
+  },
+  "pattern_PAYTM_KEY": {
+    "message": "Paytm key"
+  },
+  "pattern_PAYTM_MERCHANT": {
+    "message": "Merchant key"
+  },
+  "pattern_TWILIO_SID": {
+    "message": "Twilio account SID"
+  },
+  "pattern_TWILIO_AUTH_TOKEN": {
+    "message": "Auth token (Twilio and others)"
+  },
+  "pattern_SLACK_TOKEN": {
+    "message": "Slack token"
+  },
+  "pattern_SLACK_WEBHOOK": {
+    "message": "Slack webhook URL"
+  },
+  "pattern_TEAMS_WEBHOOK": {
+    "message": "Microsoft Teams webhook URL"
+  },
+  "pattern_DISCORD_WEBHOOK": {
+    "message": "Discord webhook URL"
+  },
+  "pattern_TELEGRAM_BOT_TOKEN": {
+    "message": "Telegram bot token"
+  },
+  "pattern_SENDGRID_KEY": {
+    "message": "SendGrid key"
+  },
+  "pattern_MAILGUN_KEY": {
+    "message": "Mailgun key"
+  },
+  "pattern_ANTHROPIC_KEY": {
+    "message": "Anthropic API key"
+  },
+  "pattern_OPENAI_KEY": {
+    "message": "OpenAI API key"
+  },
+  "pattern_GROQ_KEY": {
+    "message": "Groq API key"
+  },
+  "pattern_HUGGINGFACE_TOKEN": {
+    "message": "Hugging Face token"
+  },
+  "pattern_FIREBASE_KEY": {
+    "message": "Firebase server key"
+  },
+  "pattern_HEROKU_API_KEY": {
+    "message": "Heroku API key"
+  },
+  "pattern_VERCEL_TOKEN": {
+    "message": "Vercel token"
+  },
+  "pattern_DIGITALOCEAN_TOKEN": {
+    "message": "DigitalOcean token"
+  },
+  "pattern_DIGITALOCEAN_REFRESH": {
+    "message": "DigitalOcean refresh token"
+  },
+  "pattern_SUPABASE_TOKEN": {
+    "message": "Supabase token"
+  },
+  "pattern_CLOUDFLARE_TOKEN": {
+    "message": "Cloudflare token"
+  },
+  "pattern_DATADOG_KEY": {
+    "message": "Datadog key"
+  },
+  "pattern_SHOPIFY_TOKEN": {
+    "message": "Shopify token"
+  },
+  "pattern_NPM_TOKEN": {
+    "message": "npm token"
+  },
+  "pattern_PYPI_TOKEN": {
+    "message": "PyPI token"
+  },
+  "pattern_AADHAAR": {
+    "message": "Aadhaar number"
+  },
+  "pattern_PAN": {
+    "message": "PAN card number"
+  },
+  "pattern_INDIAN_PHONE": {
+    "message": "Indian phone number"
+  },
+  "pattern_GSTIN": {
+    "message": "GST number"
+  },
+  "pattern_IFSC": {
+    "message": "IFSC bank code"
+  },
+  "pattern_UPI_ID": {
+    "message": "UPI ID"
+  },
+  "pattern_UPI_ID_GENERIC": {
+    "message": "UPI ID (@upi)"
+  },
+  "pattern_UPI_TEST_ID": {
+    "message": "UPI test ID"
+  },
+  "pattern_PAYMENT_UPI_ID": {
+    "message": "Payment app UPI ID"
+  },
+  "pattern_DRIVING_LICENSE": {
+    "message": "Indian driving licence"
+  },
+  "pattern_VOTER_ID": {
+    "message": "Voter ID"
+  },
+  "pattern_PASSPORT": {
+    "message": "Passport number"
+  },
+  "pattern_VEHICLE_REG": {
+    "message": "Vehicle registration"
+  },
+  "pattern_OTP_CODE": {
+    "message": "One-time code or PIN"
+  },
+  "pattern_EMAIL_IN_SECRET": {
+    "message": "Email used as a password or key"
+  },
+  "pattern_PASSWORD_HINT": {
+    "message": "Passwords"
+  },
+  "pattern_BEARER_TOKEN": {
+    "message": "Bearer tokens"
+  },
+  "pattern_BASIC_AUTH": {
+    "message": "Basic auth header"
+  },
+  "pattern_API_KEY_FORMAT": {
+    "message": "api_key = value"
+  },
+  "pattern_SECRET_KEY_FORMAT": {
+    "message": "secret_key = value"
+  },
+  "pattern_ACCESS_KEY_FORMAT": {
+    "message": "access_key = value"
+  },
+  "pattern_AUTH_SECRET_FORMAT": {
+    "message": "client_secret, auth_token = value"
+  },
+  "pattern_PRIVATE_KEY": {
+    "message": "Private keys"
+  },
+  "pattern_SSH_PRIVATE_KEY": {
+    "message": "SSH private keys"
+  },
+  "pattern_PGP_PRIVATE_KEY": {
+    "message": "PGP private keys"
+  },
+  "pattern_QUOTED_SECRET": {
+    "message": "Random-looking text in quotes"
+  },
+  "pattern_LONG_RANDOM_STRING": {
+    "message": "Long random strings"
+  },
+  "pattern_BASE64_SECRET": {
+    "message": "Base64-looking blobs"
+  },
+  "pattern_ENTROPY": {
+    "message": "Random-looking tokens"
+  }
+}
