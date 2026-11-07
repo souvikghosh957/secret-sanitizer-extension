@@ -15,18 +15,18 @@
       <h1>Secret Sanitizer</h1>
       <div class="site-status" id="siteStatus">
         <span class="status-dot"></span>
-        <span class="status-text">Checking...</span>
+        <span class="status-text" data-i18n="status_checking"></span>
       </div>
       <div class="header-actions">
-        <button id="showWelcome" class="header-btn" title="About" aria-label="About">
+        <button id="showWelcome" class="header-btn" data-i18n-title="header_about">
           <i class="fas fa-info"></i>
         </button>
-        <button id="darkModeToggle" class="header-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <button id="darkModeToggle" class="header-btn" data-i18n-title="header_dark_mode">
           <i class="fas fa-sun"></i>
         </button>
       </div>
-      <button id="shareBtn" class="share-pill" title="Share with others" aria-label="Share with others">
-        <i class="fas fa-share-alt"></i> Share
+      <button id="shareBtn" class="share-pill" data-i18n-title="header_share_title">
+        <i class="fas fa-share-alt"></i> <span data-i18n="header_share"></span>
       </button>
     </header>
 
@@ -40,12 +40,12 @@
             </svg>
           </div>
           <h1 class="welcome-title">Secret Sanitizer</h1>
-          <p class="welcome-subtitle">Protect sensitive data when pasting into AI chats</p>
+          <p class="welcome-subtitle" data-i18n="welcome_subtitle"></p>
         </div>
 
         <div class="welcome-example">
           <div class="example-step">
-            <div class="example-label"><i class="fas fa-paste"></i> You paste</div>
+            <div class="example-label"><i class="fas fa-paste"></i> <span data-i18n="welcome_you_paste"></span></div>
             <div class="example-code example-before">
               STRIPE_KEY = "<span class="code-secret">sk_live_4eC39HqLyjWDarjtT1zdp7dc</span>"
             </div>
@@ -56,9 +56,9 @@
           </div>
 
           <div class="example-step">
-            <div class="example-label"><i class="fas fa-robot"></i> AI sees</div>
+            <div class="example-label"><i class="fas fa-robot"></i> <span data-i18n="welcome_ai_sees"></span></div>
             <div class="example-code example-after">
-              STRIPE_KEY = "<span class="code-masked">[STRIPE_KEY_0]</span>"
+              STRIPE_KEY = "<span class="code-masked">[STRIPE_KEY_k3f9_0]</span>"
             </div>
           </div>
         </div>
@@ -66,34 +66,43 @@
         <div class="welcome-points">
           <div class="point">
             <div class="point-icon"><i class="fas fa-laptop"></i></div>
-            <div class="point-label">100% local</div>
+            <div class="point-label" data-i18n="welcome_local"></div>
           </div>
           <div class="point">
             <div class="point-icon"><i class="fas fa-bolt"></i></div>
-            <div class="point-label">Instant</div>
+            <div class="point-label" data-i18n="welcome_instant"></div>
           </div>
           <div class="point">
             <div class="point-icon"><i class="fas fa-undo"></i></div>
-            <div class="point-label">Reversible</div>
+            <div class="point-label" data-i18n="welcome_reversible"></div>
           </div>
         </div>
 
         <button id="welcomeStart" class="welcome-btn">
-          Get Started <i class="fas fa-arrow-right"></i>
+          <span data-i18n="welcome_start"></span> <i class="fas fa-arrow-right"></i>
         </button>
       </div>
     </div>
 
     <nav class="tabs" role="tablist">
-      <button class="tab-btn active" id="main-tab-btn" data-tab="main" role="tab" aria-selected="true"><i class="fas fa-home"></i> Main</button>
-      <button class="tab-btn" id="settings-tab-btn" data-tab="settings" role="tab" aria-selected="false"><i class="fas fa-cog"></i> Settings</button>
+      <button class="tab-btn active" id="main-tab-btn" data-tab="main" role="tab" aria-selected="true"><i class="fas fa-home"></i> <span data-i18n="tab_main"></span></button>
+      <button class="tab-btn" id="settings-tab-btn" data-tab="settings" role="tab" aria-selected="false"><i class="fas fa-cog"></i> <span data-i18n="tab_settings"></span></button>
     </nav>
 
     <div id="main-tab" class="tab-content active" role="tabpanel" aria-labelledby="main-tab-btn">
       <div id="noSitesWarning" class="no-sites-warning hidden">
         <i class="fas fa-exclamation-triangle"></i>
-        <span>No websites active. Go to <strong>Settings → Custom Websites</strong> to add sites.</span>
+        <span data-i18n="no_sites_warning"></span>
       </div>
+      <section class="section pause-card" id="pauseCard">
+        <div class="pause-state hidden" id="pauseState" role="status"></div>
+        <div class="pause-actions">
+          <button id="pauseTimed" class="secondary-btn"><i class="fas fa-pause"></i> <span data-i18n="pause_10min"></span></button>
+          <button id="pauseSite" class="secondary-btn hidden"><i class="fas fa-globe"></i> <span data-i18n="pause_site"></span></button>
+          <button id="resumeBtn" class="secondary-btn hidden"><i class="fas fa-play"></i> <span data-i18n="pause_resume"></span></button>
+        </div>
+      </section>
+
       <section class="section hero-stats">
         <div class="hero-shield">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="54" viewBox="0 0 24 27" fill="none">
@@ -102,130 +111,153 @@
           </svg>
         </div>
         <div class="hero-count" id="heroTotal">0</div>
-        <div class="hero-label">secrets protected</div>
+        <div class="hero-label" data-i18n="label_secrets_protected"></div>
         <div class="hero-today">
-          Today: <strong id="heroToday">0</strong> blocked
+          <span data-i18n="hero_today_prefix"></span> <strong id="heroToday">0</strong> <span data-i18n="hero_today_suffix"></span>
         </div>
       </section>
 
       <section class="section action-area">
-        <h2 class="section-title"><i class="fas fa-magic"></i> <span id="actionTitle">Test or Unmask</span></h2>
-        <p class="section-desc" id="actionDesc">Paste text to test masking, or paste AI response with placeholders to unmask</p>
+        <h2 class="section-title"><i class="fas fa-magic"></i> <span id="actionTitle" data-i18n="action_title"></span></h2>
+        <p class="section-desc" id="actionDesc" data-i18n="action_desc"></p>
         <div class="try-examples">
           <div class="try-header">
             <i class="fas fa-lightbulb"></i>
-            <span>Try with a sample to see it in action</span>
+            <span data-i18n="try_header"></span>
           </div>
           <div class="try-chips">
             <button class="try-btn" data-example="password">
-              <i class="fas fa-key"></i> Password
+              <i class="fas fa-key"></i> <span data-i18n="try_password"></span>
             </button>
             <button class="try-btn" data-example="apikey">
-              <i class="fas fa-code"></i> API Key
+              <i class="fas fa-code"></i> <span data-i18n="try_api_key"></span>
             </button>
             <button class="try-btn" data-example="full">
-              <i class="fas fa-file-code"></i> .env file
+              <i class="fas fa-file-code"></i> <span data-i18n="try_env"></span>
             </button>
           </div>
         </div>
-        <textarea id="actionInput" placeholder="Paste text here, or tap a sample above..." aria-label="Text input for testing or unmasking secrets"></textarea>
+        <textarea id="actionInput" data-i18n-placeholder="action_placeholder" aria-labelledby="actionTitle"></textarea>
         <button id="actionBtn" class="action-btn">
           <i class="fas fa-vial" id="actionIcon"></i>
-          <span id="actionBtnText">Analyze</span>
+          <span id="actionBtnText" data-i18n="action_analyze"></span>
         </button>
         <div class="mode-indicator" id="modeIndicator">
-          <span class="mode-badge mode-auto"><i class="fas fa-robot"></i> Auto-detect</span>
+          <span class="mode-badge mode-auto"><i class="fas fa-robot"></i> <span data-i18n="mode_auto"></span></span>
         </div>
         <pre id="actionOutput" class="hidden"></pre>
       </section>
 
       <section class="section recent">
         <div class="section-header-row">
-          <h2 class="section-title"><i class="fas fa-history"></i> Recent</h2>
-          <button id="toggleRecentExpand" class="expand-btn" title="Show more">
+          <h2 class="section-title"><i class="fas fa-history"></i> <span data-i18n="recent_title"></span></h2>
+          <button id="toggleRecentExpand" class="expand-btn" data-i18n-title="recent_show_more">
             <i class="fas fa-chevron-down"></i>
           </button>
         </div>
         <ul id="recentList"></ul>
         <div id="recentExpanded" class="recent-expanded hidden">
-          <input type="text" id="vaultSearch" placeholder="Search vault..." class="search-input">
+          <input type="text" id="vaultSearch" data-i18n-placeholder="recent_search" class="search-input">
           <ul id="recentListExpanded"></ul>
         </div>
       </section>
+
+      <p class="report-row">
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension/issues/new?template=false_positive.md" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-flag"></i> <span data-i18n="report_wrong_mask"></span>
+        </a>
+      </p>
     </div>
 
     <div id="settings-tab" class="tab-content" role="tabpanel" aria-labelledby="settings-tab-btn">
       <section class="section accordion" id="sitesAccordion">
         <div class="accordion-header" data-accordion="sites" aria-expanded="true">
-          <h2 class="section-title"><i class="fas fa-globe"></i> Custom Websites</h2>
+          <h2 class="section-title"><i class="fas fa-globe"></i> <span data-i18n="sites_title"></span></h2>
           <i class="fas fa-chevron-down accordion-icon"></i>
         </div>
         <div class="accordion-content" id="sites-content">
           <div id="siteChips" class="site-chips"></div>
+          <div id="suggestedSites" class="suggested-sites hidden">
+            <small data-i18n="sites_suggested"></small>
+            <div id="suggestedChips" class="site-chips"></div>
+          </div>
           <div class="add-site">
-            <input type="text" id="newSite" placeholder="Add custom domain..." class="site-input" autocomplete="off">
-            <button id="addSite"><i class="fas fa-plus"></i></button>
+            <input type="text" id="newSite" data-i18n-placeholder="sites_add_placeholder" class="site-input" autocomplete="off">
+            <button id="addSite" data-i18n-title="sites_add"><i class="fas fa-plus"></i></button>
           </div>
         </div>
       </section>
 
       <section class="section accordion collapsed">
         <div class="accordion-header" data-accordion="security" aria-expanded="false">
-          <h2 class="section-title"><i class="fas fa-lock"></i> Security</h2>
+          <h2 class="section-title"><i class="fas fa-lock"></i> <span data-i18n="security_title"></span></h2>
           <i class="fas fa-chevron-down accordion-icon"></i>
         </div>
         <div class="accordion-content" id="security-content">
           <div class="setting-item">
             <label class="setting-info">
               <i class="fas fa-memory"></i>
-              <span>Memory-only vault</span>
+              <span data-i18n="security_vault"></span>
             </label>
-            <small>Originals are never written to disk. They expire after 15 minutes and are cleared when the browser closes.</small>
+            <small data-i18n="security_vault_desc"></small>
           </div>
           <div class="setting-item">
             <label>
               <input type="checkbox" id="autoDarkMode" checked>
-              <span>Auto dark mode</span>
+              <span data-i18n="security_auto_dark"></span>
             </label>
-            <small>Match system appearance preference</small>
+            <small data-i18n="security_auto_dark_desc"></small>
           </div>
           <div class="setting-item">
-            <button id="clearVault" class="secondary-btn"><i class="fas fa-eraser"></i> Delete All Secrets</button>
-            <small>Remove all stored secrets from vault</small>
+            <label>
+              <input type="checkbox" id="weeklyReport">
+              <span data-i18n="security_weekly"></span>
+            </label>
+            <small data-i18n="security_weekly_desc"></small>
+          </div>
+          <div class="setting-item">
+            <button id="clearVault" class="secondary-btn"><i class="fas fa-eraser"></i> <span id="clearVaultText" data-i18n="vault_delete_all"></span></button>
+            <small data-i18n="vault_delete_desc"></small>
+          </div>
+          <div class="setting-item">
+            <button id="clearAllowed" class="secondary-btn"><i class="fas fa-undo"></i> <span data-i18n="allowed_clear"></span></button>
+            <small id="allowedCount"></small>
           </div>
         </div>
       </section>
 
       <section class="section accordion collapsed">
         <div class="accordion-header" data-accordion="patterns" aria-expanded="false">
-          <h2 class="section-title"><i class="fas fa-sliders-h"></i> Pattern Controls</h2>
+          <h2 class="section-title"><i class="fas fa-sliders-h"></i> <span data-i18n="patterns_title"></span></h2>
           <i class="fas fa-chevron-down accordion-icon"></i>
         </div>
         <div class="accordion-content" id="patterns-content">
-          <p class="section-desc">Disable patterns that trigger false positives</p>
-          <input type="text" id="patternSearch" placeholder="Search patterns..." class="search-input">
+          <p class="section-desc" data-i18n="patterns_desc"></p>
+          <input type="text" id="patternSearch" data-i18n-placeholder="patterns_search" class="search-input">
           <div id="patternToggles" class="toggles-list"></div>
         </div>
       </section>
 
       <section class="section accordion collapsed">
         <div class="accordion-header" data-accordion="backup" aria-expanded="false">
-          <h2 class="section-title"><i class="fas fa-download"></i> Backup & Restore</h2>
+          <h2 class="section-title"><i class="fas fa-download"></i> <span data-i18n="backup_title"></span></h2>
           <i class="fas fa-chevron-down accordion-icon"></i>
         </div>
         <div class="accordion-content" id="backup-content">
           <div class="button-group">
-            <button id="exportSettings" class="export-btn"><i class="fas fa-file-export"></i> Export</button>
-            <button id="importSettings" class="import-btn"><i class="fas fa-file-import"></i> Import</button>
+            <button id="exportSettings" class="export-btn"><i class="fas fa-file-export"></i> <span data-i18n="backup_export"></span></button>
+            <button id="importSettings" class="import-btn"><i class="fas fa-file-import"></i> <span data-i18n="backup_import"></span></button>
             <input type="file" id="importFile" accept=".json" style="display: none;">
           </div>
         </div>
       </section>
     </div>
   </div>
+  <script src="../i18n.js"></script>
   <script src="../patterns.js"></script>
   <script src="../detector.js"></script>
   <script src="../sites.js"></script>
+  <script src="pattern_examples.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

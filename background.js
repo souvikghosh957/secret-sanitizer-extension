@@ -1,8 +1,11 @@
 // background.js - Service Worker for Secret Sanitizer
 
-importScripts("sites.js");
+importScripts("sites.js", "detector.js");
 
-const CONTENT_SCRIPT_FILES = ["patterns.js", "detector.js", "content_script.js"];
+const CONTENT_SCRIPT_FILES = ["i18n.js", "sites.js", "patterns.js", "detector.js", "content_script.js"];
+
+// A static page with no scripts or analytics; nothing about the user is put in the URL.
+const UNINSTALL_URL = "https://secretsanitizer.com/uninstall.html";
 
 function contentScriptsFor(key, matches) {
   return [
@@ -84,14 +87,34 @@ async function ensureAlarms() {
   if (!weekly)  chrome.alarms.create("weeklySummary", { periodInMinutes: 1440 });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+// New installs opt in to the weekly notification from the popup; people updating keep it.
+async function initWeeklyReportSetting(reason) {
+  const { weeklyReport } = await chrome.storage.local.get("weeklyReport");
+  if (typeof weeklyReport !== "boolean") {
+    await chrome.storage.local.set({ weeklyReport: reason === "update" });
+  }
+}
+
+chrome.runtime.onInstalled.addListener((details) => {
   registerContentScripts();
   ensureAlarms();
+  initWeeklyReportSetting(details?.reason).catch(() => {});
+  try {
+    chrome.runtime.setUninstallURL(UNINSTALL_URL)?.catch?.(() => {});
+  } catch (_) {
+    // Non-critical — retried on the next update
+  }
 });
 chrome.runtime.onStartup.addListener(() => {
   registerContentScripts();
   ensureAlarms();
+  syncPauseState();
 });
+
+// A site's permission can arrive after its entry was saved (the prompt is still open at that
+// point) or change from chrome://extensions, so registration follows the permission itself.
+chrome.permissions.onAdded.addListener(debouncedRegister);
+chrome.permissions.onRemoved.addListener(debouncedRegister);
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "vaultCleanup") {
@@ -99,6 +122,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     updateBadge(); // clears yesterday's count shortly after midnight
   } else if (alarm.name === "weeklySummary") {
     await checkWeeklySummary();
+  } else if (alarm.name === PAUSE_ALARM) {
+    await chrome.storage.local.remove("pausedUntil");
+    updateBadge();
   }
 });
 
@@ -233,22 +259,116 @@ async function cleanupVault() {
   }
 }
 
+// ==================== ALLOW-LIST ====================
+// Set from the masked-paste toast. Values are kept only as salted hashes, so nothing on disk
+// reveals what was allowed; only generic rules can be allowed or turned off this way, and
+// detector.js ignores the list for every specific rule.
+
+const MAX_ALLOWED_VALUES = 500;
+const MAX_ALLOW_REQUEST = 200;
+
+function addAllowedValues(values) {
+  return withVaultLock(async () => {
+    const stored = await chrome.storage.local.get(["allowedValues", "allowSalt"]);
+    const salt = stored.allowSalt || Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      b => b.toString(16).padStart(2, "0")).join("");
+    const hashes = new Set(Array.isArray(stored.allowedValues) ? stored.allowedValues : []);
+    for (const value of values) hashes.add(allowedValueHash(salt, value));
+    // Oldest entries go first: a Set keeps insertion order
+    await chrome.storage.local.set({ allowSalt: salt, allowedValues: [...hashes].slice(-MAX_ALLOWED_VALUES) });
+  });
+}
+
+function disableGenericRule(label) {
+  return withVaultLock(async () => {
+    const { disabledPatterns } = await chrome.storage.local.get("disabledPatterns");
+    const disabled = new Set(Array.isArray(disabledPatterns) ? disabledPatterns : []);
+    disabled.add(label);
+    await chrome.storage.local.set({ disabledPatterns: [...disabled] });
+  });
+}
+
+function isValidAllowRequest(values) {
+  return Array.isArray(values) && values.length > 0 && values.length <= MAX_ALLOW_REQUEST &&
+    values.every(v => typeof v === "string" && v.length > 0 && v.length <= MAX_SECRET_LENGTH);
+}
+
+// ==================== PAUSE ====================
+
+const PAUSE_ALARM = "pauseEnd";
+
+// Keeps the expiry alarm in line with pausedUntil, and drops a pause that ended while the
+// browser was closed.
+async function syncPauseState() {
+  try {
+    const { pausedUntil } = await chrome.storage.local.get("pausedUntil");
+    if (typeof pausedUntil === "number" && pausedUntil > Date.now()) {
+      chrome.alarms.create(PAUSE_ALARM, { when: pausedUntil });
+    } else {
+      await chrome.alarms.clear(PAUSE_ALARM);
+      if (pausedUntil !== undefined) await chrome.storage.local.remove("pausedUntil");
+    }
+  } catch (_) {
+    // Pastes check the expiry time themselves, so a missed alarm only delays the badge
+  }
+  updateBadge();
+}
+
 // ==================== BADGE ====================
+
+const BADGE_COLOR = "#0ea5e9";
+const BADGE_PAUSED_COLOR = "#f59e0b";
+const BADGE_PAUSED_TEXT = "OFF";
 
 async function updateBadge() {
   try {
-    const { stats = {} } = await chrome.storage.local.get("stats");
+    const { stats = {}, pausedUntil } = await chrome.storage.local.get(["stats", "pausedUntil"]);
+    if (isPaused({ pausedUntil })) {
+      chrome.action.setBadgeText({ text: BADGE_PAUSED_TEXT });
+      chrome.action.setBadgeBackgroundColor({ color: BADGE_PAUSED_COLOR });
+      return;
+    }
     // todayBlocked is only reset on the next paste — don't show yesterday's count
     const count = stats.lastDate === new Date().toDateString() ? (stats.todayBlocked || 0) : 0;
     chrome.action.setBadgeText({ text: count > 0 ? String(count) : "" });
-    chrome.action.setBadgeBackgroundColor({ color: "#0ea5e9" });
+    chrome.action.setBadgeBackgroundColor({ color: BADGE_COLOR });
   } catch (err) {
     // Silent fail
   }
 }
 
-// Initialize badge on startup
-updateBadge();
+// "Pause on this site" shows on that site's tabs only. tab.url is only visible on sites we hold
+// a host permission for, which every protected site is; a null text falls back to the global badge.
+// A tab's colour can't fall back the same way, so it's always set.
+function applyTabBadge(tab, { pausedSites, timedPause }) {
+  if (!tab?.id || !tab.url) return;
+  let hostname;
+  try {
+    hostname = new URL(tab.url).hostname;
+  } catch (_) {
+    return;
+  }
+  const paused = pausedSites.includes(hostname);
+  chrome.action.setBadgeText({ tabId: tab.id, text: paused ? BADGE_PAUSED_TEXT : null });
+  chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: paused || timedPause ? BADGE_PAUSED_COLOR : BADGE_COLOR });
+}
+
+async function getPauseState() {
+  const { pausedSites, pausedUntil } = await chrome.storage.local.get(["pausedSites", "pausedUntil"]);
+  return { pausedSites: Array.isArray(pausedSites) ? pausedSites : [], timedPause: isPaused({ pausedUntil }) };
+}
+
+async function updateAllTabBadges() {
+  try {
+    const [state, tabs] = await Promise.all([getPauseState(), chrome.tabs.query({})]);
+    tabs.forEach(tab => applyTabBadge(tab, state));
+  } catch (_) {
+    // Badge only — never affects masking
+  }
+}
+
+// Initialize on startup (service workers restart often, and alarms survive them)
+syncPauseState();
 
 // Listen for storage changes to re-register sites, update badge, check milestones, and track weekly stats
 chrome.storage.onChanged.addListener(async (changes, area) => {
@@ -256,6 +376,11 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 
   if (changes.removedDefaults || changes.customSites) {
     debouncedRegister();
+  }
+
+  if (changes.pausedUntil || changes.pausedSites) {
+    syncPauseState();
+    updateAllTabBadges();
   }
 
   if (changes.stats) {
@@ -322,17 +447,18 @@ async function checkWeeklySummary() {
     // Only show on Sunday
     if (dayOfWeek !== 0) return;
 
-    const { weeklyStats = { weekStart: null, weekBlocked: 0 }, stats = {} } =
-      await chrome.storage.local.get(["weeklyStats", "stats"]);
+    const { weeklyStats = { weekStart: null, weekBlocked: 0 }, stats = {}, weeklyReport } =
+      await chrome.storage.local.get(["weeklyStats", "stats", "weeklyReport"]);
 
     const currentWeekStart = getWeekStart(now);
 
     // If it's a new week and we have data from last week
     if (weeklyStats.weekStart && weeklyStats.weekStart !== currentWeekStart && weeklyStats.weekBlocked > 0) {
-      // Show notification
-      await showWeeklyNotification(weeklyStats.weekBlocked, stats.totalBlocked || 0);
+      if (weeklyReport === true) {
+        await showWeeklyNotification(weeklyStats.weekBlocked, stats.totalBlocked || 0);
+      }
 
-      // Reset weekly stats
+      // Reset whether or not it was shown, so opting in later doesn't report months as one week
       await chrome.storage.local.set({
         weeklyStats: { weekStart: currentWeekStart, weekBlocked: 0 }
       });
@@ -365,8 +491,8 @@ async function showWeeklyNotification(weekBlocked, totalBlocked) {
     await chrome.notifications.create("weekly-summary", {
       type: "basic",
       iconUrl: "icons/icon-128.png",
-      title: "Weekly Protection Report",
-      message: `This week you protected ${weekBlocked} secrets!\nAll Time Protection: ${totalBlocked.toLocaleString()}`,
+      title: chrome.i18n.getMessage("weekly_title"),
+      message: chrome.i18n.getMessage("weekly_message", [String(weekBlocked), totalBlocked.toLocaleString()]),
       priority: 1
     });
   } catch (err) {
@@ -401,6 +527,40 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     resolvePlaceholders(origin, request.tokens.slice(0, MAX_REPLACEMENTS_PER_ENTRY))
       .then(sendResponse)
       .catch(() => sendResponse({ values: {} }));
+    return true;
+  }
+
+  if (request?.action === "allow:add") {
+    if (!senderOrigin(sender) || !isValidAllowRequest(request.values)) {
+      sendResponse({ ok: false });
+      return false;
+    }
+    addAllowedValues(request.values)
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
+  }
+
+  if (request?.action === "rule:disable") {
+    if (!senderOrigin(sender) || !GENERIC_LABELS.has(request.label)) {
+      sendResponse({ ok: false });
+      return false;
+    }
+    disableGenericRule(request.label)
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
+  }
+
+  if (request?.action === "badge:sync") {
+    if (!sender.tab) {
+      sendResponse({ ok: false });
+      return false;
+    }
+    getPauseState()
+      .then(state => applyTabBadge(sender.tab, state))
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
     return true;
   }
 

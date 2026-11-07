@@ -1396,8 +1396,9 @@ body.dark-mode .accordion-header:hover {
 
 .toggles-list > div {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 2px 12px;
   padding: 12px 14px;
   background: var(--bg);
   border-radius: 12px;
@@ -1795,4 +1796,96 @@ body.dark-mode .notification-warning {
 
 body.dark-mode .notification-error {
   box-shadow: 0 8px 32px rgba(248, 113, 113, 0.3);
+}
+
+/* Pause */
+.pause-card {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.pause-state {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.82em;
+  font-weight: 500;
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.pause-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pause-actions .secondary-btn {
+  flex: 1 1 0;
+  white-space: nowrap;
+}
+
+/* Rule toggles: name, then a one-line example */
+.pattern-example {
+  flex-basis: 100%;
+  padding-left: 36px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72em;
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Sites */
+.suggested-sites {
+  margin-bottom: 12px;
+}
+
+.suggested-sites small {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+}
+
+.site-chip.suggested {
+  background: none;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.site-chip.suggested:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.site-chip.missing {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  cursor: pointer;
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.report-row {
+  margin: 4px 0 12px;
+  text-align: center;
+  font-size: 0.78em;
+}
+
+.report-row a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.report-row a:hover {
+  color: var(--primary);
+  text-decoration: underline;
 }

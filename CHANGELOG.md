@@ -2,6 +2,51 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.4.0] - 2026-11-07
+
+### Fewer false positives
+- **Everyday debugging pastes stay readable.** Stack traces, class and test names, pod names, ARNs, cloud resource IDs, hashes (`sha256:`, `sha512-`, `--hash=`, `h1:`, ETags), lockfiles, `data:` URIs, public keys and certificates, and plain URLs are no longer masked
+- **Randomness check replaced.** Shannon entropy mostly measured length: long identifiers scored higher than short random tokens, and hex could never pass. Values are now scored by how many of their letter pairs are common in code, which catches 16-character random tokens that used to get through (0% → ~99%) and flags far less real code (npm's source: 172 → 32 of 1,509 files)
+- **Secret-sounding names count.** `webhook_secret: <hex>` and 12+ character values under names like `SIGNING_KEY` are caught; `etag`, `commit`, `requestId` and similar are not. Bare hex is treated as a hash unless it's assigned
+- **URL query values are judged by parameter name.** Public parameters such as `?list=`, `?v=` and `utm_*` stay readable; `?token=` and random values under any other name are masked
+- **Japanese text no longer reads as one giant token**, and `パスワード:` / `パスワードは` are recognised
+- **Aadhaar** needs the `#### #### ####` grouping or a nearby keyword (Verhoeff alone passes 1 in 10 random numbers). **IFSC** needs nearby context and is case-sensitive. **PAN** checks the holder-type letter. **Twilio SID** must be hex
+- Sample values (`YOUR_API_KEY_HERE`, `xxxxxxxx`), references (`creds.password`, `process.env.X`) and `https://user:<password>@host` are left alone
+
+### Security
+- **Paste hang fixed.** Crafted text could make several patterns backtrack for seconds to minutes, freezing the tab inside the synchronous paste handler (9 s on 100 KB). The worst case is now about 0.2 s at the 500 KB limit, with tests at that size
+- **New coverage:** `Authorization: Basic`, Slack and Teams webhooks, tokens used as a URL username, DSA and encrypted private keys, private keys cut off before their END line, and Telegram tokens inside `/bot…` URLs (previously caught only by accident)
+- "Don't mask this again" stores salted hashes only, ignores every specific rule, and only accepts real user clicks
+- Removing a custom site now gives up its host permission
+- Smart Restore is off while masking is paused, so a page can't get a restored secret through your next unmasked paste
+- The background worker no longer wakes on every page load in the browser
+- **Pastes are no longer cached.** The content script kept the text of the last 100 pastes in memory for as long as the tab stayed open, past the vault's 15-minute limit and the "Delete secrets" button. Originals now live only in the vault
+- The "Rate" link no longer sends the chat's address to the Web Store as a referrer
+
+### Added
+- **Pause** for 10 minutes or on one site from the popup, with an `OFF` toolbar badge and a notice on each paused burst of pastes
+- **"Not a secret?"** on the toast, for matches from guessing rules: allow that value or turn off that rule, restoring it in place. Allowed values can be cleared in Settings
+- **Plain-language rule names** with a one-line example each, and a toggle for random-token detection, which previously couldn't be turned off at all
+- **One-click opt-in** for Perplexity, DeepSeek, Microsoft Copilot, Mistral and Meta AI through optional permissions, so nobody's extension gets disabled by the update
+- "Report a wrong mask" link in the popup, and a static uninstall page asking why you left (no scripts, no analytics)
+
+### Changed
+- The "scanned" toast only appears for the first three pastes, as onboarding
+- All toasts share one column in the bottom-right corner, so they can't overlap each other or cover the send button, and their buttons never take focus from the editor
+- The first review prompt now waits for 25 masked secrets instead of 10. It's skipped after Undo or "Not a secret?", waits if another toast is showing, and stops once you've clicked Rate
+- The weekly notification is opt-in for new installs (existing users keep their current behaviour and can turn it off in Settings)
+
+### Fixed
+- Resuming a paused site left its tab's badge amber until the page was reloaded
+- "Not a secret?" said it had worked even when the choice couldn't be saved
+- The "no websites active" warning stayed hidden when the only remaining site was one without permission
+- Pasting the same text twice reused its placeholders, so Undo on the second paste restored the first one
+- A database URL inside a Japanese sentence masked the rest of the sentence too
+- Granting a custom site's permission from the "needs permission" chip could leave it unprotected until the browser restarted
+- Opting in to the weekly notification reported every week since it was last shown as one week
+- Toggling a rule while the rule search was active re-enabled every rule hidden by the search
+- A custom site whose permission was denied still said "Site added" and "Active on…". It's now removed, or shown as needing permission if the prompt closed the popup
+
 ## [2.3.0] - 2026-10-11
 
 ### Security

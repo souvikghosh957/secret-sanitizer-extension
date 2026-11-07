@@ -37,9 +37,10 @@ function animateCount(element, target, duration = 1000) {
 }
 
 // Test masking with the same engine the content script uses (detector.js + patterns.js),
-// honouring the user's disabled patterns so the result matches what a real paste does.
-function testSanitize(text, disabledLabels) {
-  const { matches } = findSecrets(text, compilePatterns(SHARED_PATTERNS, disabledLabels));
+// honouring the user's disabled patterns and allowed values so the result matches what a real paste does.
+function testSanitize(text, disabledLabels, allowedHashes, allowSalt) {
+  const { matches: found } = findSecrets(text, compilePatterns(SHARED_PATTERNS, disabledLabels));
+  const matches = dropAllowedValues(found, allowedHashes, allowSalt);
   const { maskedText, replacements } = maskText(text, matches, (label) => `[${label}]`);
   return { maskedText, count: replacements.length };
 }
@@ -52,6 +53,7 @@ function detectMode(text) {
 // ==================== MAIN ====================
 
 document.addEventListener("DOMContentLoaded", async () => {
+  localizePage();
   try {
     const {
       stats = { totalBlocked: 0, todayBlocked: 0 },
@@ -60,10 +62,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       removedDefaults = [],
       darkMode = null,
       autoDarkMode = true,
-      hasSeenWelcome = false
+      hasSeenWelcome = false,
+      weeklyReport = false,
+      allowedValues = [],
+      allowSalt = null,
+      pausedUntil,
+      pausedSites = []
     } = await chrome.storage.local.get([
       "stats", "disabledPatterns", "customSites", "removedDefaults",
-      "darkMode", "autoDarkMode", "hasSeenWelcome"
+      "darkMode", "autoDarkMode", "hasSeenWelcome", "weeklyReport",
+      "allowedValues", "allowSalt", "pausedUntil", "pausedSites"
     ]);
     // The vault is memory-only (chrome.storage.session), owned by the background worker
     const { vault = {} } = await chrome.storage.session.get("vault");
@@ -75,86 +83,109 @@ document.addEventListener("DOMContentLoaded", async () => {
     const defaultSites = DEFAULT_SITES;
     const activeDefaults = defaultSites.filter(s => !removedDefaults.includes(s));
 
-    const allProtectedSites = [...activeDefaults, ...customSites];
+    // Host permission is the source of truth for custom sites: it can be denied, or revoked
+    // from chrome://extensions, while the site is still in the list.
+    const sitesMissingPermission = new Set();
+    await Promise.all(customSites.map(async (site) => {
+      if (!await chrome.permissions.contains({ origins: [siteMatchPattern(site)] })) sitesMissingPermission.add(site);
+    }));
+
+    const allProtectedSites = [...activeDefaults, ...customSites.filter(s => !sitesMissingPermission.has(s))];
     const siteStatus = document.getElementById("siteStatus");
+
+    const setSiteStatus = (className, text) => {
+      if (!siteStatus) return;
+      siteStatus.className = `site-status ${className}`;
+      siteStatus.textContent = "";
+      const dot = document.createElement("span");
+      dot.className = "status-dot";
+      const label = document.createElement("span");
+      label.className = "status-text";
+      label.textContent = text;
+      siteStatus.appendChild(dot);
+      siteStatus.appendChild(label);
+    };
+
+    // Hostname of the active tab when it's a protected site, for the "pause on this site" button
+    let protectedHost = null;
+    const pause = { pausedUntil, pausedSites: Array.isArray(pausedSites) ? pausedSites : [] };
 
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.url && siteStatus) {
-        const url = new URL(tab.url);
+      const url = tab?.url ? new URL(tab.url) : null;
+      if (url && allProtectedSites.some(site => url.hostname === siteHostname(site))) {
+        protectedHost = url.hostname;
+      } else if (url && url.protocol.startsWith("http")) {
         const hostname = url.hostname;
-        const isProtected = allProtectedSites.some(site => hostname === siteHostname(site));
-
-        if (isProtected) {
-          siteStatus.className = "site-status active";
-          siteStatus.textContent = "";
-          const dot1 = document.createElement("span");
-          dot1.className = "status-dot";
-          const text1 = document.createElement("span");
-          text1.className = "status-text";
-          text1.textContent = "Active on " + hostname;
-          siteStatus.appendChild(dot1);
-          siteStatus.appendChild(text1);
-        } else if (url.protocol.startsWith("http")) {
-          siteStatus.className = "site-status inactive clickable";
-          siteStatus.textContent = "";
-          const dot2 = document.createElement("span");
-          dot2.className = "status-dot";
-          const text2 = document.createElement("span");
-          text2.className = "status-text";
-          text2.textContent = "Not active on " + (hostname.length > 20 ? hostname.slice(0,20) + '...' : hostname);
-          siteStatus.appendChild(dot2);
-          siteStatus.appendChild(text2);
-          siteStatus.title = "Click to enable on this site";
-          siteStatus.addEventListener("click", () => {
-            document.querySelector('[data-tab="settings"]').click();
-            setTimeout(() => {
-              const sitesAccordion = document.getElementById("sitesAccordion");
-              if (sitesAccordion?.classList.contains("collapsed")) {
-                document.querySelector('[data-accordion="sites"]')?.click();
-              }
-              const input = document.getElementById("newSite");
-              if (input) {
-                input.value = hostname;
-                input.focus();
-              }
-            }, 100);
-          });
-        } else {
-          siteStatus.className = "site-status inactive";
-          siteStatus.textContent = "";
-          const dot3 = document.createElement("span");
-          dot3.className = "status-dot";
-          const text3 = document.createElement("span");
-          text3.className = "status-text";
-          text3.textContent = "Not a web page";
-          siteStatus.appendChild(dot3);
-          siteStatus.appendChild(text3);
-        }
-      } else if (siteStatus) {
-        siteStatus.className = "site-status inactive";
-        siteStatus.textContent = "";
-        const dot4 = document.createElement("span");
-        dot4.className = "status-dot";
-        const text4 = document.createElement("span");
-        text4.className = "status-text";
-        text4.textContent = "Not a web page";
-        siteStatus.appendChild(dot4);
-        siteStatus.appendChild(text4);
+        setSiteStatus("inactive clickable", t("status_not_active", [hostname.length > 20 ? hostname.slice(0, 20) + '...' : hostname]));
+        siteStatus.title = t("status_enable_hint");
+        siteStatus.addEventListener("click", () => {
+          document.querySelector('[data-tab="settings"]').click();
+          setTimeout(() => {
+            const sitesAccordion = document.getElementById("sitesAccordion");
+            if (sitesAccordion?.classList.contains("collapsed")) {
+              document.querySelector('[data-accordion="sites"]')?.click();
+            }
+            const input = document.getElementById("newSite");
+            if (input) {
+              input.value = hostname;
+              input.focus();
+            }
+          }, 100);
+        });
+      } else {
+        setSiteStatus("inactive", t("status_not_web"));
       }
     } catch (e) {
-      if (siteStatus) {
-        siteStatus.className = "site-status inactive";
-        siteStatus.textContent = "";
-        const dot5 = document.createElement("span");
-        dot5.className = "status-dot";
-        const text5 = document.createElement("span");
-        text5.className = "status-text";
-        text5.textContent = "Status unavailable";
-        siteStatus.appendChild(dot5);
-        siteStatus.appendChild(text5);
-      }
+      setSiteStatus("inactive", t("status_unavailable"));
     }
+
+    // Pause
+
+    const pauseState = document.getElementById("pauseState");
+    const pauseTimedBtn = document.getElementById("pauseTimed");
+    const pauseSiteBtn = document.getElementById("pauseSite");
+    const resumeBtn = document.getElementById("resumeBtn");
+
+    const renderPause = () => {
+      const timed = isPaused({ pausedUntil: pause.pausedUntil });
+      const sitePaused = protectedHost !== null && pause.pausedSites.includes(protectedHost);
+      if (protectedHost) {
+        setSiteStatus(timed || sitePaused ? "inactive" : "active",
+          t(timed || sitePaused ? "status_paused_on" : "status_active", [protectedHost]));
+      }
+      let message = "";
+      if (timed) {
+        message = t("pause_state_timed", [String(Math.max(1, Math.ceil((pause.pausedUntil - Date.now()) / 60000)))]);
+      } else if (sitePaused) {
+        message = t("pause_state_site", [protectedHost]);
+      }
+      pauseState.textContent = message;
+      pauseState.classList.toggle("hidden", !message);
+      pauseTimedBtn.classList.toggle("hidden", timed);
+      pauseSiteBtn.classList.toggle("hidden", !protectedHost || sitePaused);
+      resumeBtn.classList.toggle("hidden", !timed && !sitePaused);
+    };
+
+    pauseTimedBtn.addEventListener("click", async () => {
+      pause.pausedUntil = Date.now() + PAUSE_DURATION_MS;
+      await chrome.storage.local.set({ pausedUntil: pause.pausedUntil });
+      renderPause();
+    });
+    pauseSiteBtn.addEventListener("click", async () => {
+      pause.pausedSites = [...new Set([...pause.pausedSites, protectedHost])];
+      await chrome.storage.local.set({ pausedSites: pause.pausedSites });
+      renderPause();
+    });
+    resumeBtn.addEventListener("click", async () => {
+      pause.pausedUntil = undefined;
+      pause.pausedSites = pause.pausedSites.filter(s => s !== protectedHost);
+      await chrome.storage.local.remove("pausedUntil");
+      await chrome.storage.local.set({ pausedSites: pause.pausedSites });
+      renderPause();
+    });
+    renderPause();
+    setInterval(renderPause, 15000); // keeps the countdown honest while the popup is open
 
     // First-run welcome
 
@@ -250,21 +281,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (mode === 'unmask') {
         actionBtn.classList.add('mode-unmask');
         actionIcon.className = 'fas fa-unlock';
-        actionBtnText.textContent = 'Unmask Secrets';
+        actionBtnText.textContent = t("action_unmask");
         badge.className = 'mode-badge mode-unmask';
-        buildBadge('fas fa-unlock', 'Unmask mode');
+        buildBadge('fas fa-unlock', t("mode_unmask"));
       } else if (mode === 'test') {
         actionBtn.classList.remove('mode-unmask');
         actionIcon.className = 'fas fa-vial';
-        actionBtnText.textContent = 'Test Masking';
+        actionBtnText.textContent = t("action_test");
         badge.className = 'mode-badge mode-test';
-        buildBadge('fas fa-flask', 'Test mode');
+        buildBadge('fas fa-flask', t("mode_test"));
       } else {
         actionBtn.classList.remove('mode-unmask');
         actionIcon.className = 'fas fa-vial';
-        actionBtnText.textContent = 'Analyze';
+        actionBtnText.textContent = t("action_analyze");
         badge.className = 'mode-badge mode-auto';
-        buildBadge('fas fa-robot', 'Auto-detect');
+        buildBadge('fas fa-robot', t("mode_auto"));
       }
     }
 
@@ -308,7 +339,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (actionBtn.disabled) return;
         const text = actionInput?.value.trim();
         if (!text) {
-          showNotification("Paste some text first", "warning");
+          showNotification(t("note_paste_first"), "warning");
           return;
         }
 
@@ -318,47 +349,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (mode === 'unmask') {
           // Unmask mode
-          let unmasked = text;
-          let replacedCount = 0;
-
           const currentTime = Date.now();
+          const originals = new Map();
           for (const entry of Object.values(vault)) {
-            if (!entry || entry.expires < currentTime) continue;
-
-            const replacements = entry.replacements;
-            if (!Array.isArray(replacements)) continue;
-            for (const [placeholder, original] of replacements) {
-              const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const regex = new RegExp(escaped, "g");
-              // Use replacer function to avoid String.replace() misinterpreting
-              // '$' characters in secrets (e.g. passwords like "P@$$w0rd")
-              const next = unmasked.replace(regex, () => original);
-              if (next !== unmasked) {
-                unmasked = next;
-                replacedCount++;
-              }
-            }
+            if (!entry || entry.expires < currentTime || !Array.isArray(entry.replacements)) continue;
+            for (const [placeholder, original] of entry.replacements) originals.set(placeholder, original);
           }
+
+          const found = new Set();
+          const unmasked = text.replace(new RegExp(PLACEHOLDER_SOURCE, "g"), (token) => {
+            if (!originals.has(token)) return token;
+            found.add(token);
+            return originals.get(token);
+          });
+          const replacedCount = found.size;
 
           actionOutput.textContent = unmasked;
           actionOutput.classList.remove('hidden');
 
           if (replacedCount > 0) {
-            showNotification(`Unmasked ${replacedCount} secret${replacedCount > 1 ? 's' : ''}`, "success");
+            showNotification(t("note_unmasked", [String(replacedCount)]), "success");
           } else {
-            showNotification("No matching placeholders in vault", "warning");
+            showNotification(t("note_no_placeholders"), "warning");
           }
         } else {
           // Test mode
           requestAnimationFrame(() => {
-            const result = testSanitize(text, disabled);
+            const result = testSanitize(text, disabled, new Set(allowedHashes), allowSalt);
             actionOutput.textContent = result.maskedText;
             actionOutput.classList.remove('hidden');
 
             if (result.count > 0) {
-              showNotification(`Found ${result.count} potential secret${result.count > 1 ? 's' : ''}`, "success");
+              showNotification(t("note_found", [String(result.count)]), "success");
             } else {
-              showNotification("No secrets detected", "warning");
+              showNotification(t("note_none_found"), "warning");
             }
 
             actionBtn.classList.remove('loading');
@@ -396,7 +420,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (traceIds.length === 0) {
         const emptyLi = document.createElement("li");
         emptyLi.className = "empty-state";
-        emptyLi.textContent = searchTerm ? 'No matches' : 'No recent sanitizations';
+        emptyLi.textContent = t(searchTerm ? "recent_no_matches" : "recent_empty");
         targetList.appendChild(emptyLi);
       } else {
         traceIds.forEach(id => {
@@ -419,7 +443,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           badgeSpan.textContent = count;
           const small = document.createElement("small");
           small.style.marginLeft = "8px";
-          small.textContent = minsLeft + "m";
+          small.textContent = t("recent_minutes", [String(minsLeft)]);
           rightDiv.appendChild(badgeSpan);
           rightDiv.appendChild(small);
           contentDiv.appendChild(strong);
@@ -480,11 +504,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (shareBtn) {
       shareBtn.addEventListener("click", async () => {
         const shareUrl = "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja";
-        const shareText = "Secret Sanitizer - Masks API keys, passwords & tokens before they reach AI chats. 100% local, zero tracking.";
+        const shareText = t("share_text");
 
         try {
           await navigator.clipboard.writeText(shareUrl);
-          showNotification("Link copied! Share it with others", "success");
+          showNotification(t("note_link_copied"), "success");
           // Visual feedback on the button
           const icon = shareBtn.querySelector("i");
           icon.className = "fas fa-check";
@@ -494,7 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
             await navigator.share({ title: "Secret Sanitizer", text: shareText, url: shareUrl });
           } catch (_) {
-            showNotification("Could not copy link", "warning");
+            showNotification(t("note_link_failed"), "warning");
           }
         }
       });
@@ -539,29 +563,34 @@ document.addEventListener("DOMContentLoaded", async () => {
           document.body.classList.toggle("dark-mode", systemDark);
           await chrome.storage.local.set({ darkMode: null });
         }
-        showNotification("Auto dark mode " + (e.target.checked ? "enabled" : "disabled"), "success");
+        showNotification(t(e.target.checked ? "note_auto_dark_on" : "note_auto_dark_off"), "success");
+      });
+    }
+
+    const weeklyReportCheckbox = document.getElementById("weeklyReport");
+    if (weeklyReportCheckbox) {
+      weeklyReportCheckbox.checked = weeklyReport === true;
+      weeklyReportCheckbox.addEventListener("change", async (e) => {
+        await chrome.storage.local.set({ weeklyReport: e.target.checked });
       });
     }
 
     // Delete secrets — two-step inline confirmation to avoid unreliable confirm() in extensions
     const clearVaultBtn = document.getElementById("clearVault");
     const setVaultBtnLabel = (icon, text) => {
-      clearVaultBtn.textContent = "";
-      const i = document.createElement("i");
-      i.className = icon;
-      clearVaultBtn.appendChild(i);
-      clearVaultBtn.appendChild(document.createTextNode(" " + text));
+      clearVaultBtn.querySelector("i").className = icon;
+      document.getElementById("clearVaultText").textContent = text;
     };
     if (clearVaultBtn) {
       clearVaultBtn.addEventListener("click", async () => {
         if (clearVaultBtn.dataset.confirming !== "true") {
           // First click: arm the button
           clearVaultBtn.dataset.confirming = "true";
-          setVaultBtnLabel("fas fa-exclamation-triangle", "Click again to confirm");
+          setVaultBtnLabel("fas fa-exclamation-triangle", t("vault_confirm"));
           clearVaultBtn.classList.add("btn-danger");
           clearVaultBtn._confirmTimer = setTimeout(() => {
             clearVaultBtn.dataset.confirming = "";
-            setVaultBtnLabel("fas fa-eraser", "Delete All Secrets");
+            setVaultBtnLabel("fas fa-eraser", t("vault_delete_all"));
             clearVaultBtn.classList.remove("btn-danger");
           }, 3000);
           return;
@@ -569,38 +598,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Second click: execute delete
         clearTimeout(clearVaultBtn._confirmTimer);
         clearVaultBtn.dataset.confirming = "";
-        setVaultBtnLabel("fas fa-eraser", "Delete All Secrets");
+        setVaultBtnLabel("fas fa-eraser", t("vault_delete_all"));
         clearVaultBtn.classList.remove("btn-danger");
         await chrome.storage.session.set({ vault: {} });
-        showNotification("All secrets deleted", "success");
+        showNotification(t("note_vault_deleted"), "success");
         setTimeout(() => location.reload(), 500);
       });
     }
 
+    // Allowed values — only salted hashes are stored, so they can be counted and cleared but not listed
+
+    let allowedHashes = Array.isArray(allowedValues) ? allowedValues : [];
+    const allowedCount = document.getElementById("allowedCount");
+    const clearAllowedBtn = document.getElementById("clearAllowed");
+    const renderAllowedCount = () => {
+      allowedCount.textContent = t("allowed_count", [String(allowedHashes.length)]);
+      clearAllowedBtn.disabled = allowedHashes.length === 0;
+    };
+    renderAllowedCount();
+    clearAllowedBtn.addEventListener("click", async () => {
+      allowedHashes = [];
+      await chrome.storage.local.remove(["allowedValues", "allowSalt"]);
+      renderAllowedCount();
+      showNotification(t("note_allowed_cleared"), "success");
+    });
+
     // Pattern toggles (auto-save)
 
-    // Derive labels from the single source of truth in patterns.js — no manual sync needed
-    const allLabels = [...new Set(SHARED_PATTERNS.map(([, label]) => label))];
+    // Derive labels from the single source of truth in patterns.js — no manual sync needed.
+    // Random-token detection isn't a regex, so it's listed separately.
+    const allLabels = [...new Set(SHARED_PATTERNS.map(([, label]) => label)), "ENTROPY"];
 
     const togglesDiv = document.getElementById("patternToggles");
 
-    // Auto-save pattern toggle
-    const savePatternState = async () => {
-      const newDisabled = allLabels.filter(label => {
-        const cb = document.getElementById(`toggle-${label}`);
-        return cb && !cb.checked;
-      });
-      await chrome.storage.local.set({ disabledPatterns: newDisabled });
-    };
-
     if (togglesDiv) {
-      // Labels for generic fallback patterns — high false-positive risk if enabled
-      const TIER2_POPUP_LABELS = new Set(["QUOTED_SECRET", "LONG_RANDOM_STRING", "BASE64_SECRET"]);
-
       const renderPatterns = (search = "") => {
         togglesDiv.replaceChildren();
         allLabels
-          .filter(l => l.toLowerCase().includes(search.toLowerCase()))
+          .filter(l => `${l} ${patternName(l)} ${PATTERN_EXAMPLES[l] || ""}`.toLowerCase().includes(search.toLowerCase()))
           .forEach(label => {
             const div = document.createElement("div");
             const checkbox = document.createElement("input");
@@ -615,23 +650,30 @@ document.addEventListener("DOMContentLoaded", async () => {
               } else {
                 disabled.add(label);
               }
-              await savePatternState();
+              // The whole set, not the checkboxes: a search hides most of them
+              await chrome.storage.local.set({ disabledPatterns: [...disabled] });
             });
 
             const lbl = document.createElement("label");
             lbl.htmlFor = checkbox.id;
-            lbl.textContent = label;
+            lbl.title = label; // internal name, as it appears in placeholders
+            lbl.textContent = patternName(label);
 
-            if (TIER2_POPUP_LABELS.has(label)) {
-              const warn = document.createElement("span");
-              warn.className = "pattern-warn";
-              warn.title = "High false-positive risk — may flag UUIDs, hashes, and non-secret strings";
-              warn.textContent = "⚠ noisy";
-              lbl.appendChild(warn);
+            if (GENERIC_LABELS.has(label)) {
+              const tag = document.createElement("span");
+              tag.className = "pattern-warn";
+              tag.title = t("patterns_generic_title");
+              tag.textContent = t("patterns_generic_tag");
+              lbl.appendChild(tag);
             }
+
+            const example = document.createElement("small");
+            example.className = "pattern-example";
+            example.textContent = PATTERN_EXAMPLES[label] || "";
 
             div.appendChild(checkbox);
             div.appendChild(lbl);
+            div.appendChild(example);
             togglesDiv.appendChild(div);
           });
       };
@@ -655,27 +697,49 @@ document.addEventListener("DOMContentLoaded", async () => {
     const updateNoSitesWarning = () => {
       const warning = document.getElementById("noSitesWarning");
       if (!warning) return;
-      const active = activeDefaults.length + customSites.length;
+      const active = activeDefaults.length + customSites.filter(s => !sitesMissingPermission.has(s)).length;
       warning.classList.toggle("hidden", active > 0);
     };
 
-    const saveSitesAndRegister = async () => {
-      // Save first — if the permission prompt closes the popup, data is still persisted
+    const saveSites = async () => {
       await chrome.storage.local.set({ customSites, removedDefaults });
       updateNoSitesWarning();
+    };
 
+    // Chrome only shows the prompt during the click's user gesture, and the prompt can close the
+    // popup, ending this code. So the save and the request start together; a site whose permission
+    // never arrived shows as "needs permission" next time, rather than as protected.
+    const requestSitePermission = async (site) => {
       try {
-        if (customSites.length > 0) {
-          const origins = customSites.map(siteMatchPattern);
-          await chrome.permissions.request({ origins });
-        }
+        return await chrome.permissions.request({ origins: [siteMatchPattern(site)] });
       } catch (err) {
-        // Permission request can fail if the user denies or the browser rejects optional permissions
         console.warn("[SecretSanitizer] Permission request failed:", err);
+        return false;
+      }
+    };
+
+    const addCustomSite = async (site) => {
+      customSites.push(site);
+      sitesMissingPermission.add(site);
+      renderSiteChips();
+      const saved = saveSites();
+      const granted = await requestSitePermission(site);
+      await saved;
+      if (granted) {
+        sitesMissingPermission.delete(site);
+        renderSiteChips();
+        showNotification(t("note_site_added"), "success");
+      } else {
+        customSites.splice(customSites.indexOf(site), 1);
+        sitesMissingPermission.delete(site);
+        renderSiteChips();
+        await saveSites();
+        showNotification(t("note_site_denied"), "error");
       }
     };
 
     const renderSiteChips = () => {
+      updateNoSitesWarning();
       const container = document.getElementById("siteChips");
       if (!container) return;
       container.textContent = "";
@@ -688,20 +752,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         const siteText = document.createTextNode(site + " ");
         chip.appendChild(siteText);
         const btn = document.createElement("button");
-        btn.title = isActive ? "Remove" : "Restore";
+        btn.title = t(isActive ? "sites_remove" : "sites_restore");
         btn.textContent = isActive ? "\u00d7" : "+";
         btn.onclick = async () => {
           if (isActive) {
             removedDefaults.push(site);
             activeDefaults.splice(activeDefaults.indexOf(site), 1);
-            showNotification(site + " removed", "success");
+            showNotification(t("note_site_removed", [site]), "success");
           } else {
             removedDefaults.splice(removedDefaults.indexOf(site), 1);
             activeDefaults.push(site);
-            showNotification(site + " restored", "success");
+            showNotification(t("note_site_restored", [site]), "success");
           }
           renderSiteChips();
-          await saveSitesAndRegister();
+          await saveSites();
         };
         chip.appendChild(btn);
         container.appendChild(chip);
@@ -710,25 +774,60 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Custom site chips
       customSites.forEach(site => {
         const chip = document.createElement("span");
-        chip.className = "site-chip custom active";
+        const missing = sitesMissingPermission.has(site);
+        chip.className = "site-chip custom " + (missing ? "missing" : "active");
         const siteText = document.createTextNode(site + " ");
         chip.appendChild(siteText);
+        if (missing) {
+          chip.title = t("sites_needs_permission");
+          chip.addEventListener("click", async () => {
+            if (await requestSitePermission(site)) {
+              sitesMissingPermission.delete(site);
+              renderSiteChips();
+              showNotification(t("note_site_added"), "success");
+            }
+          });
+        }
         const btn = document.createElement("button");
-        btn.title = "Remove";
+        btn.title = t("sites_remove");
         btn.textContent = "\u00d7";
-        btn.onclick = async () => {
+        btn.onclick = async (e) => {
+          e.stopPropagation();
           customSites.splice(customSites.indexOf(site), 1);
+          sitesMissingPermission.delete(site);
           renderSiteChips();
-          await saveSitesAndRegister();
-          showNotification("Site removed", "success");
+          await saveSites();
+          // Least privilege: don't keep access to a site we no longer protect
+          let released = true;
+          if (!customSites.some(s => siteHostname(s) === siteHostname(site))) {
+            released = await chrome.permissions.remove({ origins: [siteMatchPattern(site)] }).catch(() => false);
+          }
+          if (released) {
+            showNotification(t("note_site_removed", [site]), "success");
+          } else {
+            showNotification(t("note_site_remove_incomplete", [site]), "warning");
+          }
         };
         chip.appendChild(btn);
         container.appendChild(chip);
       });
+
+      // One-click opt-ins for other AI chats
+      const suggestions = SUGGESTED_SITES.filter(s => !customSites.includes(s));
+      document.getElementById("suggestedSites").classList.toggle("hidden", suggestions.length === 0);
+      const suggestedChips = document.getElementById("suggestedChips");
+      suggestedChips.textContent = "";
+      suggestions.forEach(site => {
+        const chip = document.createElement("button");
+        chip.className = "site-chip suggested";
+        chip.textContent = "+ " + site.replace(/^www\./, "");
+        chip.title = t("sites_add_named", [site]);
+        chip.addEventListener("click", () => addCustomSite(site));
+        suggestedChips.appendChild(chip);
+      });
     };
 
     renderSiteChips();
-    updateNoSitesWarning();
 
     const newSiteInput = document.getElementById("newSite");
     if (newSiteInput) {
@@ -751,17 +850,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const host = normalizeSite(urlStr);
         if (!host) {
-          showNotification("Enter a valid http(s) site, e.g. example.com", "error");
+          showNotification(t("note_site_invalid"), "error");
         } else if (defaultSites.includes(host)) {
-          showNotification("Use the + button above to restore this default", "warning");
+          showNotification(t("note_site_default"), "warning");
         } else if (customSites.includes(host)) {
-          showNotification("Site already added", "warning");
+          showNotification(t("note_site_exists"), "warning");
         } else {
-          customSites.push(host);
           input.value = "";
-          renderSiteChips();
-          await saveSitesAndRegister();
-          showNotification("Site added", "success");
+          await addCustomSite(host);
         }
       });
     }
@@ -771,7 +867,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const exportBtn = document.getElementById("exportSettings");
     if (exportBtn) {
       exportBtn.addEventListener("click", async () => {
-        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "removedDefaults", "autoDarkMode", "darkMode"]);
+        // Allowed-value hashes and pause state stay out: a settings file shouldn't turn masking off elsewhere
+        const data = await chrome.storage.local.get(["disabledPatterns", "customSites", "removedDefaults", "autoDarkMode", "darkMode", "weeklyReport"]);
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -779,7 +876,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         a.download = `secret-sanitizer-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        showNotification("Settings exported", "success");
+        showNotification(t("note_exported"), "success");
       });
     }
 
@@ -792,7 +889,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!file) return;
 
         if (file.size > 100 * 1024) {
-          showNotification("Settings file too large (max 100 KB)", "error");
+          showNotification(t("note_import_too_large"), "error");
           e.target.value = "";
           return;
         }
@@ -812,17 +909,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (Array.isArray(data.removedDefaults)) safeData.removedDefaults = data.removedDefaults.filter(s => DEFAULT_SITES.includes(s));
           if (typeof data.autoDarkMode === 'boolean') safeData.autoDarkMode = data.autoDarkMode;
           if (typeof data.darkMode === 'boolean') safeData.darkMode = data.darkMode;
+          if (typeof data.weeklyReport === 'boolean') safeData.weeklyReport = data.weeklyReport;
 
           if (Object.keys(safeData).length === 0) {
-            showNotification("No valid settings found in file", "warning");
+            showNotification(t("note_import_empty"), "warning");
             return;
           }
 
           await chrome.storage.local.set(safeData);
-          showNotification("Settings imported!", "success");
+          showNotification(t("note_imported"), "success");
           setTimeout(() => location.reload(), 1000);
         } catch (err) {
-          showNotification("Invalid settings file", "error");
+          showNotification(t("note_import_invalid"), "error");
         }
       });
     }

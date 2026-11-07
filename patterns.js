@@ -27,10 +27,13 @@ const SHARED_PATTERNS = [
 
   // === DATABASE CONNECTIONS ===
   // Scheme variants: mongodb+srv, postgresql, rediss, SQLAlchemy dialects (postgresql+psycopg2), ...
-  // User may be empty (redis://:password@host).
-  [/\b(?:mongodb(?:\+srv)?|postgres(?:ql)?|mysql|mariadb|mssql|sqlserver|rediss?|amqps?|clickhouse|cockroachdb|neo4j(?:\+s)?)(?:\+[a-z0-9]+)?:\/\/[^:\s\/@]*:[^@\s]+@[^\s'"`<>]+/gi, "DB_CONN"],
+  // User may be empty (redis://:password@host). Non-ASCII ends the host: Japanese has no spaces,
+  // and the rest of the sentence must stay readable.
+  [/\b(?:mongodb(?:\+srv)?|postgres(?:ql)?|mysql|mariadb|mssql|sqlserver|rediss?|amqps?|clickhouse|cockroachdb|neo4j(?:\+s)?)(?:\+[a-z0-9]+)?:\/\/[^:\s\/@]*:[^@\s]{1,512}@[^\s'"`<>\u0080-\uffff]+/gi, "DB_CONN"],
   // Credentials embedded in any other URL (https://user:token@host) — masks only the password
-  [/\b[a-z][a-z0-9+.\-]*:\/\/[^\s:\/@'"`]*:(?<secret>[^\s@\/'"`]+)@/gi, "URL_CREDENTIALS"],
+  [/:\/\/[^\s:\/@'"`]*:(?<secret>(?![<$%{*]|&lt;)[^\s@\/'"`]+)@/g, "URL_CREDENTIALS"],
+  // A long token used as the URL username (https://<token>@host)
+  [/:\/\/(?<secret>[A-Za-z0-9_~.\-]{20,})@/g, "URL_CREDENTIALS"],
 
   // === CREDIT CARDS ===
   // Visa, Mastercard, Amex, Diners Club (30x/36x/38x), Discover
@@ -55,14 +58,16 @@ const SHARED_PATTERNS = [
 
   // === COMMUNICATION & MESSAGING ===
   // Twilio
-  [/\bAC[a-z0-9]{32}\b/gi, "TWILIO_SID"],
+  [/\bAC[a-f0-9]{32}\b/g, "TWILIO_SID"],
   [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi, "TWILIO_AUTH_TOKEN"],
   // Slack (xoxb=bot, xoxp=user, xoxa=app, xoxr=refresh, xoxs=session, xoxe=expiring)
   [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/gi, "SLACK_TOKEN"],
+  [/\bhttps:\/\/hooks\.slack\.com\/(?:services|workflows|triggers)\/[A-Za-z0-9_\/\-]+/gi, "SLACK_WEBHOOK"],
+  [/\bhttps:\/\/[a-z0-9\-]+\.webhook\.office\.com\/[^\s'"`<>]+/gi, "TEAMS_WEBHOOK"],
   // Discord webhook
   [/\bhttps:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+\b/gi, "DISCORD_WEBHOOK"],
-  // Telegram bot
-  [/\b\d{8,10}:[A-Za-z0-9_-]{35}\b/gi, "TELEGRAM_BOT_TOKEN"],
+  // Telegram bot (no \b: in URLs the token follows "/bot" directly)
+  [/(?<!\d)\d{8,10}:[A-Za-z0-9_-]{35}\b/g, "TELEGRAM_BOT_TOKEN"],
   // SendGrid
   [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/gi, "SENDGRID_KEY"],
   // Mailgun (contextual to avoid "key-value" false positives)
@@ -101,47 +106,51 @@ const SHARED_PATTERNS = [
 
   // === INDIAN PII ===
   [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
-  [/\b[A-Z]{5}\d{4}[A-Z]{1}\b/g, "PAN"],
+  [/\b[A-Z]{3}[PCHFATBLJG][A-Z]\d{4}[A-Z]\b/g, "PAN"],
   [/(?:\+91[\s-]?|(?:phone|mobile|cell|contact|mob|tel|whatsapp)[\s:=]+['"]?)\b[6-9]\d{9}\b/gi, "INDIAN_PHONE"],
   [/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}\b/gi, "GSTIN"],
-  [/\b[A-Z]{4}0[A-Z0-9]{6}\b/gi, "IFSC"],
-  [/\b[\w\.-]+@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)\b/gi, "UPI_ID"],
-  [/\b[\w\.-]+@upi\b/gi, "UPI_ID_GENERIC"],
+  [/\b[A-Z]{4}0[A-Z0-9]{6}\b/g, "IFSC"],
+  [/\b[\w.-]{1,64}@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)\b/gi, "UPI_ID"],
+  [/\b[\w.-]{1,64}@upi\b/gi, "UPI_ID_GENERIC"],
   [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
-  [/\b[\w\.-]+@(?:razorpay|payu|paytm)\b/gi, "PAYMENT_UPI_ID"],
+  [/\b[\w.-]{1,64}@(?:razorpay|payu|paytm)\b/gi, "PAYMENT_UPI_ID"],
   [/\b[A-Z]{2}[0-9]{2}[\s-]?[0-9]{4}[\s-]?[0-9]{7}\b/gi, "DRIVING_LICENSE"],
   [/(?:voter[\s-]?id|epic|election[\s-]?id)[\s:=]+['"]?\b[A-Z]{3}[0-9]{7}\b['"]?/gi, "VOTER_ID"],
-  [/(?:passport)[\s:=_-]*(?:no|number|num|#)?[\s:=_-]+['"]?\b[A-PR-V][1-9]\d{6}\b['"]?/gi, "PASSPORT"],
+  [/(?:passport)[\s:=_-]{0,8}(?:no|number|num|#)?[\s:=_-]{1,8}['"]?\b[A-PR-V][1-9]\d{6}\b['"]?/gi, "PASSPORT"],
   [/(?:vehicle|registration|reg[\s-]?no|number[\s-]?plate|license[\s-]?plate)[\s:=]+['"]?\b[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}\b['"]?/gi, "VEHICLE_REG"],
 
   // === SENSITIVE CONTEXT PATTERNS ===
   // Bare "code" is deliberately excluded ("exit code 1234", "error code 5001")
-  [/\b(?:otp|pin|passcode|verification(?:\s+code)?|security\s+code|auth(?:entication)?\s+code|login\s+code|one[\s-]time\s+(?:password|code|pin))\b(?:\s+is)?\s*[:=]?\s*['"]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
+  [/\b(?:otp|pin|passcode|verification(?:\s+code)?|security\s+code|auth(?:entication)?\s+code|login\s+code|one[\s-]time\s+(?:password|code|pin))\b(?:\s+is)?\s{0,8}[:=]?\s{0,8}['"]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
   [/\b(?:enter|use|your)\s+(?:the\s+)?(?:otp|pin|code)(?:\s+is)?[\s:]+(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
   [/(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
   // Masks only the value. Any non-space characters, 6+ long. Skips obvious non-values:
   // template/env references ($X, <x>, {x}, %s), redactions (****), paths (PWD=/home/..),
-  // function calls (getenv(...)) and type/doc words (password: string).
-  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
+  // function calls (getenv(...)), references (creds.password, process.env.X) and type/doc words (password: string).
+  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:process\.env|os\.environ)\b)(?!(?:[\w$]+\.)+_?(?:password|passwd|pwd|pass|secret)['"]?(?:[\s,;)}\]]|$))(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
+  [/(?:パスワード|暗証番号)(?:\s{0,8}[:=：]\s{0,8}|は\s{0,8})['"「]?(?<secret>(?![$<{%*\[(\/~.])[!-~]{6,})/g, "PASSWORD_HINT"],
   // Value-only, so "Bearer " stays readable and a specific pattern on the same value (JWT)
   // wins the overlap. The negative lookahead skips values with a known specific prefix.
-  [/\b(?:bearer|token)[\s:]+(?<secret>(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_)[A-Za-z0-9\-_.]{20,})\b/gi, "BEARER_TOKEN"],
+  [/\b(?:bearer|token)[\s:]+(?<secret>(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_|x{8})[A-Za-z0-9\-_.]{20,})\b/gi, "BEARER_TOKEN"],
+  [/\bauthorization['"]?\s{0,8}[:=]\s{0,8}['"]?basic\s{1,8}(?<secret>[A-Za-z0-9+\/]{8,}={0,2})/gi, "BASIC_AUTH"],
 
   // === KEY=VALUE FORMAT PATTERNS ===
   // Value-only, so the key name stays readable and a more specific pattern matching the
-  // same value (e.g. OPENAI_KEY in OPENAI_API_KEY=sk-...) wins the overlap.
-  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
-  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
-  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
-  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?(?<secret>[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
+  // same value (e.g. OPENAI_KEY in OPENAI_API_KEY=sk-...) wins the overlap. Skips sample values.
+  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
+  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
+  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
+  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
 
   // === PRIVATE KEYS ===
-  [/-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi, "PRIVATE_KEY"],
-  [/-----BEGIN\s+OPENSSH\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+OPENSSH\s+PRIVATE\s+KEY-----/gi, "SSH_PRIVATE_KEY"],
-  [/-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----/gi, "PGP_PRIVATE_KEY"],
+  // A key cut off before its END line is still masked, through to the end of the paste.
+  [/-----BEGIN\s+(?:(?:RSA|EC|DSA|ENCRYPTED)\s+)?PRIVATE\s+KEY-----[\s\S]*?(?:-----END\s+(?:(?:RSA|EC|DSA|ENCRYPTED)\s+)?PRIVATE\s+KEY-----|$)/gi, "PRIVATE_KEY"],
+  [/-----BEGIN\s+OPENSSH\s+PRIVATE\s+KEY-----[\s\S]*?(?:-----END\s+OPENSSH\s+PRIVATE\s+KEY-----|$)/gi, "SSH_PRIVATE_KEY"],
+  [/-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?(?:-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----|$)/gi, "PGP_PRIVATE_KEY"],
 
   // === GENERIC FALLBACKS (order matters — these are last resort) ===
-  [/['"][A-Za-z0-9]{20,}['"]/g, "QUOTED_SECRET"],
+  // detector.js validators decide whether each candidate looks machine-generated.
+  [/['"](?<secret>[A-Za-z0-9]{20,})['"]/g, "QUOTED_SECRET"],
   [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
   [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, "BASE64_SECRET"]
 ];

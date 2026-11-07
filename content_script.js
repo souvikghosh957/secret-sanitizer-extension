@@ -1,13 +1,18 @@
 // Config
 const CONFIG = {
-  cacheSize: 100, // Cache last N text samples
   minTextLength: 6, // Skip processing very short text
   gestureWindowMs: 5000, // Smart Restore: max age of the trusted click/keypress behind a copy
-  contextMenuWindowMs: 60000 // Smart Restore: right-click → "Copy" may take a while
+  contextMenuWindowMs: 60000, // Smart Restore: right-click → "Copy" may take a while
+  noticeThrottleMs: 30000, // At most one "scanned" or "paused" notice per paste burst
+  cleanToastLimit: 3, // The "nothing to mask" toast is onboarding: it stops after this many
+  reviewDelayMs: 6000 // Review prompt waits for the masked toast to go away
 };
 
 // Unique ID counter for SVG gradient IDs (prevents DOM collisions when multiple toasts coexist)
 let _ssIconId = 0;
+
+// Above this many distinct values the toast offers rule-level opt-out only (mirrors background.js).
+const MAX_ALLOW_FROM_TOAST = 200;
 
 // Check if extension context is still valid
 function isExtensionContextValid() {
@@ -78,75 +83,57 @@ function sendToBackground(message) {
   });
 }
 
-// Performance cache
-const patternCache = new Map();
-
 // Patterns live in patterns.js and the engine in detector.js (both shared with popup.js).
-// Start with every pattern enabled so a paste that lands before settings load is
-// over-masked rather than leaked.
+// Until settings load: every pattern on, nothing allowed, not paused — so a paste that lands
+// early is over-masked rather than leaked.
 let COMPILED_PATTERNS = compilePatterns(SHARED_PATTERNS);
+let _allowedValues = new Set();
+let _allowSalt = null;
+let _pause = null;
+let _cleanToastCount = Infinity;
 
-async function loadPatternSettings() {
+async function loadSettings() {
   try {
-    const { disabledPatterns = [] } = await safeStorageGet("disabledPatterns");
+    const { disabledPatterns = [], allowedValues = [], allowSalt = null, pausedUntil, pausedSites, cleanToastCount = 0 } =
+      await safeStorageGet(["disabledPatterns", "allowedValues", "allowSalt", "pausedUntil", "pausedSites", "cleanToastCount"]);
     COMPILED_PATTERNS = compilePatterns(SHARED_PATTERNS, disabledPatterns);
-    patternCache.clear();
+    _allowedValues = new Set(allowedValues);
+    _allowSalt = allowSalt;
+    _pause = { pausedUntil, pausedSites };
+    _cleanToastCount = cleanToastCount;
   } catch (_) {
-    // Keep the current (all-enabled) patterns
+    // Keep the current settings
   }
 }
 
-loadPatternSettings();
+// Chrome clears a tab's badge when it navigates, so a paused site asks for its badge back.
+loadSettings().then(() => {
+  if (Array.isArray(_pause?.pausedSites) && _pause.pausedSites.includes(location.hostname)) {
+    sendToBackground({ action: "badge:sync" });
+  }
+});
 if (isExtensionContextValid()) {
-  // Apply pattern toggles from the popup without requiring a page reload
+  // Apply popup and toast changes without requiring a page reload
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes.disabledPatterns) loadPatternSettings();
+    if (area !== 'local') return;
+    if (changes.disabledPatterns || changes.allowedValues || changes.allowSalt ||
+        changes.pausedUntil || changes.pausedSites) {
+      loadSettings();
+    }
+    // Shared across tabs, so the onboarding toast stops after three pastes in total
+    if (changes.cleanToastCount) _cleanToastCount = changes.cleanToastCount.newValue ?? 0;
   });
 }
 
-// FNV-1a hash for cache keys — fast, low-collision string hash
-// For large strings (>2KB), sample first+last 512 chars + length for speed.
-// Cache hits are still verified by full text === comparison.
-function fnv1aHash(str) {
-  let hash = 0x811c9dc5; // FNV offset basis
-  let source = str;
-  if (str.length > 2048) {
-    source = str.slice(0, 512) + str.slice(-512) + str.length;
-  }
-  for (let i = 0; i < source.length; i++) {
-    hash ^= source.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0; // FNV prime, keep as uint32
-  }
-  return hash.toString(36);
-}
-
-// Detect + mask with caching. Returns { maskedText, replacements, partial }.
-// Every paste gets a random id baked into its placeholders ([OPENAI_KEY_k3f9_0]) so
-// placeholders from different pastes never collide.
+// Detect + mask. Returns { maskedText, replacements, partial }. Nothing is cached here: originals
+// are kept only in the vault, which expires. Every paste gets a random id baked into its
+// placeholders ([OPENAI_KEY_k3f9_0]) so placeholders from different pastes never collide.
 function sanitizeText(text) {
-  if (!text || text.length < CONFIG.minTextLength) {
-    return { maskedText: text, replacements: [], partial: false };
-  }
-
-  const cacheKey = fnv1aHash(text);
-  const cached = patternCache.get(cacheKey);
-  if (cached && cached.text === text) {
-    // Move to end for LRU eviction (delete + re-insert)
-    patternCache.delete(cacheKey);
-    patternCache.set(cacheKey, cached);
-    return cached.result;
-  }
-
-  const { matches, partial } = findSecrets(text, COMPILED_PATTERNS);
+  const { matches: found, partial } = findSecrets(text, COMPILED_PATTERNS);
+  const matches = dropAllowedValues(found, _allowedValues, _allowSalt);
   const pasteId = newPasteId();
   const { maskedText, replacements } = maskText(text, matches, (label, i) => makePlaceholder(label, pasteId, i));
-  const result = { maskedText, replacements, partial };
-
-  if (patternCache.size >= CONFIG.cacheSize) {
-    patternCache.delete(patternCache.keys().next().value);
-  }
-  patternCache.set(cacheKey, { text, result });
-  return result;
+  return { maskedText, replacements, partial };
 }
 
 // The vault lives in the background worker's memory-only storage (chrome.storage.session):
@@ -156,16 +143,34 @@ async function saveToVault(replacements) {
   if (!res?.ok) throw new Error(res?.error || "vault unavailable");
 }
 
-// Returns the bottom offset (px) needed to stack a new toast above all visible SS toasts
-function getToastStackOffset() {
-  let offset = 20;
-  document.querySelectorAll(
-    '.secret-sanitizer-toast, .secret-sanitizer-clean-toast, #ss-milestone-toast, .secret-sanitizer-review-toast'
-  ).forEach(t => {
-    const h = t.offsetHeight;
-    if (h > 0) offset += h + 12;
-  });
-  return offset;
+// All toasts live in one column fixed to the bottom-right corner, high enough to clear a
+// composer's send button, so they can never overlap each other. It ignores the pointer except
+// on the toasts themselves.
+function mountToast(toast) {
+  let stack = document.getElementById("ss-toast-stack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.id = "ss-toast-stack";
+    Object.assign(stack.style, {
+      position: "fixed",
+      bottom: "80px",
+      right: "16px",
+      display: "flex",
+      flexDirection: "column-reverse",
+      alignItems: "flex-end",
+      gap: "8px",
+      zIndex: "2147483647",
+      pointerEvents: "none"
+    });
+    document.body.appendChild(stack);
+  }
+  if (toast.style.pointerEvents !== "none") toast.style.pointerEvents = "auto";
+  stack.appendChild(toast);
+}
+
+// Toast buttons must never take focus from the editor, or typing stops mid-word.
+function keepEditorFocus(el) {
+  el.addEventListener("mousedown", (e) => e.preventDefault());
 }
 
 // Simple toast for basic messages — styled to match the smart toast's dark card
@@ -186,15 +191,11 @@ function showToast(message, type = "success") {
   const style = colors[type] || colors.success;
 
   Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
     background: "#1e293b",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "12px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-    zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "13px",
     fontWeight: "500",
@@ -234,7 +235,7 @@ function showToast(message, type = "success") {
   content.appendChild(iconDot);
   content.appendChild(msgSpan);
   toast.appendChild(content);
-  document.body.appendChild(toast);
+  mountToast(toast);
 
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
@@ -248,29 +249,26 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-// Subtle "clean" toast - confirms extension is active even when no secrets found
+// Subtle "clean" toast - tells a new user the extension is on. Stops after the first few.
 function showCleanToast() {
-  if (!document.body) return;
-  // Don't spam - throttle to once per 30 seconds
-  if (showCleanToast._lastShown && Date.now() - showCleanToast._lastShown < 30000) return;
+  if (!document.body || _cleanToastCount >= CONFIG.cleanToastLimit) return;
+  if (showCleanToast._lastShown && Date.now() - showCleanToast._lastShown < CONFIG.noticeThrottleMs) return;
   showCleanToast._lastShown = Date.now();
+  _cleanToastCount++;
+  safeStorageSet({ cleanToastCount: _cleanToastCount });
 
   document.querySelectorAll(".secret-sanitizer-clean-toast").forEach(t => t.remove());
 
   const toast = document.createElement("div");
   toast.className = "secret-sanitizer-clean-toast";
-  toast.setAttribute("role", "alert");
+  toast.setAttribute("role", "status");
 
   Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
     background: "#1e293b",
     color: "#94a3b8",
     padding: "0",
     borderRadius: "12px",
     boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
-    zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "12px",
     fontWeight: "500",
@@ -322,11 +320,11 @@ function showCleanToast() {
   iconWrap.appendChild(_svgClean);
 
   const cleanMsg = document.createElement("span");
-  cleanMsg.textContent = "Scanned \u2014 no secrets found";
+  cleanMsg.textContent = t("toast_active");
   content.appendChild(iconWrap);
   content.appendChild(cleanMsg);
   toast.appendChild(content);
-  document.body.appendChild(toast);
+  mountToast(toast);
 
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
@@ -340,8 +338,51 @@ function showCleanToast() {
   }, 1500);
 }
 
-// Smart toast with secret types and Undo
-function showSmartToast(secretTypes, onUndo, partial = false) {
+// Paused pastes go through untouched, so say so — but only once per burst of pastes.
+function showPausedNotice() {
+  if (showPausedNotice._lastShown && Date.now() - showPausedNotice._lastShown < CONFIG.noticeThrottleMs) return;
+  showPausedNotice._lastShown = Date.now();
+  showToast(t("toast_paused"), "warning");
+}
+
+function toastActionButton(text, onClick) {
+  const btn = document.createElement("button");
+  Object.assign(btn.style, {
+    background: "rgba(255,255,255,0.08)",
+    border: "none",
+    color: "#94a3b8",
+    padding: "4px 9px",
+    borderRadius: "5px",
+    fontSize: "11px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    flexShrink: "0"
+  });
+  btn.textContent = text;
+  keepEditorFocus(btn);
+  btn.onmouseenter = () => {
+    btn.style.background = "rgba(255,255,255,0.15)";
+    btn.style.color = "#f1f5f9";
+  };
+  btn.onmouseleave = () => {
+    btn.style.background = "rgba(255,255,255,0.08)";
+    btn.style.color = "#94a3b8";
+  };
+  btn.onclick = (e) => {
+    // These put plaintext back into the page or relax masking. The toast lives in the page
+    // DOM, so only honour real user clicks — page script can't forge isTrusted.
+    if (!e.isTrusted) return;
+    e.stopPropagation();
+    onClick();
+  };
+  return btn;
+}
+
+// Masked-paste toast. replacements: [placeholder, original] pairs from this paste.
+// onUndo restores everything and returns success; onRestore(subset) restores just those;
+// onNotSecret(request) records the user's "don't mask this again" choice.
+function showSmartToast(replacements, { onUndo, onRestore, onNotSecret, partial = false }) {
   if (!document.body) return;
   document.querySelectorAll(".secret-sanitizer-toast").forEach(t => t.remove());
 
@@ -349,20 +390,17 @@ function showSmartToast(secretTypes, onUndo, partial = false) {
   toast.className = "secret-sanitizer-toast";
   toast.setAttribute("role", "alert");
 
-  const types = [...new Set(secretTypes)];
+  const labels = replacements.map(([placeholder]) => placeholderLabel(placeholder) || "SECRET");
+  const types = [...new Set(labels)].map(patternName);
   const typeDisplay = types.slice(0, 2).join(", ") + (types.length > 2 ? ` +${types.length - 2}` : "");
 
   Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "80px",
-    right: "16px",
     background: "linear-gradient(135deg, #1e293b 0%, #182030 100%)",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "12px",
     border: "1px solid rgba(255,255,255,0.07)",
     boxShadow: "0 8px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(14,165,233,0.08)",
-    zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "12px",
     opacity: "0",
@@ -431,11 +469,9 @@ function showSmartToast(secretTypes, onUndo, partial = false) {
     overflow: "hidden",
     textOverflow: "ellipsis"
   });
-  label.textContent = `${secretTypes.length} secret${secretTypes.length > 1 ? 's' : ''} masked` +
-    (partial ? " \u00b7 partial scan" : "");
-  label.title = partial
-    ? `${typeDisplay} \u2014 very large paste: only known key formats were checked, review before sending`
-    : typeDisplay; // full type list on hover
+  label.textContent = t(replacements.length === 1 ? "toast_masked_one" : "toast_masked_many", [String(replacements.length)]) +
+    (partial ? " \u00b7 " + t("toast_partial") : "");
+  label.title = partial ? `${typeDisplay} \u2014 ${t("toast_partial_detail")}` : typeDisplay; // full type list on hover
 
   content.appendChild(icon);
   content.appendChild(label);
@@ -444,47 +480,62 @@ function showSmartToast(secretTypes, onUndo, partial = false) {
   // Declared before undo button so the onclick closure can reference it
   let dismissTimeout;
 
-  // Undo button (if callback provided)
-  if (onUndo) {
-    const undoBtn = document.createElement("button");
-    Object.assign(undoBtn.style, {
-      background: "rgba(255,255,255,0.08)",
-      border: "none",
-      color: "#94a3b8",
-      padding: "4px 9px",
-      borderRadius: "5px",
-      fontSize: "11px",
-      fontWeight: "500",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      flexShrink: "0"
-    });
-    undoBtn.textContent = "Undo";
-    // Prevent button from stealing focus away from the editor
-    undoBtn.addEventListener("mousedown", (e) => e.preventDefault());
-    undoBtn.onmouseenter = () => {
-      undoBtn.style.background = "rgba(255,255,255,0.15)";
-      undoBtn.style.color = "#f1f5f9";
+  const dismiss = () => {
+    clearTimeout(dismissTimeout);
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(8px)";
+    setTimeout(() => toast.remove(), 200);
+  };
+
+  const finish = (message, ok = true) => {
+    clearTimeout(dismissTimeout);
+    toast.remove();
+    showToast(message, ok ? "success" : "error");
+  };
+
+  content.appendChild(toastActionButton(t("toast_undo"), () => {
+    const restored = onUndo();
+    finish(t(restored ? "toast_undo_done" : "toast_undo_failed"), restored);
+  }));
+
+  // Only generic rules can be waved through: a recognised key format stays masked unless Undone.
+  const generic = replacements.filter(([placeholder]) => GENERIC_LABELS.has(placeholderLabel(placeholder)));
+  let panel = null;
+  if (generic.length > 0) {
+    panel = document.createElement("div");
+    Object.assign(panel.style, { display: "none", flexDirection: "column", gap: "4px", padding: "0 8px 8px" });
+    panel.addEventListener("click", (e) => e.stopPropagation());
+
+    const allow = async (items, request) => {
+      const restored = onRestore(items);
+      const saved = await onNotSecret(request);
+      const ok = restored > 0 && saved?.ok === true;
+      finish(t(ok ? "toast_allowed" : "toast_allow_failed"), ok);
     };
-    undoBtn.onmouseleave = () => {
-      undoBtn.style.background = "rgba(255,255,255,0.1)";
-      undoBtn.style.color = "#94a3b8";
-    };
-    undoBtn.onclick = (e) => {
-      // Undo puts plaintext secrets back into the page. The toast lives in the page DOM,
-      // so only honour real user clicks — page script can't forge isTrusted.
-      if (!e.isTrusted) return;
-      e.stopPropagation();
+
+    const originals = [...new Set(generic.map(([, original]) => original))];
+    if (originals.length <= MAX_ALLOW_FROM_TOAST) {
+      panel.appendChild(toastActionButton(
+        t(originals.length === 1 ? "toast_allow_one" : "toast_allow_many", [String(originals.length)]),
+        () => allow(generic, { action: "allow:add", values: originals })
+      ));
+    }
+    for (const ruleLabel of new Set(generic.map(([placeholder]) => placeholderLabel(placeholder)))) {
+      panel.appendChild(toastActionButton(
+        t("toast_stop_rule", [patternName(ruleLabel)]),
+        () => allow(generic.filter(([placeholder]) => placeholderLabel(placeholder) === ruleLabel),
+          { action: "rule:disable", label: ruleLabel })
+      ));
+    }
+    panel.querySelectorAll("button").forEach(b => { b.style.textAlign = "left"; });
+
+    const notSecretBtn = toastActionButton(t("toast_not_secret"), () => {
+      // Stays open until the user chooses or closes it
       clearTimeout(dismissTimeout);
-      const success = onUndo();
-      toast.style.opacity = "0";
-      toast.style.transform = "translateY(8px)";
-      setTimeout(() => {
-        toast.remove();
-        showToast(success !== false ? "Restored original text" : "Couldn't restore text", success !== false ? "success" : "error");
-      }, 200);
-    };
-    content.appendChild(undoBtn);
+      panel.style.display = "flex";
+      notSecretBtn.remove();
+    });
+    content.appendChild(notSecretBtn);
   }
 
   // Close (×) button — always shown so users can dismiss without waiting
@@ -502,40 +553,81 @@ function showSmartToast(secretTypes, onUndo, partial = false) {
     transition: "color 0.15s ease"
   });
   closeBtn.textContent = "×";
-  closeBtn.setAttribute("aria-label", "Dismiss");
-  closeBtn.addEventListener("mousedown", (e) => e.preventDefault()); // don't steal editor focus
+  closeBtn.setAttribute("aria-label", t("toast_dismiss"));
+  keepEditorFocus(closeBtn);
   closeBtn.onmouseenter = () => { closeBtn.style.color = "#cbd5e1"; };
   closeBtn.onmouseleave = () => { closeBtn.style.color = "#64748b"; };
   closeBtn.onclick = (e) => {
     e.stopPropagation();
-    clearTimeout(dismissTimeout);
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(8px)";
-    setTimeout(() => toast.remove(), 200);
+    dismiss();
   };
   content.appendChild(closeBtn);
 
   toast.appendChild(content);
-  document.body.appendChild(toast);
+  if (panel) toast.appendChild(panel);
+  mountToast(toast);
 
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
     toast.style.transform = "translateY(0)";
   });
 
-  dismissTimeout = setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(8px)";
-    setTimeout(() => toast.remove(), 200);
-  }, 5000);
+  dismissTimeout = setTimeout(dismiss, 5000);
 
-  // Clear timeout if manually dismissed
-  toast.addEventListener("click", () => {
-    clearTimeout(dismissTimeout);
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(8px)";
-    setTimeout(() => toast.remove(), 200);
-  });
+  // Clicking the toast body dismisses it too
+  toast.addEventListener("click", dismiss);
+}
+
+// Replaces this paste's placeholders with their originals, inside the editor it was pasted
+// into. Rich editors (Lexical, ProseMirror) split and reformat inserted text, so each placeholder
+// is located on its own. Returns how many were restored.
+function restorePlaceholders(target, replacements) {
+  let restored = 0;
+  if (target.isContentEditable) {
+    target.focus();
+    // Last first: replacing a placeholder can split the text node holding the earlier ones
+    for (let i = replacements.length - 1; i >= 0; i--) {
+      const [placeholder, original] = replacements[i];
+      const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        const idx = node.textContent.indexOf(placeholder);
+        if (idx === -1) continue;
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + placeholder.length);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('insertText', false, original);
+        restored++;
+        break;
+      }
+    }
+  } else if (target.value !== undefined) {
+    target.focus();
+    let value = target.value;
+    for (const [placeholder, original] of replacements) {
+      const idx = value.indexOf(placeholder);
+      if (idx === -1) continue;
+      value = value.substring(0, idx) + original + value.substring(idx + placeholder.length);
+      restored++;
+    }
+    if (restored > 0) setFieldValue(target, value);
+  }
+  return restored;
+}
+
+// Uses the native setter so React and friends notice the change.
+function setFieldValue(target, value) {
+  const nativeSetter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), 'value')?.set;
+  if (nativeSetter) {
+    nativeSetter.call(target, value);
+  } else {
+    target.value = value;
+  }
+  target.dispatchEvent(new Event('input', { bubbles: true }));
+  target.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 // Paste handler — registered at document_start in the window capture phase, so it runs
@@ -547,10 +639,15 @@ window.addEventListener("paste", (e) => {
   const clipboardText = e.clipboardData?.getData("text");
   if (!clipboardText || clipboardText.length < CONFIG.minTextLength) return;
 
+  if (isPaused(_pause, location.hostname)) {
+    showPausedNotice();
+    return;
+  }
+
   const { maskedText, replacements, partial } = sanitizeText(clipboardText);
   if (replacements.length === 0) {
     if (partial) {
-      showToast("Very large paste \u2014 only known key formats were checked", "warning");
+      showToast(t("toast_large_paste"), "warning");
     } else if (clipboardText.length >= 200 || /\S{20,}/.test(clipboardText)) {
       showCleanToast();
     }
@@ -564,7 +661,7 @@ window.addEventListener("paste", (e) => {
 
   // Async save (don't block UI). Undo works without it; Smart Restore needs it.
   saveToVault(replacements).catch(() => {
-    showToast("Couldn't save for Smart Restore \u2014 secrets were still masked", "warning");
+    showToast(t("toast_vault_failed"), "warning");
   });
 
   let inserted = false;
@@ -600,21 +697,9 @@ window.addEventListener("paste", (e) => {
       const start = target.selectionStart || 0;
       const end = target.selectionEnd || 0;
       const value = target.value || '';
-      const newValue = value.substring(0, start) + maskedText + value.substring(end);
-
-      // Use native setter for React/framework compatibility
-      const nativeSetter = Object.getOwnPropertyDescriptor(
-        Object.getPrototypeOf(target), 'value'
-      )?.set;
-      if (nativeSetter) {
-        nativeSetter.call(target, newValue);
-      } else {
-        target.value = newValue;
-      }
       const cursorPos = start + maskedText.length;
+      setFieldValue(target, value.substring(0, start) + maskedText + value.substring(end));
       target.setSelectionRange(cursorPos, cursorPos);
-      target.dispatchEvent(new Event('input', { bubbles: true }));
-      target.dispatchEvent(new Event('change', { bubbles: true }));
       inserted = true;
     } catch (err) {
       console.warn("[SecretSanitizer] Failed to insert masked text into textarea:", err);
@@ -622,127 +707,34 @@ window.addEventListener("paste", (e) => {
   }
 
   if (inserted) {
-    // Extract secret types from placeholders (e.g., [OPENAI_KEY_k3f9_0] -> OPENAI_KEY)
-    const secretTypes = replacements.map(([placeholder]) => placeholderLabel(placeholder) || "SECRET");
+    // No review prompt right after the user had to correct us.
+    const reviewTimer = setTimeout(checkReviewPrompt, CONFIG.reviewDelayMs);
 
-    // Undo: replace each placeholder with its original secret individually.
-    // This is more robust than replacing the entire maskedText at once, because
-    // rich text editors (Lexical, ProseMirror) often split/reformat inserted text.
-    const handleUndo = () => {
-      try {
-        if (target.isContentEditable) {
-          target.focus();
-          let restored = 0;
-
-          // Replace each placeholder individually in reverse order (last first)
-          // so earlier positions aren't shifted by earlier replacements.
-          // Optimisation: collect text nodes once; fall back to a fresh walk only
-          // when execCommand has restructured the DOM (e.g. split a shared node).
-          const cachedNodes = [];
-          {
-            const initWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
-            let n;
-            while ((n = initWalker.nextNode())) cachedNodes.push(n);
-          }
-
-          for (let i = replacements.length - 1; i >= 0; i--) {
-            const [placeholder, original] = replacements[i];
-            let found = false;
-
-            // Fast path: search cached text nodes (O(1) amortised across calls)
-            for (const node of cachedNodes) {
-              if (!target.contains(node)) continue;
-              const idx = node.textContent.indexOf(placeholder);
-              if (idx !== -1) {
-                const range = document.createRange();
-                range.setStart(node, idx);
-                range.setEnd(node, idx + placeholder.length);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.execCommand('insertText', false, original);
-                restored++;
-                found = true;
-                break;
-              }
-            }
-
-            // Slow-path fallback: fresh walk when execCommand restructured the DOM
-            // (e.g. two placeholders shared one text node and it was split)
-            if (!found) {
-              const freshWalker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
-              let node;
-              while ((node = freshWalker.nextNode())) {
-                const idx = node.textContent.indexOf(placeholder);
-                if (idx !== -1) {
-                  const range = document.createRange();
-                  range.setStart(node, idx);
-                  range.setEnd(node, idx + placeholder.length);
-                  const sel = window.getSelection();
-                  sel.removeAllRanges();
-                  sel.addRange(range);
-                  document.execCommand('insertText', false, original);
-                  restored++;
-                  break;
-                }
-              }
-            }
-          }
-
-          // If no individual placeholders found, try full-text fallback
-          if (restored === 0) {
-            document.execCommand('undo');
-          }
-          target.focus();
-          return restored > 0;
-        } else if (target.value !== undefined) {
-          target.focus();
-
-          // Replace each placeholder individually in the value
-          let currentValue = target.value;
-          let restored = 0;
-
-          for (const [placeholder, original] of replacements) {
-            const idx = currentValue.indexOf(placeholder);
-            if (idx !== -1) {
-              currentValue = currentValue.substring(0, idx) + original + currentValue.substring(idx + placeholder.length);
-              restored++;
-            }
-          }
-
-          if (restored > 0) {
-            // Use native setter for React/framework compatibility
-            const nativeSetter = Object.getOwnPropertyDescriptor(
-              Object.getPrototypeOf(target), 'value'
-            )?.set;
-            if (nativeSetter) {
-              nativeSetter.call(target, currentValue);
-            } else {
-              target.value = currentValue;
-            }
-          } else {
-            // Full-text fallback: replace entire maskedText block
-            const idx = currentValue.indexOf(maskedText);
-            if (idx !== -1) {
-              target.value = currentValue.substring(0, idx) + clipboardText + currentValue.substring(idx + maskedText.length);
-            }
-          }
-          target.dispatchEvent(new Event('input', { bubbles: true }));
-          target.dispatchEvent(new Event('change', { bubbles: true }));
-          return restored > 0;
+    showSmartToast(replacements, {
+      partial,
+      onUndo: () => {
+        clearTimeout(reviewTimer);
+        try {
+          if (restorePlaceholders(target, replacements) > 0) return true;
+          // Editor reformatted the placeholders beyond recognition: fall back to its undo stack
+          if (target.isContentEditable) document.execCommand('undo');
+          return false;
+        } catch (_) {
+          return false;
         }
-        return false;
-      } catch (_) {
-        return false;
-      }
-    };
-
-    showSmartToast(secretTypes, handleUndo, partial);
-
-    // Check if we should prompt for a review (delayed to not overlap)
-    setTimeout(() => checkReviewPrompt(), 6000);
+      },
+      onRestore: (items) => {
+        clearTimeout(reviewTimer);
+        try {
+          return restorePlaceholders(target, items);
+        } catch (_) {
+          return 0;
+        }
+      },
+      onNotSecret: (request) => sendToBackground(request)
+    });
   } else {
-    showToast("Insertion failed! Try pasting again.", "error");
+    showToast(t("toast_insert_failed"), "error");
   }
 }, true);
 
@@ -753,7 +745,9 @@ window.addEventListener("paste", (e) => {
 // isolated world via navigator.clipboard.writeText() — never through DOM events, the DOM,
 // or e.clipboardData.setData() (the page's own copy listeners could getData() it).
 // A restore also requires a recent *trusted* user gesture, which page script cannot forge,
-// and is refused on sites the user has allowed to read the clipboard.
+// and is refused on sites the user has allowed to read the clipboard. It is refused while
+// masking is paused too: a restored secret on the clipboard would reach the page on the next
+// paste, since nothing masks it then.
 
 let _lastGestureAt = 0;
 let _lastContextMenuAt = 0;
@@ -780,8 +774,12 @@ try {
 
 function canSmartRestore() {
   if (!isExtensionContextValid()) return false;
+  if (isPaused(_pause, location.hostname)) {
+    showToast(t("toast_restore_paused"), "warning");
+    return false;
+  }
   if (_siteCanReadClipboard) {
-    showToast("Smart Restore is off here — this site can read your clipboard", "warning");
+    showToast(t("toast_restore_blocked"), "warning");
     return false;
   }
   return true;
@@ -789,15 +787,9 @@ function canSmartRestore() {
 
 function showRestoreToast(restoredCount, expiredCount) {
   if (expiredCount > 0) {
-    showToast(
-      `${restoredCount} secret${restoredCount !== 1 ? 's' : ''} restored · ${expiredCount} expired`,
-      'warning'
-    );
+    showToast(t("toast_restored_expired", [String(restoredCount), String(expiredCount)]), 'warning');
   } else {
-    showToast(
-      `${restoredCount} secret${restoredCount !== 1 ? 's' : ''} restored in clipboard`,
-      'info'
-    );
+    showToast(t(restoredCount === 1 ? "toast_restored_one" : "toast_restored_many", [String(restoredCount)]), 'info');
   }
 }
 
@@ -823,7 +815,7 @@ async function restoreToClipboard(text, fallbackText) {
       await navigator.clipboard.writeText(fallbackText);
     }
   } catch (_) {
-    showToast("Couldn't restore secrets to the clipboard", "error");
+    showToast(t("toast_restore_failed"), "error");
   }
 }
 
@@ -862,11 +854,15 @@ document.addEventListener("__ss_restore_request", (e) => {
 
 // ==================== REVIEW PROMPT ====================
 
-const REVIEW_MILESTONES = [10, 50, 100, 500, 1000, 5000, 10000];
+const REVIEW_MILESTONES = [25, 50, 100, 500, 1000, 5000, 10000];
 
 async function checkReviewPrompt() {
   try {
-    const { stats = {}, reviewLastShownAt = 0 } = await safeStorageGet(["stats", "reviewLastShownAt"]);
+    const { stats = {}, reviewLastShownAt = 0, reviewDone = false } =
+      await safeStorageGet(["stats", "reviewLastShownAt", "reviewDone"]);
+    if (reviewDone) return;
+    // One thing at a time: another toast is up, so try again after the next masked paste
+    if (document.querySelector(".secret-sanitizer-toast, #ss-milestone-toast")) return;
     const total = stats.totalBlocked || 0;
 
     // Find the highest milestone the user has crossed
@@ -920,16 +916,12 @@ function showReviewToast(milestone, total) {
   toast.setAttribute("role", "alert");
 
   Object.assign(toast.style, {
-    position: "fixed",
-    bottom: getToastStackOffset() + "px",
-    right: "20px",
     background: "linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "16px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.1), 0 0 20px rgba(251,191,36,0.05)",
     animation: "ss-review-glow 5s ease-in-out infinite",
-    zIndex: "2147483647",
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "13px",
     opacity: "0",
@@ -937,6 +929,7 @@ function showReviewToast(milestone, total) {
     transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
     overflow: "hidden",
     maxWidth: "340px",
+    position: "relative",
     backdropFilter: "blur(16px)"
   });
 
@@ -1004,7 +997,7 @@ function showReviewToast(milestone, total) {
   milestoneSpan.style.cssText = "background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text";
   milestoneSpan.textContent = milestoneText;
   title.appendChild(milestoneSpan);
-  title.appendChild(document.createTextNode(" secrets protected"));
+  title.appendChild(document.createTextNode(" " + t("label_secrets_protected")));
 
   const sub = document.createElement("div");
   Object.assign(sub.style, {
@@ -1014,8 +1007,8 @@ function showReviewToast(milestone, total) {
     lineHeight: "1.4"
   });
   sub.textContent = milestone >= 100
-    ? "Trusted with " + total.toLocaleString() + " secrets. Help others stay safe."
-    : "Loving it? A quick rating goes a long way.";
+    ? t("review_trusted", [total.toLocaleString()])
+    : t("review_loving_it");
 
   textWrap.appendChild(title);
   textWrap.appendChild(sub);
@@ -1044,6 +1037,8 @@ function showReviewToast(milestone, total) {
     lineHeight: "1"
   });
   closeBtn.textContent = "\u2715";
+  closeBtn.setAttribute("aria-label", t("toast_dismiss"));
+  keepEditorFocus(closeBtn);
   closeBtn.onmouseenter = () => { closeBtn.style.background = "rgba(255,255,255,0.12)"; closeBtn.style.color = "#94a3b8"; };
   closeBtn.onmouseleave = () => { closeBtn.style.background = "rgba(255,255,255,0.06)"; closeBtn.style.color = "#475569"; };
   closeBtn.addEventListener("click", () => {
@@ -1062,7 +1057,7 @@ function showReviewToast(milestone, total) {
   const rateBtn = document.createElement("a");
   rateBtn.href = "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja/reviews";
   rateBtn.target = "_blank";
-  rateBtn.rel = "noopener";
+  rateBtn.rel = "noopener noreferrer"; // the chat's address stays out of the Web Store's logs
   Object.assign(rateBtn.style, {
     flex: "1",
     padding: "10px 16px",
@@ -1082,10 +1077,12 @@ function showReviewToast(milestone, total) {
     letterSpacing: "0.02em",
     boxShadow: "0 4px 14px rgba(245,158,11,0.25)"
   });
-  rateBtn.textContent = "\u2605 Rate on Chrome Store";
+  rateBtn.textContent = "\u2605 " + t("review_rate");
+  keepEditorFocus(rateBtn);
   rateBtn.onmouseenter = () => { rateBtn.style.transform = "translateY(-1px)"; rateBtn.style.boxShadow = "0 6px 20px rgba(245,158,11,0.35)"; };
   rateBtn.onmouseleave = () => { rateBtn.style.transform = "translateY(0)"; rateBtn.style.boxShadow = "0 4px 14px rgba(245,158,11,0.25)"; };
   rateBtn.addEventListener("click", () => {
+    safeStorageSet({ reviewDone: true });
     toast.style.opacity = "0";
     setTimeout(() => toast.remove(), 300);
   });
@@ -1102,7 +1099,8 @@ function showReviewToast(milestone, total) {
     cursor: "pointer",
     transition: "all 0.2s ease"
   });
-  laterBtn.textContent = "Later";
+  laterBtn.textContent = t("review_later");
+  keepEditorFocus(laterBtn);
   laterBtn.onmouseenter = () => { laterBtn.style.background = "rgba(255,255,255,0.1)"; laterBtn.style.color = "#94a3b8"; };
   laterBtn.onmouseleave = () => { laterBtn.style.background = "rgba(255,255,255,0.06)"; laterBtn.style.color = "#64748b"; };
   laterBtn.addEventListener("click", () => {
@@ -1120,7 +1118,7 @@ function showReviewToast(milestone, total) {
   toast.appendChild(shimmer);
   toast.appendChild(content);
   toast.appendChild(closeBtn);
-  document.body.appendChild(toast);
+  mountToast(toast);
 
   requestAnimationFrame(() => {
     toast.style.opacity = "1";
@@ -1177,22 +1175,16 @@ function showMilestoneCelebration(milestone) {
     document.head.appendChild(style);
   }
 
-  const bottomOffset = getToastStackOffset();
-
   // Outer wrapper for the gradient border effect
   const wrapper = document.createElement("div");
   wrapper.id = "ss-milestone-toast";
   wrapper.setAttribute("role", "alert");
   Object.assign(wrapper.style, {
-    position: "fixed",
-    bottom: bottomOffset + "px",
-    right: "20px",
     padding: "1.5px",
     borderRadius: "16px",
     background: "linear-gradient(135deg, #0ea5e9, #06b6d4, #818cf8, #fbbf24, #0ea5e9)",
     backgroundSize: "300% 300%",
     animation: "ss-milestone-border 6s ease infinite, ss-milestone-glow 5s ease-in-out infinite",
-    zIndex: "2147483647",
     opacity: "0",
     transform: "translateY(12px) scale(0.9)",
     transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -1315,7 +1307,7 @@ function showMilestoneCelebration(milestone) {
   mSpan.textContent = mText;
   const protSpan = document.createElement("span");
   protSpan.style.color = "#e2e8f0";
-  protSpan.textContent = " secrets protected";
+  protSpan.textContent = " " + t("label_secrets_protected");
   count.appendChild(mSpan);
   count.appendChild(protSpan);
 
@@ -1328,17 +1320,9 @@ function showMilestoneCelebration(milestone) {
   });
 
   // Dynamic sub-text based on milestone tier
-  const subTexts = {
-    100: "Getting started!",
-    500: "Privacy champion",
-    1000: "Security pro",
-    5000: "Elite protector",
-    10000: "Legendary guardian",
-    50000: "Unstoppable force",
-    100000: "God-tier security"
-  };
-  const nearestSub = Object.keys(subTexts).reverse().find(k => milestone >= Number(k));
-  sub.textContent = nearestSub ? `Milestone \u2022 ${subTexts[nearestSub]}` : "Milestone reached";
+  const subTiers = [100000, 50000, 10000, 5000, 1000, 500, 100];
+  const tier = subTiers.find(k => milestone >= k);
+  sub.textContent = tier ? t("milestone_tier", [t(`milestone_${tier}`)]) : t("milestone_reached");
 
   textWrap.appendChild(count);
   textWrap.appendChild(sub);
@@ -1347,7 +1331,7 @@ function showMilestoneCelebration(milestone) {
   toast.appendChild(iconWrap);
   toast.appendChild(textWrap);
   wrapper.appendChild(toast);
-  document.body.appendChild(wrapper);
+  mountToast(wrapper);
 
   // Animate in
   requestAnimationFrame(() => {
