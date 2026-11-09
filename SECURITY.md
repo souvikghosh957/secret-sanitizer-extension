@@ -31,7 +31,7 @@ Secret Sanitizer is built with a security-first architecture:
 | **Zero network requests** | No fetch or XMLHttpRequest anywhere; messages only travel between the extension's own components. Verify: `grep -n "fetch\|XMLHttpRequest" *.js popup/*.js`. The only web page involved is the static uninstall page Chrome opens after removal, which has no scripts and receives nothing about you |
 | **Local-only processing** | All pattern matching runs in your browser via regex |
 | **Memory-only vault** | Originals live in `chrome.storage.session`: held in memory, never written to disk, deleted after 15 minutes or when the browser closes. Only the background worker and popup can read it; content scripts can only resolve placeholders created on their own site |
-| **Page isolation** | Paste interception runs before any page script. Smart Restore writes to the clipboard from the extension's isolated world only after a trusted user gesture — plaintext is never exposed to the page's DOM or JavaScript |
+| **Page isolation** | Paste interception runs before any page script. Smart Restore writes to the clipboard from the extension's isolated world only after a trusted copy gesture (a click outside a text field, a copy shortcut, or right-click → Copy; typing doesn't count) — plaintext is never exposed to the page's DOM or JavaScript |
 | **No tracking** | No analytics, telemetry, or third-party scripts |
 | **Minimal permissions** | Only requests permissions strictly needed for functionality |
 | **Open source** | Full source code is auditable on GitHub |

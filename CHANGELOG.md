@@ -2,6 +2,11 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.4.1] - 2026-11-09
+
+### Security
+- **Smart Restore needs a copy gesture.** Any keypress used to count as the user action behind a restore, so while you typed in the chat box, script on the page could restore placeholders it could see onto your clipboard (through its own copy call or `execCommand('copy')`), mixed with text of its choosing. Only a click outside a text field, Enter/Space on a button, Ctrl/Cmd+C, Ctrl+Insert, a Ctrl/Cmd+Shift app shortcut, or right-click → Copy count now. Copy buttons and copy shortcuts work as before
+
 ## [2.4.0] - 2026-11-07
 
 ### Fewer false positives

@@ -751,9 +751,37 @@ window.addEventListener("paste", (e) => {
 
 let _lastGestureAt = 0;
 let _lastContextMenuAt = 0;
-const markUserGesture = (e) => { if (e.isTrusted) _lastGestureAt = Date.now(); };
-window.addEventListener("pointerdown", markUserGesture, true);
-window.addEventListener("keydown", markUserGesture, true);
+
+// Only gestures that can mean "copy" count. Typing or clicking in a text field doesn't: those
+// happen all the time, and page script could use them to trigger a restore (its own copy
+// button call or execCommand('copy')) the user never asked for.
+function isTextField(el) {
+  if (!el) return false;
+  if (el.isContentEditable || el.tagName === "TEXTAREA") return true;
+  return el.tagName === "INPUT" && !/^(?:button|submit|reset|image|checkbox|radio)$/i.test(el.type);
+}
+
+// Ctrl/Cmd+C or Ctrl+Insert, and Ctrl/Cmd+Shift app shortcuts (ChatGPT's "copy last response").
+// e.code covers non-Latin layouts, where Ctrl+C reports e.key "с".
+function isCopyShortcut(e) {
+  if (!e.ctrlKey && !e.metaKey) return false;
+  const key = (e.key || "").toLowerCase();
+  if (key === "c" || e.code === "KeyC" || key === "insert") return true;
+  return e.shiftKey && key !== "v" && e.code !== "KeyV"; // Ctrl+Shift+V is a paste
+}
+
+// The element the event started on: e.target is retargeted to the host for editors in shadow DOM
+const eventOrigin = (e) => e.composedPath?.()[0] || e.target;
+
+window.addEventListener("pointerdown", (e) => {
+  if (e.isTrusted && !isTextField(eventOrigin(e))) _lastGestureAt = Date.now();
+}, true);
+window.addEventListener("keydown", (e) => {
+  if (!e.isTrusted) return;
+  // Enter/Space activate a focused copy button
+  const activatesButton = (e.key === "Enter" || e.key === " ") && !isTextField(eventOrigin(e));
+  if (activatesButton || isCopyShortcut(e)) _lastGestureAt = Date.now();
+}, true);
 window.addEventListener("contextmenu", (e) => { if (e.isTrusted) _lastContextMenuAt = Date.now(); }, true);
 
 function hasRecentUserGesture() {

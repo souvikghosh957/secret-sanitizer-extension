@@ -94,7 +94,7 @@ No manual lookup. No digging through the vault. Just paste and it works.
 
 Originals are kept for 15 minutes. Until then, you can also paste a placeholder into the popup to see its original.
 
-Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only after a real click or keypress, and only on the site where you pasted it. It switches itself off while masking is paused and on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
+Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only when you click a copy button or use a copy shortcut (typing in the chat doesn't count), and only on the site where you pasted it. It switches itself off while masking is paused and on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
 
 ---
 

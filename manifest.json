@@ -3,7 +3,7 @@
   "name": "__MSG_ext_name__",
   "short_name": "Secret Sanitizer",
   "default_locale": "en",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "minimum_chrome_version": "102",
   "description": "__MSG_ext_description__",
   "icons": {
