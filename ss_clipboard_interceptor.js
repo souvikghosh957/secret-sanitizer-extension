@@ -15,10 +15,31 @@
   if (window.__ssClipboardInterceptorInstalled) return;
   window.__ssClipboardInterceptorInstalled = true;
 
+  // Plain [OPENAI_KEY_k3f9_0] or Markdown-escaped \[OPENAI\_KEY\_k3f9\_0\] (some copy buttons
+  // serialise to Markdown). Mirrors LOOSE_PLACEHOLDER_SOURCE in detector.js.
+  const PLACEHOLDER_RE = /\\?\[[A-Z](?:\\?[A-Z0-9_])*\\?_[a-z0-9]{4}\\?_\d+\\?\]/;
+
+  // Copy buttons that put their text on the copy event instead: a copy listener calling
+  // e.clipboardData.setData() after execCommand('copy'), often with nothing selected and the
+  // event stopped before it reaches the document. That write can't be taken over here, so this
+  // only tells the content script what was copied (masked text, one way); it decides whether a
+  // trusted copy is in progress and restores afterwards.
+  const _origSetData = DataTransfer.prototype.setData;
+  DataTransfer.prototype.setData = function (type, data) {
+    const result = _origSetData.call(this, type, data);
+    try {
+      if (typeof data === 'string' && /^text(?:\/plain)?$/i.test(String(type).trim()) && PLACEHOLDER_RE.test(data)) {
+        document.dispatchEvent(new CustomEvent('__ss_restore_hint', { detail: data }));
+      }
+    } catch (_) {
+      // Never let the relay break the page's own copy
+    }
+    return result;
+  };
+
   const clipboard = navigator.clipboard;
   if (!clipboard) return; // insecure context (http://) — no async clipboard API to wrap
 
-  const PLACEHOLDER_RE = /\[[A-Z][A-Z0-9_]*_[a-z0-9]{4}_\d+\]/;
   const _origWriteText = clipboard.writeText.bind(clipboard);
   const _origWrite = clipboard.write.bind(clipboard);
 

@@ -47,7 +47,7 @@ function testSanitize(text, disabledLabels, allowedHashes, allowSalt) {
 
 // Detect if text contains placeholders produced by a paste (unmask mode)
 function detectMode(text) {
-  return PLACEHOLDER_TEST_RE.test(text) ? 'unmask' : 'test';
+  return LOOSE_PLACEHOLDER_TEST_RE.test(text) ? 'unmask' : 'test';
 }
 
 // ==================== MAIN ====================
@@ -357,10 +357,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           const found = new Set();
-          const unmasked = text.replace(new RegExp(PLACEHOLDER_SOURCE, "g"), (token) => {
-            if (!originals.has(token)) return token;
-            found.add(token);
-            return originals.get(token);
+          const unmasked = replacePlaceholders(text, (placeholder) => {
+            if (!originals.has(placeholder)) return undefined;
+            found.add(placeholder);
+            return originals.get(placeholder);
           });
           const replacedCount = found.size;
 
