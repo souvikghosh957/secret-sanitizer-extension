@@ -852,7 +852,7 @@ async function restoreToClipboard(text, fallbackText) {
   const resolved = tokens.filter(t => typeof values[t] === "string");
   try {
     if (resolved.length > 0) {
-      const restored = text.replace(new RegExp(PLACEHOLDER_SOURCE, "g"), (m) => values[m] ?? m);
+      const restored = replacePlaceholders(text, (placeholder) => values[placeholder]);
       await navigator.clipboard.writeText(restored);
       showRestoreToast(resolved.length, tokens.length - resolved.length);
     } else if (fallbackText !== undefined) {
@@ -866,15 +866,21 @@ async function restoreToClipboard(text, fallbackText) {
 // Manual copy (Ctrl/Cmd+C, right-click → Copy) and page copy buttons that use
 // execCommand('copy'). The browser/page completes the normal (masked) copy first; the
 // async write below then replaces it with the restored text.
-document.addEventListener("copy", (e) => {
+// On window, capture phase: this script runs before any page script, so its listener is first in
+// line and sees every copy, including ones the page stops right there (ChatGPT's copy button
+// does, so a document-level listener never saw them).
+let _trustedCopyAt = 0;
+
+window.addEventListener("copy", (e) => {
   if (!e.isTrusted) return; // synthetic copy events carry no real clipboard action
+  _trustedCopyAt = Date.now();
 
   // Textarea elements keep their own selection, separate from window.getSelection()
   const t = e.target;
   const selected = (t && t.tagName === "TEXTAREA")
     ? t.value.substring(t.selectionStart || 0, t.selectionEnd ?? t.value.length)
     : (window.getSelection()?.toString() || "");
-  if (!selected || !PLACEHOLDER_TEST_RE.test(selected)) return;
+  if (!selected || !LOOSE_PLACEHOLDER_TEST_RE.test(selected)) return;
 
   const viaContextMenu = Date.now() - _lastContextMenuAt < CONFIG.contextMenuWindowMs;
   if (!hasRecentUserGesture() && !viaContextMenu) return;
@@ -889,11 +895,26 @@ document.addEventListener("copy", (e) => {
 // can dispatch it at will — hence the trusted-gesture requirement.
 document.addEventListener("__ss_restore_request", (e) => {
   const text = e.detail;
-  if (typeof text !== "string" || !PLACEHOLDER_TEST_RE.test(text)) return;
+  if (typeof text !== "string" || !LOOSE_PLACEHOLDER_TEST_RE.test(text)) return;
   if (!hasRecentUserGesture() || !canSmartRestore()) return;
 
   e.preventDefault(); // tells the MAIN-world wrapper we own this clipboard write
   restoreToClipboard(text, text);
+});
+
+// Copy buttons that put their text on the copy event (a copy listener calling
+// e.clipboardData.setData(), usually with nothing selected), relayed by the interceptor. A page
+// can call setData whenever it likes, so this only counts during a trusted copy event, and needs
+// the same copy gesture as every other restore. The page's own copy completes first; the
+// restored text replaces it afterwards.
+document.addEventListener("__ss_restore_hint", (e) => {
+  const text = e.detail;
+  if (typeof text !== "string" || !LOOSE_PLACEHOLDER_TEST_RE.test(text)) return;
+  if (Date.now() - _trustedCopyAt > 1000) return;
+  const viaContextMenu = Date.now() - _lastContextMenuAt < CONFIG.contextMenuWindowMs;
+  if (!hasRecentUserGesture() && !viaContextMenu) return;
+  if (!canSmartRestore()) return;
+  restoreToClipboard(text);
 });
 
 // ==================== REVIEW PROMPT ====================

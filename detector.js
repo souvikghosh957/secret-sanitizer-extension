@@ -567,9 +567,32 @@ function makePlaceholder(label, pasteId, index) {
   return `[${label}_${pasteId}_${index}]`;
 }
 
-// Returns every placeholder token in text (in order, may repeat)
+// Copy buttons that turn a reply back into Markdown (ChatGPT's does) escape brackets and
+// underscores: \[OPENAI\_KEY\_k3f9\_0\]. Placeholders are recognised in that form too and
+// read as the plain one, so Smart Restore and the popup resolve them all the same.
+const LOOSE_PLACEHOLDER_SOURCE = String.raw`\\?\[[A-Z](?:\\?[A-Z0-9_])*\\?_[a-z0-9]{4}\\?_\d+\\?\]`;
+const LOOSE_PLACEHOLDER_TEST_RE = new RegExp(LOOSE_PLACEHOLDER_SOURCE);
+
+// The plain placeholder behind a plain or Markdown-escaped token, or null if it isn't one.
+function canonicalPlaceholder(token) {
+  const plain = token.replace(/\\/g, "");
+  return PLACEHOLDER_LABEL_RE.test(plain) ? plain : null;
+}
+
+// Returns every placeholder in text as its plain form (in order, may repeat)
 function findPlaceholders(text) {
-  return text.match(new RegExp(PLACEHOLDER_SOURCE, 'g')) || [];
+  return (text.match(new RegExp(LOOSE_PLACEHOLDER_SOURCE, 'g')) || [])
+    .map(canonicalPlaceholder).filter(Boolean);
+}
+
+// Replaces each placeholder (plain or escaped) with resolve(plainPlaceholder); tokens that
+// resolve to undefined are left as they were.
+function replacePlaceholders(text, resolve) {
+  return text.replace(new RegExp(LOOSE_PLACEHOLDER_SOURCE, 'g'), (token) => {
+    const plain = canonicalPlaceholder(token);
+    const value = plain === null ? undefined : resolve(plain);
+    return value === undefined ? token : value;
+  });
 }
 
 function placeholderLabel(placeholder) {
@@ -580,8 +603,8 @@ function placeholderLabel(placeholder) {
 if (typeof module !== "undefined") {
   module.exports = {
     DETECTOR_CONFIG, GENERIC_LABELS, compilePatterns, findSecrets, maskText, calculateEntropy,
-    luhnValid, verhoeffValid, newPasteId, makePlaceholder, findPlaceholders,
-    placeholderLabel, PLACEHOLDER_TEST_RE, wordScore, looksRandom, sha256Hex, allowedValueHash,
-    dropAllowedValues
+    luhnValid, verhoeffValid, newPasteId, makePlaceholder, findPlaceholders, replacePlaceholders,
+    canonicalPlaceholder, placeholderLabel, PLACEHOLDER_TEST_RE, LOOSE_PLACEHOLDER_TEST_RE,
+    wordScore, looksRandom, sha256Hex, allowedValueHash, dropAllowedValues
   };
 }

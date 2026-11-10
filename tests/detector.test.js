@@ -121,6 +121,32 @@ test("placeholders are unique per paste and round-trip through the helpers", () 
   assert.deepEqual([...d.findPlaceholders(`x ${a} y ${b} [NOT_A_PLACEHOLDER_0]`)], [a, b]);
 });
 
+// ChatGPT's copy button turns the reply back into Markdown and escapes [ ] and _.
+test("Markdown-escaped placeholders are recognised and restored as the plain ones", () => {
+  const plain = "[OPENAI_KEY_k3f9_0]";
+  const escaped = String.raw`\[OPENAI\_KEY\_k3f9\_0\]`;
+  const partlyEscaped = String.raw`[OPENAI\_KEY_k3f9_0]`;
+  for (const token of [plain, escaped, partlyEscaped]) {
+    assert.ok(d.LOOSE_PLACEHOLDER_TEST_RE.test(token), token);
+    assert.equal(d.canonicalPlaceholder(token), plain);
+  }
+  assert.equal(d.canonicalPlaceholder(String.raw`\[not\_one\]`), null);
+  assert.ok(!d.LOOSE_PLACEHOLDER_TEST_RE.test(String.raw`snake\_case and [link](x)`));
+
+  const text = String.raw`Use \[OPENAI\_KEY\_k3f9\_0\] here and [DB_CONN_k3f9_1] there, keep \[OTHER\_zz99\_0\]`;
+  assert.deepEqual([...d.findPlaceholders(text)], [plain, "[DB_CONN_k3f9_1]", "[OTHER_zz99_0]"]);
+  const values = { [plain]: "sk-proj-real", "[DB_CONN_k3f9_1]": "postgres://a:b@h/db" };
+  assert.equal(
+    d.replacePlaceholders(text, (p) => values[p]),
+    String.raw`Use sk-proj-real here and postgres://a:b@h/db there, keep \[OTHER\_zz99\_0\]`
+  );
+
+  // Pathological input stays fast
+  const t0 = performance.now();
+  d.findPlaceholders("[" + "A_".repeat(100000));
+  assert.ok(performance.now() - t0 < 500);
+});
+
 test("Luhn and Verhoeff validators", () => {
   assert.equal(d.luhnValid("4111111111111111"), true);
   assert.equal(d.luhnValid("4111222233334444"), false);

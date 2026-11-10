@@ -20,7 +20,8 @@ function loadScripts(files, globals = {}) {
 function loadDetector() {
   const { get } = loadScripts(["patterns.js", "detector.js"]);
   const api = get(`({ SHARED_PATTERNS, DETECTOR_CONFIG, compilePatterns, findSecrets, maskText,
-    newPasteId, makePlaceholder, findPlaceholders, placeholderLabel, PLACEHOLDER_TEST_RE,
+    newPasteId, makePlaceholder, findPlaceholders, replacePlaceholders, canonicalPlaceholder,
+    placeholderLabel, PLACEHOLDER_TEST_RE, LOOSE_PLACEHOLDER_TEST_RE,
     luhnValid, verhoeffValid, GENERIC_LABELS, wordScore, looksRandom, sha256Hex, allowedValueHash,
     dropAllowedValues })`);
   const compiled = api.compilePatterns(api.SHARED_PATTERNS);

@@ -11,6 +11,8 @@ All notable changes to Secret Sanitizer are documented here.
 - The popup no longer allows plugin content
 
 ### Fixed
+- **ChatGPT's copy button now restores.** It puts the text on the copy event itself and stops the event before it reaches the page, so Smart Restore never saw it. Such copies are now picked up, with the same copy-gesture check as every other restore. Copy shortcuts and right-click → Copy were unaffected
+- Placeholders copied as Markdown, with backslashes before brackets and underscores (`\[OPENAI\_KEY\_k3f9\_0\]`), are recognised by Smart Restore and the popup's unmask box
 - On a custom site whose editor is a web component (shadow DOM), a paste with a secret in it was refused with "couldn't insert". The masked text is now inserted
 - Two pastes landing at the same moment could lose one from the weekly count
 
