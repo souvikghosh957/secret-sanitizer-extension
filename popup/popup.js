@@ -900,7 +900,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           // Only import known safe settings keys with type validation
           const safeData = {};
-          if (Array.isArray(data.disabledPatterns)) safeData.disabledPatterns = data.disabledPatterns.filter(p => typeof p === 'string');
+          // Only rules this version knows, so a file can't fill storage with junk labels
+          if (Array.isArray(data.disabledPatterns)) {
+            safeData.disabledPatterns = [...new Set(data.disabledPatterns.filter(p => allLabels.includes(p)))];
+          }
           // Sites are normalized + validated so a malformed entry can't break registration
           if (Array.isArray(data.customSites)) {
             safeData.customSites = [...new Set(data.customSites.map(normalizeSite).filter(Boolean))]

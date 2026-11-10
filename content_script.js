@@ -2,7 +2,7 @@
 const CONFIG = {
   minTextLength: 6, // Skip processing very short text
   gestureWindowMs: 5000, // Smart Restore: max age of the trusted click/keypress behind a copy
-  contextMenuWindowMs: 60000, // Smart Restore: right-click → "Copy" may take a while
+  contextMenuWindowMs: 60000, // Smart Restore: right-click → "Copy" may take a while (ends at the next click or key)
   noticeThrottleMs: 30000, // At most one "scanned" or "paused" notice per paste burst
   cleanToastLimit: 3, // The "nothing to mask" toast is onboarding: it stops after this many
   reviewDelayMs: 6000 // Review prompt waits for the masked toast to go away
@@ -630,6 +630,14 @@ function setFieldValue(target, value) {
   target.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
+// The focused element, followed into shadow roots: a web-component editor is otherwise hidden
+// behind its host, and a paste with secrets into it could never be completed.
+function deepActiveElement() {
+  let el = document.activeElement;
+  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+  return el;
+}
+
 // Paste handler — registered at document_start in the window capture phase, so it runs
 // before any listener the page can add and the page never sees the unmasked paste.
 window.addEventListener("paste", (e) => {
@@ -657,7 +665,7 @@ window.addEventListener("paste", (e) => {
   e.preventDefault();
   e.stopImmediatePropagation();
 
-  const target = document.activeElement;
+  const target = deepActiveElement();
 
   // Async save (don't block UI). Undo works without it; Smart Restore needs it.
   saveToVault(replacements).catch(() => {
@@ -675,11 +683,12 @@ window.addEventListener("paste", (e) => {
       // execCommand is deprecated and may throw in sandboxed iframes — fallback below handles it
     }
 
-    // Fallback: Selection API (no undo stack integration)
+    // Fallback: Selection API (no undo stack integration). Only when the selection really is
+    // inside the editor — a range rescoped to a shadow host would land the text outside it.
     if (!inserted) {
       try {
         const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
+        if (sel.rangeCount > 0 && target.contains(sel.getRangeAt(0).commonAncestorContainer)) {
           const range = sel.getRangeAt(0);
           range.deleteContents();
           range.insertNode(document.createTextNode(maskedText));
@@ -773,11 +782,18 @@ function isCopyShortcut(e) {
 // The element the event started on: e.target is retargeted to the host for editors in shadow DOM
 const eventOrigin = (e) => e.composedPath?.()[0] || e.target;
 
+// Choosing "Copy" from the context menu fires no pointer or key event on the page, so any such
+// event means the menu is gone and its window can close early: page script shouldn't get a whole
+// minute in which an execCommand('copy') of its own counts as the user's right-click → Copy.
+// (For a right-click the pointerdown fires before contextmenu, so the window is set after this.)
 window.addEventListener("pointerdown", (e) => {
-  if (e.isTrusted && !isTextField(eventOrigin(e))) _lastGestureAt = Date.now();
+  if (!e.isTrusted) return;
+  _lastContextMenuAt = 0;
+  if (!isTextField(eventOrigin(e))) _lastGestureAt = Date.now();
 }, true);
 window.addEventListener("keydown", (e) => {
   if (!e.isTrusted) return;
+  _lastContextMenuAt = 0;
   // Enter/Space activate a focused copy button
   const activatesButton = (e.key === "Enter" || e.key === " ") && !isTextField(eventOrigin(e));
   if (activatesButton || isCopyShortcut(e)) _lastGestureAt = Date.now();

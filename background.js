@@ -28,6 +28,19 @@ function contentScriptsFor(key, matches) {
   ];
 }
 
+// The isolated-world script does the masking; the MAIN-world one only extends Smart Restore to
+// a site's copy buttons. They're registered in separate calls, so if the browser refuses the
+// second (world: "MAIN" needs Chrome 111) masking still goes up.
+async function registerSite(key, matches) {
+  const [isolated, main] = contentScriptsFor(key, matches);
+  await chrome.scripting.registerContentScripts([isolated]);
+  try {
+    await chrome.scripting.registerContentScripts([main]);
+  } catch (err) {
+    console.warn(`Copy-button restore unavailable for ${matches.join(", ")}:`, err);
+  }
+}
+
 // Default sites and each custom site are registered separately: one bad entry (or a
 // browser-rejected pattern) can only ever disable itself, never protection everywhere.
 async function doRegisterContentScripts() {
@@ -42,9 +55,7 @@ async function doRegisterContentScripts() {
   const activeDefaults = DEFAULT_SITES.filter(s => !removedDefaults.includes(s));
   if (activeDefaults.length > 0) {
     try {
-      await chrome.scripting.registerContentScripts(
-        contentScriptsFor("defaults", activeDefaults.map(siteMatchPattern))
-      );
+      await registerSite("defaults", activeDefaults.map(siteMatchPattern));
     } catch (err) {
       console.warn("Content script registration failed for default sites:", err);
     }
@@ -55,7 +66,7 @@ async function doRegisterContentScripts() {
     .filter(s => !DEFAULT_SITES.includes(s));
   for (const [i, site] of validCustom.entries()) {
     try {
-      await chrome.scripting.registerContentScripts(contentScriptsFor(`custom-${i}`, [siteMatchPattern(site)]));
+      await registerSite(`custom-${i}`, [siteMatchPattern(site)]);
     } catch (err) {
       console.warn(`Content script registration failed for ${site}:`, err);
     }
@@ -387,15 +398,18 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
     updateBadge();
     checkMilestones(changes.stats.newValue, changes.stats.oldValue);
 
-    // Update weekly stats
+    // Update weekly stats. Under the vault lock: two pastes landing together would otherwise
+    // both read the same count and one increment would be lost.
     if (changes.stats.newValue && changes.stats.oldValue) {
       const diff = (changes.stats.newValue.totalBlocked || 0) - (changes.stats.oldValue.totalBlocked || 0);
       if (diff > 0) {
         try {
-          const { weeklyStats = { weekStart: getWeekStart(new Date()), weekBlocked: 0 } } =
-            await chrome.storage.local.get("weeklyStats");
-          weeklyStats.weekBlocked = (weeklyStats.weekBlocked || 0) + diff;
-          await chrome.storage.local.set({ weeklyStats });
+          await withVaultLock(async () => {
+            const { weeklyStats = { weekStart: getWeekStart(new Date()), weekBlocked: 0 } } =
+              await chrome.storage.local.get("weeklyStats");
+            weeklyStats.weekBlocked = (weeklyStats.weekBlocked || 0) + diff;
+            await chrome.storage.local.set({ weeklyStats });
+          });
         } catch (err) {}
       }
     }
