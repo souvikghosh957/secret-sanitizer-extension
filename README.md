@@ -1,9 +1,10 @@
 <p align="center">
-  <img src="readme-heading.png" alt="Secret Sanitizer — Prevent API Key & Credential Leaks to AI Chats" style="max-width:100%;" />
+  <img src="readme-heading.png" alt="Secret Sanitizer — Paste freely. Leak nothing. A pasted Stripe key shows up in the AI chat as [STRIPE_KEY_0]." />
 </p>
 
 <p align="center">
-  Paste freely. Leak nothing. API keys, tokens, and credentials are masked locally before they reach AI chats — 70+ patterns, open source, zero tracking.
+  A Chrome extension that masks API keys, tokens, and passwords <strong>in your browser</strong>, before they reach ChatGPT, Claude, Gemini, or Grok.<br>
+  70+ patterns · works offline · no tracking · MIT licensed
 </p>
 
 <p align="center">
@@ -12,6 +13,7 @@
   <a href="#smart-restore">Smart Restore</a> &bull;
   <a href="#supported-platforms">Platforms</a> &bull;
   <a href="#what-it-catches">What It Catches</a> &bull;
+  <a href="#features">Features</a> &bull;
   <a href="#screenshots">Screenshots</a> &bull;
   <a href="#install">Install</a> &bull;
   <a href="#privacy--security">Privacy</a> &bull;
@@ -46,7 +48,7 @@
 </p>
 
 <p align="center">
-  Paste your code &rarr; secrets become <code>[MASKED]</code> &rarr; originals stay safe on your machine.
+  Paste your code &rarr; secrets become placeholders like <code>[STRIPE_KEY_k3f9_0]</code> &rarr; originals stay on your machine.
 </p>
 
 ---
@@ -69,12 +71,12 @@ AI receives:  DATABASE_URL=[DB_CONN_k3f9_0]
 Vault stores: postgres://admin:s3cret@db.prod.internal:5432/myapp  ← in memory only
 ```
 
-1. You paste text into an AI chat
-2. The extension intercepts it before it hits the input field
-3. Patterns run locally in your browser — nothing leaves your machine
-4. Secrets are swapped with readable placeholders like `[STRIPE_KEY_k3f9_0]` (the short id is unique per paste, so two different keys never share a name)
-5. A toast notification shows what was caught, with a 5-second undo
-6. Originals are kept in a memory-only vault: never written to disk, deleted after 15 minutes or when the browser closes
+1. You paste text into an AI chat.
+2. The extension catches the paste before it reaches the input box.
+3. Patterns run locally in your browser. Nothing leaves your machine.
+4. Each secret is replaced with a readable placeholder like `[STRIPE_KEY_k3f9_0]`. The short id (`k3f9`) is new for every paste, so two different keys never share a name.
+5. A toast shows what was caught, with a 5-second **Undo**.
+6. The originals go into a memory-only vault. They are never written to disk and are deleted after 15 minutes or when the browser closes.
 
 > **Verify it yourself:** `grep -n "fetch\|XMLHttpRequest" *.js popup/*.js` — zero results.
 
@@ -88,23 +90,29 @@ When the AI replies using your placeholders, you get the real values back automa
 
 1. You ask: *"Fix this connection string: `[DB_CONN_k3f9_0]`"*
 2. AI replies: *"Change `[DB_CONN_k3f9_0]` to use port 5433."*
-3. You copy the reply — Secret Sanitizer detects the placeholders and swaps them back to the originals in your clipboard instantly.
+3. You copy the reply. Your clipboard now holds the real connection string, ready to paste into your code.
 
-No manual lookup. No digging through the vault. Just paste and it works.
+No manual lookup and no digging through the vault. Originals are kept for 15 minutes. Until then, you can also paste a placeholder into the popup to see its original.
 
-Originals are kept for 15 minutes. Until then, you can also paste a placeholder into the popup to see its original.
+**The AI site never sees your originals:**
 
-Smart Restore is built so the AI site itself can never read your originals: restored text goes straight to your clipboard from the extension's isolated context, only when you click a copy button or use a copy shortcut (typing in the chat doesn't count), and only on the site where you pasted it. It switches itself off while masking is paused and on sites you've allowed to read your clipboard. Pasting restored text back into the chat masks it again.
+- Restored text goes straight to your clipboard from the extension's isolated context, never into the page.
+- It only happens when you click a copy button or press a copy shortcut. Typing in the chat doesn't trigger it.
+- It only works on the site where you pasted the secret.
+- It turns itself off while masking is paused, and on sites you've allowed to read your clipboard.
+- If you paste restored text back into the chat, it gets masked again.
 
 ---
 
 ## Supported Platforms
 
-Works out of the box on every major AI chat:
+Works out of the box on:
 
-| ChatGPT | Claude | Gemini | Grok | Custom Sites |
-|:-------:|:------:|:------:|:----:|:------------:|
-| ✓ | ✓ | ✓ | ✓ | ✓ One-click add |
+| ChatGPT | Claude | Gemini | Grok |
+|:-------:|:------:|:------:|:----:|
+| ✓ | ✓ | ✓ | ✓ |
+
+One click in the popup adds Perplexity, DeepSeek, Copilot, Mistral, or Meta AI. You can also add any other site by its domain.
 
 ---
 
@@ -153,7 +161,7 @@ Works out of the box on every major AI chat:
 | **More AI chats** | One-click opt-in for Perplexity, DeepSeek, Copilot, Mistral and Meta AI, or add any domain |
 | **Stats dashboard** | See how many secrets were caught and when |
 | **Backup & restore** | Export and import your config as JSON |
-| **Dark mode** | Matches your system theme |
+| **Dark mode** | Follows your system theme, or toggle it yourself |
 
 ---
 
@@ -166,7 +174,7 @@ Works out of the box on every major AI chat:
 
 <p align="center">
   <img width="720" alt="Popup with controls" src="https://github.com/user-attachments/assets/3ce4f70e-d33a-4af4-904f-1e2888da6b35" />
-  <br><em>Clean popup with intuitive controls</em>
+  <br><em>The popup and its main controls</em>
 </p>
 
 <p align="center">
@@ -194,8 +202,10 @@ cd secret-sanitizer-extension
 ```
 
 1. Open `chrome://extensions`
-2. Enable **Developer mode**
+2. Turn on **Developer mode**
 3. Click **Load unpacked** and select the cloned folder
+
+Requires Chrome 111 or later.
 
 </details>
 
