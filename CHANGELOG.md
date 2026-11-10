@@ -2,6 +2,18 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
+## [2.4.2] - 2026-11-10
+
+### Security
+- **Right-click → Copy counts for less time.** After a right-click, any copy in the next minute was treated as the user choosing "Copy" from the menu, including a copy started by the page's own script. Picking a menu item sends nothing to the page, so the next click or keypress now ends that window. Right-click → Copy itself works as before
+- **Masking can't be lost to the copy-button helper.** Both parts of the extension were set up on each site in one step, so a browser that rejected the copy-button helper (it needs Chrome 111) got no masking at all, with no warning. They're now set up separately, and the extension requires Chrome 111
+- Importing a settings file can only turn off rules this version has
+- The popup no longer allows plugin content
+
+### Fixed
+- On a custom site whose editor is a web component (shadow DOM), a paste with a secret in it was refused with "couldn't insert". The masked text is now inserted
+- Two pastes landing at the same moment could lose one from the weekly count
+
 ## [2.4.1] - 2026-11-09
 
 ### Security

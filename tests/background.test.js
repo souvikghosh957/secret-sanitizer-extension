@@ -6,7 +6,7 @@ const vm = require("node:vm");
 const { ROOT } = require("./helpers");
 
 // Minimal promise-based chrome.* mock — just enough surface for background.js
-function createChrome({ local = {}, rejectMatches = [] } = {}) {
+function createChrome({ local = {}, rejectMatches = [], rejectMainWorld = false } = {}) {
   const area = (data) => ({
     data,
     async get(keys) {
@@ -36,6 +36,8 @@ function createChrome({ local = {}, rejectMatches = [] } = {}) {
         for (const s of scripts) {
           if (registered.has(s.id)) throw new Error(`Duplicate script ID '${s.id}'`);
           if (s.matches.some(m => rejectMatches.includes(m))) throw new Error(`Invalid match pattern ${s.matches}`);
+          // Chrome < 111 rejects the whole call on the unknown property
+          if (rejectMainWorld && s.world === "MAIN") throw new Error("Unexpected property: 'world'.");
         }
         scripts.forEach(s => registered.set(s.id, s));
       }
@@ -310,6 +312,13 @@ test("the weekly count rolls over even while the notification is off", async () 
   assert.equal(chrome.notifications.sent.length, 0);
   assert.equal(chrome.storage.local.data.weeklyStats.weekBlocked, 0);
   assert.equal(chrome.storage.local.data.weeklyStats.weekStart, "2026-11-08");
+});
+
+test("a browser that refuses the MAIN-world script still gets masking", async () => {
+  const { chrome, context } = loadBackground({ local: { customSites: ["good.example"] }, rejectMainWorld: true });
+  await vm.runInContext("registerContentScripts()", context);
+  const ids = [...chrome.registered.keys()];
+  assert.deepEqual(ids.sort(), ["ss-iso-custom-0", "ss-iso-defaults"]);
 });
 
 test("granting a site's permission re-registers content scripts", async () => {
