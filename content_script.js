@@ -191,7 +191,7 @@ function showToast(message, type = "success") {
   const style = colors[type] || colors.success;
 
   Object.assign(toast.style, {
-    background: "#1e293b",
+    background: "#0a1933",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "12px",
@@ -264,7 +264,7 @@ function showCleanToast() {
   toast.setAttribute("role", "status");
 
   Object.assign(toast.style, {
-    background: "#1e293b",
+    background: "#0a1933",
     color: "#94a3b8",
     padding: "0",
     borderRadius: "12px",
@@ -395,7 +395,7 @@ function showSmartToast(replacements, { onUndo, onRestore, onNotSecret, partial 
   const typeDisplay = types.slice(0, 2).join(", ") + (types.length > 2 ? ` +${types.length - 2}` : "");
 
   Object.assign(toast.style, {
-    background: "linear-gradient(135deg, #1e293b 0%, #182030 100%)",
+    background: "#0a1933",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "12px",
@@ -981,7 +981,7 @@ function showReviewToast(milestone, total) {
   toast.setAttribute("role", "alert");
 
   Object.assign(toast.style, {
-    background: "linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+    background: "#0a1933",
     color: "#f1f5f9",
     padding: "0",
     borderRadius: "16px",
