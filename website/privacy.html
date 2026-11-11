@@ -9,7 +9,7 @@
   <meta name="author" content="Souvik Ghosh">
   <link rel="canonical" href="https://secretsanitizer.com/privacy.html">
   <link rel="icon" type="image/png" href="icon-128.png">
-  <meta name="theme-color" content="#0b1525">
+  <meta name="theme-color" content="#050f24">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Secret Sanitizer">
@@ -30,200 +30,38 @@
   <meta name="twitter:image" content="https://secretsanitizer.com/og-card.jpg">
   <meta name="twitter:image:alt" content="Secret Sanitizer masks api_key as [STRIPE_KEY_0] — Paste freely. Leak nothing.">
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --primary: #0ea5e9;
-      --accent: #06b6d4;
-      --bg: #0b1525;
-      --bg-card: rgba(255, 255, 255, 0.05);
-      --text: #e8edf5;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --border: rgba(255, 255, 255, 0.09);
-      --radius: 16px;
-      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: var(--accent); }
-
-    .container { max-width: 800px; margin: 0 auto; padding: 0 32px; }
-
-    .page-header {
-      padding: 96px 0 52px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-    }
-    .page-header h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.03em; }
-    .page-header p { color: var(--text-muted); font-size: 0.95rem; }
-
-    .back-link { display: inline-block; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-dim); }
-    .back-link:hover { color: var(--primary); }
-
-    .content { padding: 64px 0 104px; }
-    .content h2 { font-size: 1.35rem; font-weight: 700; margin-top: 52px; margin-bottom: 16px; color: var(--text); letter-spacing: -0.02em; }
-    .content h2:first-child { margin-top: 0; }
-    .content p, .content li { color: var(--text-muted); font-size: 0.97rem; line-height: 1.9; }
-    .content p { margin-bottom: 14px; }
-    .content ul { margin-bottom: 16px; padding-left: 20px; }
-    .content li { margin-bottom: 8px; }
-
-    .content code {
-      background: rgba(255, 255, 255, 0.06);
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      color: var(--accent);
-    }
-
-    .highlight-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 28px;
-      margin: 12px 0;
-      backdrop-filter: blur(16px);
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .highlight-box:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-    .highlight-box p { margin-bottom: 0; }
-
-    .tldr {
-      border-left: 3px solid var(--primary);
-      padding: 22px 28px;
-      margin: 32px 0;
-      background: rgba(14, 165, 233, 0.06);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.08);
-    }
-    .tldr strong { color: var(--primary); }
-    .tldr p { margin-bottom: 0; }
-
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
-    th { color: var(--text); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    td { color: var(--text-muted); }
-
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 48px 0 36px;
-      text-align: center;
-    }
-    .footer-links { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
-    .footer-links a { color: var(--text-muted); font-size: 0.88rem; display: inline-flex; align-items: center; gap: 5px; }
-    .footer-links a:hover { color: var(--primary); }
-    .footer-links a img { display: block; }
-    .footer-credit { font-size: 0.80rem; color: var(--text-dim); margin-bottom: 4px; }
-    .footer-copy { font-size: 0.72rem; color: var(--text-dim); opacity: 0.55; }
-
-    /* ===== NAVBAR ===== */
-    .navbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 10px 0;
-      background: rgba(11, 21, 37, 0.75);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s, background 0.3s;
-    }
-    .navbar.scrolled { border-bottom-color: var(--border); background: rgba(11, 21, 37, 0.95); }
-    .nav-inner {
-      max-width: 1200px; margin: 0 auto; padding: 0 32px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em; }
-    .nav-brand:hover { color: var(--text); }
-    .nav-brand img { width: 26px; height: 26px; border-radius: 6px; }
-    .nav-links { display: flex; align-items: center; gap: 22px; }
-    .nav-links a { color: var(--text-muted); font-size: 0.82rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta {
-      padding: 7px 16px; border-radius: 8px; font-weight: 600;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: #fff !important; font-size: 0.8rem; white-space: nowrap;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,165,233,0.25); color: #fff; }
-    @media (max-width: 600px) {
-      .nav-links a:not(.nav-cta) { display: none; }
-    }
-
-    @media (max-width: 768px) {
-      .page-header { padding: 80px 0 40px; }
-      .page-header h1 { font-size: 1.9rem; letter-spacing: -0.02em; }
-      .content { padding: 40px 0 72px; }
-      .content h2 { margin-top: 40px; font-size: 1.2rem; }
-      table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    }
-    @media (max-width: 480px) {
-      .container { padding: 0 20px; }
-      .page-header { padding: 72px 0 32px; }
-      .page-header h1 { font-size: 1.55rem; letter-spacing: -0.02em; }
-      .page-header p { font-size: 0.85rem; }
-      .content { padding: 32px 0 60px; }
-      .content h2 { font-size: 1.15rem; margin-top: 36px; }
-      .content p, .content li { font-size: 0.93rem; }
-      .highlight-box { padding: 14px 18px; }
-      .tldr { padding: 16px 18px; }
-      footer { padding: 36px 0 28px; }
-      .footer-links { gap: 16px; }
-    }
-    @media (max-width: 360px) {
-      .container { padding: 0 16px; }
-      .page-header h1 { font-size: 1.4rem; }
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, #38bdf8, #06b6d4, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-  </style>
+  <link rel="preload" href="fonts/lora-italic-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
 
-  <!-- ======================== NAVBAR ======================== -->
-  <nav class="navbar" id="navbar">
+  <nav class="navbar">
     <div class="nav-inner">
-      <a href="index.html" class="nav-brand">
-        <img src="icon-128.png" alt="Secret Sanitizer" width="26" height="26">
+      <a href="./" class="nav-brand">
+        <img src="icon-128.png" alt="" width="26" height="26">
         <span>Secret Sanitizer</span>
       </a>
       <div class="nav-links">
-        <a href="index.html">Home</a>
+        <a href="./#how-it-works">How it works</a>
+        <a href="./#features">Features</a>
+        <a href="./#reviews">Reviews</a>
         <a href="blog/">Blog</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="nav-cta" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px"><img src="cws-logo.svg" alt="" width="14" height="14" style="filter:brightness(0) invert(1);opacity:0.9"> Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
       </div>
     </div>
   </nav>
 
-  <header class="page-header">
-    <div class="container">
-      <a href="index.html" class="back-link">&larr; Back to Secret Sanitizer</a>
-      <h1>Privacy <span class="gradient-text">Policy</span></h1>
-      <p>Last updated: November 7, 2026</p>
-    </div>
-  </header>
+  <main class="container narrow">
+    <header class="page-head">
+      <span class="eyebrow">Last updated: November 7, 2026</span>
+      <h1>Privacy Policy</h1>
+    </header>
 
-  <main class="content">
-    <div class="container">
+    <article class="prose">
 
       <p>Secret Sanitizer is a privacy-first Chrome extension with a single narrow purpose: to prevent accidental disclosure of sensitive information when interacting with AI chat websites. All processing happens locally on your device &mdash; no data ever leaves your browser.</p>
 
-      <div class="tldr">
+      <div class="callout">
         <p><strong>KEY POINT:</strong> Your secrets stay on your device. Always. No exceptions.</p>
       </div>
 
@@ -249,24 +87,14 @@
       <h2>Permissions Used</h2>
       <p>Secret Sanitizer requests only the minimum permissions needed for its single purpose. None of them are used to send data anywhere:</p>
 
-      <div class="highlight-box">
-        <p><strong>storage</strong> &mdash; Saves user preferences and local statistics.</p>
-      </div>
-      <div class="highlight-box">
-        <p><strong>scripting</strong> &mdash; Injects lightweight content scripts to detect and mask secrets on AI chat pages.</p>
-      </div>
-      <div class="highlight-box">
-        <p><strong>alarms</strong> &mdash; Cleans up expired vault entries every 5 minutes, ends a timed pause on schedule, and checks for the weekly summary daily.</p>
-      </div>
-      <div class="highlight-box">
-        <p><strong>notifications</strong> &mdash; Displays an optional weekly summary notification (Sundays) showing aggregate counts only. It is off by default for new installs.</p>
-      </div>
-      <div class="highlight-box">
-        <p><strong>activeTab</strong> &mdash; Reads only the current tab's URL when you open the popup, to show whether the extension is active on that site and to offer adding or pausing it. No page content is accessed this way.</p>
-      </div>
-      <div class="highlight-box">
-        <p><strong>Host permissions</strong> &mdash; Limited to major AI chat domains (chatgpt.com, claude.ai, gemini.google.com, grok.com, and any sites you explicitly add).</p>
-      </div>
+      <ul>
+        <li><strong>storage</strong> &mdash; Saves user preferences and local statistics.</li>
+        <li><strong>scripting</strong> &mdash; Injects lightweight content scripts to detect and mask secrets on AI chat pages.</li>
+        <li><strong>alarms</strong> &mdash; Cleans up expired vault entries every 5 minutes, ends a timed pause on schedule, and checks for the weekly summary daily.</li>
+        <li><strong>notifications</strong> &mdash; Displays an optional weekly summary notification (Sundays) showing aggregate counts only. It is off by default for new installs.</li>
+        <li><strong>activeTab</strong> &mdash; Reads only the current tab's URL when you open the popup, to show whether the extension is active on that site and to offer adding or pausing it. No page content is accessed this way.</li>
+        <li><strong>Host permissions</strong> &mdash; Limited to major AI chat domains (chatgpt.com, claude.ai, gemini.google.com, grok.com, and any sites you explicitly add).</li>
+      </ul>
 
       <h2>Nothing Leaves Your Browser</h2>
       <p>Secret Sanitizer never sends us or anyone else:</p>
@@ -305,28 +133,28 @@
         <li>X: <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a></li>
         <li>GitHub: <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">Secret Sanitizer on GitHub</a></li>
       </ul>
-
-    </div>
+    </article>
   </main>
 
-  <footer>
-    <div class="container">
-      <div class="footer-links">
-        <a href="index.html">Home</a>
-        <a href="blog/">Blog</a>
-        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer"><img src="cws-logo.svg" alt="" width="14" height="14" style="opacity:0.75">Chrome Web Store</a>
+  <footer class="site-footer" id="contact">
+    <div class="footer-inner">
+      <div>
+        <a href="./" class="footer-brand"><img src="icon-128.png" alt="" width="22" height="22">Secret Sanitizer</a>
+        <p class="footer-credit">Built by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; MIT License</p>
+        <p class="footer-credit">&copy; 2026 Secret Sanitizer</p>
       </div>
-      <p class="footer-credit">Built by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; MIT License</p>
-      <p class="footer-copy">&copy; 2026 Secret Sanitizer</p>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="blog/">Blog</a>
+        <a href="blog/why-i-built-secret-sanitizer.html">Why I built this</a>
+        <a href="./#faq">FAQ</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
+        <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">Message on X</a>
+        <a href="https://github.com/souvikghosh957/secret-sanitizer-extension/issues" target="_blank" rel="noopener noreferrer">Report an issue</a>
+      </nav>
     </div>
   </footer>
 
-  <script>
-  (function() {
-    var nb = document.getElementById('navbar');
-    window.addEventListener('scroll', function() { nb.classList.toggle('scrolled', window.scrollY > 20); });
-  })();
-  </script>
 </body>
 </html>
