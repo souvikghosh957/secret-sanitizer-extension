@@ -1,16 +1,15 @@
 // Homepage behaviour: scroll reveal, demo video, hero demo. Loaded with defer; kept in a file so the site CSP can forbid inline scripts.
 (function() {
   // Scroll reveal
-  var fades = document.querySelectorAll('.fade-up');
   if ('IntersectionObserver' in window) {
+    var fades = document.querySelectorAll('.fade-up');
+    document.documentElement.classList.add('reveal');
     var obs = new IntersectionObserver(function(entries) {
       entries.forEach(function(e) {
         if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); }
       });
     }, { threshold: 0.1 });
     fades.forEach(function(f) { obs.observe(f); });
-  } else {
-    fades.forEach(function(f) { f.classList.add('vis'); });
   }
 
   // ======= Demo video: swap the poster for the player on click =======
@@ -76,7 +75,9 @@
   var toastEl = document.getElementById('demo-toast');
   var toastText = document.getElementById('toast-text');
   var titleEl = document.getElementById('demo-title');
-  var idx = 0;
+  var caret = document.createElement('span');
+  caret.className = 'caret end';
+  var idx = -1;
 
   function span(cls, text) {
     var s = document.createElement('span');
@@ -89,6 +90,32 @@
     var row = document.createElement('div');
     row.className = 'demo-line';
     return linesEl.appendChild(row);
+  }
+
+  // Streams `text` into `target` a few characters per frame, with the caret riding the end
+  function stream(target, text, done) {
+    var i = 0;
+    target.parentNode.appendChild(caret);
+    (function tick() {
+      if (i >= text.length) return done();
+      i += 2;
+      target.textContent = text.slice(0, i);
+      setTimeout(tick, 22);
+    })();
+  }
+
+  function streamLines(lines, n, secrets, done) {
+    if (n === lines.length) return done();
+    var l = lines[n], row = addLine();
+    stream(row.appendChild(span('demo-key')), l[0], function() {
+      stream(row.appendChild(span('demo-op')), l[1], function() {
+        var val = row.appendChild(span('demo-val'));
+        if (l[3]) { val.dataset.label = l[3]; secrets.push(val); }
+        stream(val, l[2], function() {
+          setTimeout(function() { streamLines(lines, n + 1, secrets, done); }, 90);
+        });
+      });
+    });
   }
 
   function play() {
@@ -104,39 +131,29 @@
     hint.appendChild(span('caret'));
     hint.appendChild(document.createTextNode('Message ' + s.site));
 
-    // 2. Paste: every line lands at once, as a real paste does
+    // 2. The paste flows in line by line
     setTimeout(function() {
       linesEl.textContent = '';
       var secrets = [];
-      s.lines.forEach(function(l) {
-        var row = addLine();
-        row.appendChild(span('demo-key', l[0]));
-        row.appendChild(span('demo-op', l[1]));
-        var val = row.appendChild(span('demo-val', l[2]));
-        if (l[3]) { val.dataset.label = l[3]; secrets.push(val); }
-      });
-
-      // 3. The secrets are spotted...
-      setTimeout(function() {
-        secrets.forEach(function(v) { v.classList.add('hit'); });
-
-        // 4. ...and swapped for placeholders, one after another
+      streamLines(s.lines, 0, secrets, function() {
+        // 3. The secrets light up for a moment, as if selected...
         setTimeout(function() {
-          secrets.forEach(function(v, n) {
-            var chip = span('chip chip-in', v.dataset.label);
-            chip.style.animationDelay = (n * 0.22) + 's';
-            v.parentNode.replaceChild(chip, v);
-          });
+          if (caret.parentNode) caret.parentNode.removeChild(caret);
+          secrets.forEach(function(v) { v.classList.add('found'); });
+          // 4. ...then each becomes its placeholder at the same instant
           setTimeout(function() {
+            secrets.forEach(function(v) {
+              v.parentNode.replaceChild(span('chip', v.dataset.label), v);
+            });
             toastText.textContent = secrets.length + (secrets.length === 1 ? ' secret masked' : ' secrets masked');
             toastEl.classList.add('show');
-            setTimeout(play, 4200);
-          }, 500);
-        }, 700);
-      }, 450);
-    }, 1400);
+            setTimeout(play, 4000);
+          }, 420);
+        }, 300);
+      });
+    }, 700);
   }
 
-  // The static markup already shows scenario 0 masked, so the loop starts on the next one
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(play, 3600);
+  // Without motion the static markup (scenario 0, already masked) is the whole demo
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(play, 500);
 })();
