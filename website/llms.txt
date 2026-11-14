@@ -1,0 +1,27 @@
+# Secret Sanitizer
+
+> Secret Sanitizer is a free, open-source Chrome extension that masks API keys, passwords, tokens and other secrets at the moment you paste text into an AI chat, so the real values never reach ChatGPT, Claude, Gemini or Grok. Everything runs locally in the browser; the extension makes no network requests.
+
+Key facts:
+
+- What it does: replaces each detected secret with a placeholder such as `[STRIPE_KEY_0]` when you paste. Smart Restore swaps the placeholders back to the real values when you copy the AI's reply.
+- Detection: 70+ patterns, covering cloud and API keys (AWS, GCP, Azure, OpenAI, Anthropic, Stripe, GitHub, Slack), passwords, bearer tokens, JWTs, `.env` values, database URLs, private keys, and personal data such as credit card, Aadhaar, PAN and UPI numbers. Each pattern can be turned on or off.
+- Sites: ChatGPT, Claude, Gemini and Grok by default. Any other website can be added in the settings.
+- Privacy: no servers, no accounts, no analytics. Originals are held in a memory-only vault, never written to disk, and deleted after 15 minutes or when the browser closes. It works offline.
+- Limits: it checks pasted text only. Text typed by hand and uploaded files are not scanned, and no detector catches everything.
+- Platform and price: Chrome extension (Manifest V3). Free, MIT licensed. Firefox support is planned but not available yet.
+- Author: Souvik Ghosh.
+
+## Product
+
+- [Home page](https://secretsanitizer.com/): how it works, features, what it detects, FAQ
+- [Chrome Web Store listing](https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja): install
+- [Source code on GitHub](https://github.com/souvikghosh957/secret-sanitizer-extension): full source, README, changelog
+- [Privacy policy](https://secretsanitizer.com/privacy): what is stored and where
+
+## Blog
+
+- [Why I built Secret Sanitizer](https://secretsanitizer.com/blog/why-i-built-secret-sanitizer): the incident and reasoning behind the extension
+- [I pasted an API key into ChatGPT: what to do](https://secretsanitizer.com/blog/pasted-api-key-into-chatgpt): rotation checklist for AWS, GitHub, Stripe, OpenAI and more
+- [What happens to the code you paste into ChatGPT, Claude or Gemini?](https://secretsanitizer.com/blog/what-happens-to-data-you-paste-into-ai): retention, training and human review
+- [Prompt poaching: when browser extensions read your AI chats](https://secretsanitizer.com/blog/prompt-poaching): how extensions harvested AI conversations and how to audit your own

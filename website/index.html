@@ -42,14 +42,7 @@
     "downloadUrl": "https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja",
     "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
     "license": "https://opensource.org/licenses/MIT",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "5",
-      "ratingCount": "8",
-      "bestRating": "5",
-      "worstRating": "1"
-    }
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
   </script>
 
@@ -80,6 +73,38 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Humans miss things — especially in large config files or logs. Secret Sanitizer automatically scans for 70+ secret patterns (API keys, tokens, passwords, database URLs) the instant you paste. It catches what you overlook without slowing you down."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens to the original values?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "They stay in a memory-only vault inside your browser. Nothing is written to disk, and the originals are deleted after 15 minutes or when the browser closes. Until then, Smart Restore swaps the placeholders back when you copy the AI's reply."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work offline?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Detection and masking run locally and the extension makes no network requests, so it works the same with your internet turned off."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it mask what I type, or files I upload?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. It checks text at the moment you paste it. Text you type by hand and files you upload are not scanned, and no detector catches everything, so still glance over sensitive text before you send it."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is it free? Is it on Firefox?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It is free and open source under the MIT licence, with no account and no paid tier. Today it is a Chrome extension; Firefox support is on the roadmap."
         }
       }
     ]
@@ -287,6 +312,7 @@
     /* ===== Trust ===== */
     .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 72px; align-items: start; }
     .split .section-head { margin-bottom: 0; }
+    #faq .section-head { position: sticky; top: 96px; }
     .split-media { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); align-items: center; }
     .head-links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 28px; }
 
@@ -346,6 +372,7 @@
       .steps, .patterns-grid { grid-template-columns: repeat(2, 1fr); }
       .features { grid-template-columns: repeat(2, 1fr); }
       .split, .split-media { grid-template-columns: 1fr; gap: 40px; }
+      #faq .section-head { position: static; }
       .quotes { columns: 2; }
       .cta { padding: 96px 0; }
     }
@@ -499,7 +526,7 @@
             <p class="video-note">Hosted on YouTube, which loads only when you press play.</p>
           </div>
           <a class="video" id="video-player" href="https://www.youtube.com/watch?v=QP6XshUrCm4" target="_blank" rel="noopener noreferrer" aria-label="Play the Secret Sanitizer demo video">
-            <img src="demo-poster.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+            <img src="demo-poster.jpg" alt="Secret Sanitizer replacing an API key with a placeholder as it is pasted into an AI chat" width="1280" height="720" loading="lazy" decoding="async">
             <span class="video-play"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
           </a>
         </div>
@@ -686,6 +713,22 @@
             <div class="faq-item">
               <h3>How is this different from just being careful?</h3>
               <p>Humans miss things &mdash; especially in large config files or logs. Secret Sanitizer automatically scans for 70+ secret patterns (API keys, tokens, passwords, database URLs) the instant you paste. It catches what you overlook without slowing you down.</p>
+            </div>
+            <div class="faq-item">
+              <h3>What happens to the original values?</h3>
+              <p>They stay in a memory-only vault inside your browser. Nothing is written to disk, and the originals are deleted after 15 minutes or when the browser closes. Until then, Smart Restore swaps the placeholders back when you copy the AI&rsquo;s reply.</p>
+            </div>
+            <div class="faq-item">
+              <h3>Does it work offline?</h3>
+              <p>Yes. Detection and masking run locally and the extension makes no network requests, so it works the same with your internet turned off.</p>
+            </div>
+            <div class="faq-item">
+              <h3>Does it mask what I type, or files I upload?</h3>
+              <p>No. It checks text at the moment you paste it. Text you type by hand and files you upload are not scanned, and no detector catches everything, so still glance over sensitive text before you send it.</p>
+            </div>
+            <div class="faq-item">
+              <h3>Is it free? Is it on Firefox?</h3>
+              <p>It is free and open source under the MIT licence, with no account and no paid tier. Today it is a Chrome extension; Firefox support is on the roadmap.</p>
             </div>
           </div>
         </div>
