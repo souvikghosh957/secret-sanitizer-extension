@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme-heading.png" alt="Secret Sanitizer — Paste freely. Leak nothing. A pasted Stripe key shows up in the AI chat as [STRIPE_KEY_0]." />
+  <img src="readme-heading.png" alt="Secret Sanitizer — Paste freely. Leak nothing. A pasted Stripe key shows up in the AI chat as [STRIPE_KEY_k3f9_0]." />
 </p>
 
 <p align="center">
