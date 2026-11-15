@@ -4,7 +4,7 @@
 
 Key facts:
 
-- What it does: replaces each detected secret with a placeholder such as `[STRIPE_KEY_0]` when you paste. Smart Restore swaps the placeholders back to the real values when you copy the AI's reply.
+- What it does: replaces each detected secret with a placeholder such as `[STRIPE_KEY_k3f9_0]` when you paste. Smart Restore swaps the placeholders back to the real values when you copy the AI's reply.
 - Detection: 70+ patterns, covering cloud and API keys (AWS, GCP, Azure, OpenAI, Anthropic, Stripe, GitHub, Slack), passwords, bearer tokens, JWTs, `.env` values, database URLs, private keys, and personal data such as credit card, Aadhaar, PAN and UPI numbers. Each pattern can be turned on or off.
 - Sites: ChatGPT, Claude, Gemini and Grok by default. Any other website can be added in the settings.
 - Privacy: no servers, no accounts, no analytics. Originals are held in a memory-only vault, never written to disk, and deleted after 15 minutes or when the browser closes. It works offline.
