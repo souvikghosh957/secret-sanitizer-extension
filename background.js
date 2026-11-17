@@ -30,11 +30,14 @@ function contentScriptsFor(key, matches) {
 
 const sameList = (a = [], b = []) => a.length === b.length && a.every((v, i) => v === b[i]);
 
-// A script that is already registered for the same sites and files is left alone. Only one
-// that changed is replaced, so re-registering never leaves the other sites without masking.
+// A script that is already registered with the same settings is left alone. Only one that
+// changed is replaced, so re-registering never leaves the other sites without masking.
+const sameScript = (a, b) => sameList(a.matches, b.matches) && sameList(a.js, b.js) &&
+  a.runAt === b.runAt && (a.world || "ISOLATED") === (b.world || "ISOLATED");
+
 async function ensureScript(script, existing) {
   const current = existing.get(script.id);
-  if (current && sameList(current.matches, script.matches) && sameList(current.js, script.js)) return;
+  if (current && sameScript(current, script)) return;
   if (current) await chrome.scripting.unregisterContentScripts({ ids: [script.id] });
   await chrome.scripting.registerContentScripts([script]);
 }
