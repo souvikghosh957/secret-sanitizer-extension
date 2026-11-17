@@ -36,11 +36,23 @@
     "headline": "I Pasted an API Key Into ChatGPT — Here's Exactly What to Do",
     "description": "Accidentally pasted an API key, token, or password into an AI chat? A step-by-step rotation checklist for AWS, GitHub, Stripe, OpenAI, and more.",
     "author": { "@type": "Person", "name": "Souvik Ghosh", "url": "https://x.com/souvik_ghosh975" },
-    "publisher": { "@type": "Organization", "name": "Secret Sanitizer", "url": "https://secretsanitizer.com/" },
+    "publisher": { "@type": "Organization", "name": "Secret Sanitizer", "url": "https://secretsanitizer.com/", "logo": { "@type": "ImageObject", "url": "https://secretsanitizer.com/icon-128.png" } },
     "datePublished": "2026-07-05",
-    "dateModified": "2026-07-05",
+    "dateModified": "2026-11-17",
     "image": "https://secretsanitizer.com/og-card.jpg",
     "mainEntityOfPage": "https://secretsanitizer.com/blog/pasted-api-key-into-chatgpt"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://secretsanitizer.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://secretsanitizer.com/blog/" },
+      { "@type": "ListItem", "position": 3, "name": "I pasted an API key into ChatGPT — here's exactly what to do", "item": "https://secretsanitizer.com/blog/pasted-api-key-into-chatgpt" }
+    ]
   }
   </script>
 </head>
@@ -48,15 +60,15 @@
 
   <nav class="navbar">
     <div class="nav-inner">
-      <a href="../" class="nav-brand">
+      <a href="/" class="nav-brand">
         <img src="../icon-128.png" alt="" width="26" height="26">
         <span>Secret Sanitizer</span>
       </a>
       <div class="nav-links">
-        <a href="../#how-it-works">How it works</a>
-        <a href="../#features">Features</a>
-        <a href="../#reviews">Reviews</a>
-        <a href="../blog/">Blog</a>
+        <a href="/#how-it-works">How it works</a>
+        <a href="/#features">Features</a>
+        <a href="/#reviews">Reviews</a>
+        <a href="/blog/">Blog</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer">Add to Chrome</a>
       </div>
     </div>
@@ -64,14 +76,14 @@
 
   <main class="container narrow">
     <header class="page-head">
-      <span class="eyebrow">July 5, 2026 &middot; 6 min read</span>
+      <span class="eyebrow">July 5, 2026 &middot; Updated November 17, 2026 &middot; 6 min read</span>
       <h1>I pasted an API key into ChatGPT — here's exactly what to do</h1>
       <p class="lede">You pasted a config file, hit Enter, and then saw it: a live key sitting in the chat. Deleting the message doesn't undo it. Here's the checklist to run through in the next ten minutes.</p>
     </header>
 
     <article class="prose">
       <h2>First, accept the one rule that matters</h2>
-      <p><strong>Treat the key as compromised.</strong> Not "maybe compromised" — compromised. The moment your message was sent, it left your machine and landed on infrastructure you don't control. It may be retained in logs, backups, or your chat history for a long time, and you have no reliable way to reach into those systems and remove it.</p>
+      <p><strong>Treat the key as compromised.</strong> Not "maybe compromised" — compromised. The moment your message was sent, it left your machine and landed on infrastructure you don't control. It may be <a href="/blog/what-happens-to-data-you-paste-into-ai">retained in logs, backups, or your chat history</a> for a long time, and you have no reliable way to reach into those systems and remove it.</p>
       <p>Deleting the conversation makes it disappear from <em>your</em> screen. It does not guarantee removal from the provider's systems. So the fix is never "delete the chat" — the fix is always "make the key worthless."</p>
 
       <div class="callout"><strong>Good news:</strong> rotating a key usually takes under five minutes, and in most cases nothing bad has happened yet. The point of moving fast is to keep it that way.</div>
@@ -79,22 +91,23 @@
       <h2>Step 1: Revoke or rotate the key — now</h2>
       <p>Do this before anything else. Here's where the revoke button lives for the most commonly leaked credentials:</p>
       <ul>
-        <li><strong>AWS access keys</strong> (<code>AKIA...</code>) — In the IAM console, open the user, go to <em>Security credentials</em>, and <strong>deactivate</strong> the exposed key. Create a new one, update your apps, then delete the old key. Deactivating first lets you roll back if something breaks.</li>
-        <li><strong>GitHub tokens</strong> (<code>ghp_...</code>, <code>github_pat_...</code>) — Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; delete the token. Generate a new one with the minimum scopes you actually need.</li>
-        <li><strong>Stripe keys</strong> (<code>sk_live_...</code>) — In the Stripe Dashboard, go to Developers &rarr; API keys and <strong>roll</strong> the key. Stripe lets you set a grace period so your integration doesn't go down mid-rotation.</li>
-        <li><strong>OpenAI / Anthropic / other AI provider keys</strong> (<code>sk-...</code>, <code>sk-ant-...</code>) — Revoke the key in the provider's dashboard under API keys, then create a fresh one.</li>
-        <li><strong>Google Cloud API keys</strong> — In the Cloud Console, APIs &amp; Services &rarr; Credentials. Delete or regenerate the key, and while you're there, add application restrictions so the next leak matters less.</li>
+        <li><strong><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id-credentials-access-keys-update.html" target="_blank" rel="noopener noreferrer">AWS access keys</a></strong> (<code>AKIA...</code>) — In the IAM console, open the user, go to <em>Security credentials</em>, and <strong>deactivate</strong> the exposed key. Create a new one, update your apps, then delete the old key. Deactivating first lets you roll back if something breaks.</li>
+        <li><strong><a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noopener noreferrer">GitHub tokens</a></strong> (<code>ghp_...</code>, <code>github_pat_...</code>) — Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; delete the token. Generate a new one with the minimum scopes you actually need.</li>
+        <li><strong><a href="https://docs.stripe.com/keys#rolling-keys" target="_blank" rel="noopener noreferrer">Stripe keys</a></strong> (<code>sk_live_...</code>) — In the Stripe Dashboard, go to Developers &rarr; API keys and <strong>roll</strong> the key. Stripe lets you set a grace period so your integration doesn't go down mid-rotation.</li>
+        <li><strong><a href="https://help.openai.com/en/articles/9047852-how-can-i-delete-my-api-key" target="_blank" rel="noopener noreferrer">OpenAI</a> / <a href="https://support.claude.com/en/articles/9767949-api-key-best-practices-keep-your-keys-safe-and-secure" target="_blank" rel="noopener noreferrer">Anthropic</a> / other AI provider keys</strong> (<code>sk-...</code>, <code>sk-ant-...</code>) — Revoke the key in the provider's dashboard under API keys, then create a fresh one.</li>
+        <li><strong><a href="https://docs.cloud.google.com/docs/authentication/api-keys" target="_blank" rel="noopener noreferrer">Google Cloud API keys</a></strong> — In the Cloud Console, APIs &amp; Services &rarr; Credentials. Delete or regenerate the key, and while you're there, add application restrictions so the next leak matters less.</li>
         <li><strong>Database URLs</strong> (<code>postgres://user:pass@host...</code>) — The password in that connection string is the secret. Change the database user's password and update every service that connects with it.</li>
-        <li><strong>Slack, Discord, Telegram bot tokens</strong> — Regenerate the token from the app/bot settings page. The old token dies instantly.</li>
+        <!-- TODO(souvik): add official token-regeneration links for Slack and Discord. I could not confirm the right page on either domain. -->
+        <li><strong>Slack, Discord, <a href="https://core.telegram.org/bots/features#generating-an-authentication-token" target="_blank" rel="noopener noreferrer">Telegram</a> bot tokens</strong> — Regenerate the token from the app/bot settings page. The old token dies instantly.</li>
       </ul>
       <p>If the key belongs to your employer, tell your team <em>while</em> you rotate, not after. Every security team on earth prefers "I leaked a key and already rotated it" over finding out from an audit.</p>
 
       <h2>Step 2: Check whether the key was actually used</h2>
       <p>Rotation stops future damage. Now confirm nothing happened in the window the key was live:</p>
       <ul>
-        <li><strong>AWS</strong> — Check CloudTrail for API calls made with the exposed key ID, and glance at Billing for unfamiliar spend (crypto-mining via stolen AWS keys is a classic).</li>
-        <li><strong>GitHub</strong> — Review your account's security log and recent commits/repo access. A stolen token with <code>repo</code> scope can clone everything you have.</li>
-        <li><strong>Stripe</strong> — Scan the Dashboard logs for API requests you don't recognize, especially payout or customer-data reads.</li>
+        <li><strong>AWS</strong> — Check <a href="https://docs.aws.amazon.com/awscloudtrail/latest/userguide/view-cloudtrail-events.html" target="_blank" rel="noopener noreferrer">CloudTrail</a> for API calls made with the exposed key ID, and glance at Billing for unfamiliar spend (crypto-mining via stolen AWS keys is a classic).</li>
+        <li><strong>GitHub</strong> — Review your account's <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/reviewing-your-security-log" target="_blank" rel="noopener noreferrer">security log</a> and recent commits/repo access. A stolen token with <code>repo</code> scope can clone everything you have.</li>
+        <li><strong>Stripe</strong> — Scan the <a href="https://docs.stripe.com/keys#view-request-logs" target="_blank" rel="noopener noreferrer">Dashboard logs</a> for API requests you don't recognize, especially payout or customer-data reads.</li>
         <li><strong>AI provider keys</strong> — Check the usage page for spikes. Stolen LLM keys get resold and burned through fast, so misuse tends to be loud and quick.</li>
       </ul>
       <p>Set up a billing alert while you're in there if you don't have one. It's the smoke detector for the next incident.</p>
@@ -112,7 +125,7 @@
       <ul>
         <li><strong>Use a secrets manager</strong> (AWS Secrets Manager, 1Password, Doppler, Vault) instead of long-lived keys in plain-text files where possible.</li>
         <li><strong>Prefer short-lived credentials</strong> — temporary AWS STS tokens, fine-grained GitHub PATs with expiry dates, restricted API keys. A leaked key that expires in an hour is a very different incident.</li>
-        <li><strong>Mask before you paste.</strong> This is exactly why <a href="../">Secret Sanitizer</a> exists: it scans everything you paste into ChatGPT, Claude, Gemini, or Grok against 70+ secret patterns and replaces matches with placeholders like <code>[AWS_KEY_k3f9_0]</code> — locally, before the text ever reaches the page. The AI still gets working context; your key never leaves your machine.</li>
+        <li><strong>Mask before you paste.</strong> This is exactly why <a href="/">Secret Sanitizer</a> exists: it scans everything you paste into ChatGPT, Claude, Gemini, or Grok against 70+ secret patterns and replaces matches with placeholders like <code>[AWS_KEY_k3f9_0]</code> — locally, before the text ever reaches the page. The AI still gets working context; your key never leaves your machine.</li>
       </ul>
 
       <h2>The 5-minute checklist</h2>
@@ -124,6 +137,11 @@
         <li>Add one guardrail: shorter-lived keys, a secrets manager, or automatic masking on paste.</li>
       </ol>
       <p>The leak itself is common — nearly every developer who uses AI chats daily has done it or come close. What separates a non-event from an incident is how fast you make the key worthless.</p>
+      <h2>Related reading</h2>
+      <ul>
+        <li><a href="/blog/what-happens-to-data-you-paste-into-ai">What happens to the code you paste into ChatGPT, Claude or Gemini</a></li>
+        <li><a href="/blog/prompt-poaching">Prompt poaching: when browser extensions read your AI chats</a></li>
+      </ul>
     </article>
 
     <div class="article-cta">
@@ -132,21 +150,23 @@
       <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Add to Chrome &mdash; Free</a>
     </div>
 
-    <p class="back-row"><a href="./">&larr; All posts</a></p>
+    <p class="back-row"><a href="/blog/">&larr; All posts</a></p>
   </main>
 
   <footer class="site-footer" id="contact">
     <div class="footer-inner">
       <div>
-        <a href="../" class="footer-brand"><img src="../icon-128.png" alt="" width="22" height="22">Secret Sanitizer</a>
+        <a href="/" class="footer-brand"><img src="../icon-128.png" alt="" width="22" height="22">Secret Sanitizer</a>
         <p class="footer-credit">Built by <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">@souvik_ghosh975</a> &mdash; 100% local &middot; MIT License</p>
         <p class="footer-credit">&copy; 2026 Secret Sanitizer</p>
       </div>
       <nav class="footer-links" aria-label="Footer">
-        <a href="../blog/">Blog</a>
-        <a href="../blog/why-i-built-secret-sanitizer.html">Why I built this</a>
-        <a href="../#faq">FAQ</a>
-        <a href="../privacy.html">Privacy</a>
+        <a href="/blog/">Blog</a>
+        <a href="/blog/why-i-built-secret-sanitizer">Why I built this</a>
+        <a href="/blog/pasted-api-key-into-chatgpt">Leaked a key?</a>
+        <a href="/blog/what-happens-to-data-you-paste-into-ai">Where your paste goes</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/privacy">Privacy</a>
         <a href="https://github.com/souvikghosh957/secret-sanitizer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://chromewebstore.google.com/detail/secret-sanitizer/genolcmpopiemhpbdnhkaefllchgekja" target="_blank" rel="noopener noreferrer">Chrome Web Store</a>
         <a href="https://x.com/souvik_ghosh975" target="_blank" rel="noopener noreferrer">Message on X</a>
