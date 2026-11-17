@@ -151,6 +151,51 @@ test("one bad custom site cannot disable protection on other sites", async () =>
   assert.ok([...chrome.registered.values()].every(s => s.runAt === "document_start"));
 });
 
+// Unregistering everything first left a moment with no content scripts at all: a tab that
+// loaded right then (session restore at startup) went unmasked for as long as it stayed open.
+test("re-registering never takes down scripts that are still wanted", async () => {
+  const { chrome, context } = loadBackground({ local: { customSites: ["one.example", "two.example"] } });
+  const removed = [];
+  const unregister = chrome.scripting.unregisterContentScripts;
+  chrome.scripting.unregisterContentScripts = async ({ ids }) => { removed.push(...ids); return unregister({ ids }); };
+  const matchesOf = (id) => [...chrome.registered.get(id).matches];
+  const reregister = () => vm.runInContext("registerContentScripts()", context);
+
+  await reregister();
+  await reregister();
+  assert.deepEqual(removed, [], "nothing changed, so nothing is unregistered");
+
+  // Dropping the first custom site moves the second into its slot and frees the last one
+  chrome.storage.local.data.customSites = ["two.example"];
+  await reregister();
+  assert.ok(!removed.some(id => id.endsWith("-defaults")), "default sites stay registered throughout");
+  assert.deepEqual(matchesOf("ss-iso-custom-0"), ["*://two.example/*"]);
+  assert.deepEqual(matchesOf("ss-main-custom-0"), ["*://two.example/*"]);
+  assert.ok(!chrome.registered.has("ss-iso-custom-1") && !chrome.registered.has("ss-main-custom-1"));
+
+  // Turning a default site off updates the defaults entry; turning them all off removes it
+  chrome.storage.local.data.removedDefaults = ["grok.com"];
+  await reregister();
+  assert.ok(!matchesOf("ss-iso-defaults").includes("*://grok.com/*"));
+  assert.ok(matchesOf("ss-iso-defaults").includes("*://chatgpt.com/*"));
+  chrome.storage.local.data.removedDefaults = ["chatgpt.com", "claude.ai", "gemini.google.com", "grok.com"];
+  await reregister();
+  assert.deepEqual([...chrome.registered.keys()].sort(), ["ss-iso-custom-0", "ss-main-custom-0"]);
+});
+
+// The MAIN-world script can be refused on one run and accepted on a later one
+test("a script missing from an earlier run is added without touching the rest", async () => {
+  const { chrome, context } = loadBackground();
+  await vm.runInContext("registerContentScripts()", context);
+  chrome.registered.delete("ss-main-defaults");
+  const removed = [];
+  const unregister = chrome.scripting.unregisterContentScripts;
+  chrome.scripting.unregisterContentScripts = async ({ ids }) => { removed.push(...ids); return unregister({ ids }); };
+  await vm.runInContext("registerContentScripts()", context);
+  assert.ok(chrome.registered.has("ss-main-defaults"));
+  assert.deepEqual(removed, []);
+});
+
 test("getWeekStart crosses month and year boundaries correctly", () => {
   const { context } = loadBackground();
   const weekStart = (y, m, d) => vm.runInContext(`getWeekStart(new Date(${y}, ${m}, ${d}))`, context);

@@ -28,14 +28,25 @@ function contentScriptsFor(key, matches) {
   ];
 }
 
+const sameList = (a = [], b = []) => a.length === b.length && a.every((v, i) => v === b[i]);
+
+// A script that is already registered for the same sites and files is left alone. Only one
+// that changed is replaced, so re-registering never leaves the other sites without masking.
+async function ensureScript(script, existing) {
+  const current = existing.get(script.id);
+  if (current && sameList(current.matches, script.matches) && sameList(current.js, script.js)) return;
+  if (current) await chrome.scripting.unregisterContentScripts({ ids: [script.id] });
+  await chrome.scripting.registerContentScripts([script]);
+}
+
 // The isolated-world script does the masking; the MAIN-world one only extends Smart Restore to
 // a site's copy buttons. They're registered in separate calls, so if the browser refuses the
 // second (world: "MAIN" needs Chrome 111) masking still goes up.
-async function registerSite(key, matches) {
+async function registerSite(key, matches, existing) {
   const [isolated, main] = contentScriptsFor(key, matches);
-  await chrome.scripting.registerContentScripts([isolated]);
+  await ensureScript(isolated, existing);
   try {
-    await chrome.scripting.registerContentScripts([main]);
+    await ensureScript(main, existing);
   } catch (err) {
     console.warn(`Copy-button restore unavailable for ${matches.join(", ")}:`, err);
   }
@@ -43,33 +54,40 @@ async function registerSite(key, matches) {
 
 // Default sites and each custom site are registered separately: one bad entry (or a
 // browser-rejected pattern) can only ever disable itself, never protection everywhere.
+// Nothing is unregistered up front: a page that loads while this runs (session restore at
+// browser startup, or another tab while a site is being added) must still get its scripts.
 async function doRegisterContentScripts() {
   const registered = await chrome.scripting.getRegisteredContentScripts();
-  if (registered.length > 0) {
-    await chrome.scripting.unregisterContentScripts({ ids: registered.map(s => s.id) });
-  }
+  const existing = new Map(registered.map(s => [s.id, s]));
+  const wanted = new Set();
+  const register = async (key, matches, name) => {
+    contentScriptsFor(key, matches).forEach(s => wanted.add(s.id));
+    try {
+      await registerSite(key, matches, existing);
+    } catch (err) {
+      console.warn(`Content script registration failed for ${name}:`, err);
+    }
+  };
 
   const { removedDefaults = [], customSites = [] } =
     await chrome.storage.local.get(["removedDefaults", "customSites"]);
 
   const activeDefaults = DEFAULT_SITES.filter(s => !removedDefaults.includes(s));
   if (activeDefaults.length > 0) {
-    try {
-      await registerSite("defaults", activeDefaults.map(siteMatchPattern));
-    } catch (err) {
-      console.warn("Content script registration failed for default sites:", err);
-    }
+    await register("defaults", activeDefaults.map(siteMatchPattern), "default sites");
   }
 
   const custom = Array.isArray(customSites) ? customSites : [];
   const validCustom = [...new Set(custom.map(normalizeSite).filter(Boolean))]
     .filter(s => !DEFAULT_SITES.includes(s));
   for (const [i, site] of validCustom.entries()) {
-    try {
-      await registerSite(`custom-${i}`, [siteMatchPattern(site)]);
-    } catch (err) {
-      console.warn(`Content script registration failed for ${site}:`, err);
-    }
+    await register(`custom-${i}`, [siteMatchPattern(site)], site);
+  }
+
+  // Last, so a custom site whose slot moved stays covered by its old entry until the new one is up
+  const stale = [...existing.keys()].filter(id => !wanted.has(id));
+  if (stale.length > 0) {
+    await chrome.scripting.unregisterContentScripts({ ids: stale });
   }
 }
 
