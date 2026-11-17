@@ -158,8 +158,8 @@ h1, h2, h3 { text-wrap: balance; }
 .post-list { padding-bottom: 88px; }
 .post-card { display: block; padding: 28px 0; border-top: 1px solid var(--border); }
 .post-card:last-child { border-bottom: 1px solid var(--border); }
-.post-card h2 { font-size: 1.2rem; font-weight: 600; color: var(--text); margin: 10px 0 8px; letter-spacing: -0.01em; line-height: 1.35; transition: color 0.2s; }
-.post-card:hover h2 { color: var(--primary-hover); }
+.post-card h2, .post-card h3 { font-size: 1.2rem; font-weight: 600; color: var(--text); margin: 10px 0 8px; letter-spacing: -0.01em; line-height: 1.35; transition: color 0.2s; }
+.post-card:hover h2, .post-card:hover h3 { color: var(--primary-hover); }
 .post-card p { font-size: 0.92rem; color: var(--text-muted); }
 .post-more { display: inline-block; margin-top: 12px; font-size: 0.86rem; font-weight: 500; color: var(--primary-hover); }
 
