@@ -82,6 +82,7 @@
         <li><strong>Dense with credentials</strong> — developers routinely paste <code>.env</code> files, connection strings, and API keys mid-debugging.</li>
       </ul>
       <p>A year of someone's AI conversations is one of the most complete profiles of them that has ever existed in one place. To a data broker, that's premium inventory. To an attacker, the pasted credentials alone are a payday.</p>
+      <p>That is on top of the copy the AI provider itself keeps, which I cover in <a href="/blog/what-happens-to-data-you-paste-into-ai">what happens to the code you paste into ChatGPT, Claude or Gemini</a>.</p>
 
       <h2>How the attack actually works</h2>
       <p>Browser extensions can request <em>host permissions</em> — the right to run JavaScript (a "content script") inside specific websites, or all of them. That's legitimate and necessary: it's how ad blockers block ads and how password managers fill forms. But a content script running in your ChatGPT tab can read everything on that page, including:</p>
@@ -112,6 +113,11 @@
         <li><strong>Memory-only vault.</strong> Masked secrets are held in browser memory for 15 minutes, never written to disk and never transmitted anywhere.</li>
       </ul>
       <p>An extension that guards your secrets must be held to a higher standard than the extensions that caused the problem. "Trust us" isn't that standard — "verify it yourself" is.</p>
+      <h2>Related reading</h2>
+      <ul>
+        <li><a href="/blog/what-happens-to-data-you-paste-into-ai">What happens to the code you paste into ChatGPT, Claude or Gemini</a></li>
+        <li><a href="/blog/pasted-api-key-into-chatgpt">I pasted an API key into ChatGPT: what to do</a></li>
+      </ul>
     </article>
 
     <div class="article-cta">

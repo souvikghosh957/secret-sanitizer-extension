@@ -106,9 +106,15 @@
         <li><strong>Trim before you paste.</strong> The three lines around the error are usually enough; the full <code>.env</code> is not required.</li>
         <li><strong>Automate the scrubbing.</strong> Humans are bad at spotting one live key in 200 lines of logs — that's a pattern-matching job. <a href="/">Secret Sanitizer</a> does it on every paste: 70+ secret patterns checked locally in your browser, matches replaced with placeholders before the text touches the page, originals kept in a memory-only vault so you can restore them from the AI's answer. No cloud, no network calls, open source.</li>
       </ul>
+      <p>If a live key has already gone into a chat, none of these settings pull it back. Rotate it first: here is <a href="/blog/pasted-api-key-into-chatgpt">the checklist for an API key pasted into ChatGPT</a>.</p>
 
       <h2>The bottom line</h2>
       <p>AI chat providers aren't villains — most publish detailed policies and offer real controls. But policies change, defaults favor the provider, and retention is opaque by nature. The only copy of your API key you fully control is the one that never leaves your machine. Everything else is trust.</p>
+      <h2>Related reading</h2>
+      <ul>
+        <li><a href="/blog/pasted-api-key-into-chatgpt">I pasted an API key into ChatGPT: what to do</a></li>
+        <li><a href="/blog/prompt-poaching">Prompt poaching: when browser extensions read your AI chats</a></li>
+      </ul>
     </article>
 
     <div class="article-cta">

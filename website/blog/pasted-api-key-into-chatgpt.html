@@ -71,7 +71,7 @@
 
     <article class="prose">
       <h2>First, accept the one rule that matters</h2>
-      <p><strong>Treat the key as compromised.</strong> Not "maybe compromised" — compromised. The moment your message was sent, it left your machine and landed on infrastructure you don't control. It may be retained in logs, backups, or your chat history for a long time, and you have no reliable way to reach into those systems and remove it.</p>
+      <p><strong>Treat the key as compromised.</strong> Not "maybe compromised" — compromised. The moment your message was sent, it left your machine and landed on infrastructure you don't control. It may be <a href="/blog/what-happens-to-data-you-paste-into-ai">retained in logs, backups, or your chat history</a> for a long time, and you have no reliable way to reach into those systems and remove it.</p>
       <p>Deleting the conversation makes it disappear from <em>your</em> screen. It does not guarantee removal from the provider's systems. So the fix is never "delete the chat" — the fix is always "make the key worthless."</p>
 
       <div class="callout"><strong>Good news:</strong> rotating a key usually takes under five minutes, and in most cases nothing bad has happened yet. The point of moving fast is to keep it that way.</div>
@@ -124,6 +124,11 @@
         <li>Add one guardrail: shorter-lived keys, a secrets manager, or automatic masking on paste.</li>
       </ol>
       <p>The leak itself is common — nearly every developer who uses AI chats daily has done it or come close. What separates a non-event from an incident is how fast you make the key worthless.</p>
+      <h2>Related reading</h2>
+      <ul>
+        <li><a href="/blog/what-happens-to-data-you-paste-into-ai">What happens to the code you paste into ChatGPT, Claude or Gemini</a></li>
+        <li><a href="/blog/prompt-poaching">Prompt poaching: when browser extensions read your AI chats</a></li>
+      </ul>
     </article>
 
     <div class="article-cta">
