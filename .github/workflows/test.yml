@@ -5,6 +5,10 @@ on:
     branches: [master]
   pull_request:
 
+# The job only reads the code
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
