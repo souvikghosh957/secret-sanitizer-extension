@@ -48,6 +48,9 @@ We recommend always using the latest version from the [Chrome Web Store](https:/
 
 ## Known Limitations
 
+- **Only pasted text is scanned.** Text you type, files you upload, and text you drag and drop are not checked.
+- **Tabs that were open before the extension was installed are not protected until you reload them.** The same goes for a site you have just added. The popup shows a site as active from your settings; it does not check the tab itself.
+- **Editors inside an embedded frame are not covered.** Masking runs in the page's top frame only. The four default sites keep their chat box there.
 - **Pattern-based detection is not exhaustive.** Custom or unusual secret formats may not be caught. New patterns can be requested via GitHub issues.
 - **Vault entries expire after 15 minutes** by default. Secrets pasted earlier cannot be unmasked.
 - **Smart Restore places originals on the system clipboard.** Anything that can read your clipboard (clipboard managers, sites you granted clipboard-read) can see them. Smart Restore turns itself off on sites that have clipboard-read permission and while masking is paused.
