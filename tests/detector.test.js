@@ -44,6 +44,10 @@ const MASKED = [
   ["bearer JWT keeps the JWT label", "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
     "Authorization: Bearer [JWT]"],
   ["opaque bearer token keeps the Bearer keyword", "Authorization: Bearer Zq8xW3vR7tY2uI9oP4aS6dF1", "Authorization: Bearer [BEARER_TOKEN]"],
+  ["JSON field keeps its name and quotes", '{"passport_no": "J8369854", "phone": "9876543210"}',
+    '{"passport_no": "[PASSPORT]", "phone": "[INDIAN_PHONE]"}'],
+  ["backticks and curly quotes stay around the placeholder", "SESSION_SECRET=`5f4dcc3b5aa765d61d8327deb882cf99` password: “hunter2xyz”",
+    "SESSION_SECRET=`[QUOTED_SECRET]` password: “[PASSWORD_HINT]”"],
   ["40-hex value being assigned", "GH_OLD=3f786850e387550fdab836ed7e6dc881de23001b", "GH_OLD=[LONG_RANDOM_STRING]"],
 ];
 

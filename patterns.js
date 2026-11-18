@@ -12,7 +12,7 @@ const SHARED_PATTERNS = [
   [/\bAKIA[0-9A-Z]{16}\b/gi, "AWS_KEY"],
   [/\bASIA[0-9A-Z]{16}\b/gi, "AWS_TEMP_KEY"],
   // Azure (contextual — only near azure-specific keywords)
-  [/(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}['"]?/gi, "AZURE_SECRET"],
+  [/(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12})/gi, "AZURE_SECRET"],
   // Google
   [/\bAIza[0-9A-Za-z\-_]{35,}\b/gi, "GOOGLE_API_KEY"],
 
@@ -53,13 +53,13 @@ const SHARED_PATTERNS = [
   [/\brzp_live_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_KEY"],
   [/\brzp_test_[A-Za-z0-9]{14,}\b/gi, "RAZORPAY_TEST_KEY"],
   // Paytm
-  [/\bpaytm[_\s-]?(?:key|secret|token)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_KEY"],
-  [/\b(?:merchant[_\s-]?key|merchant[_\s-]?id)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi, "PAYTM_MERCHANT"],
+  [/\bpaytm[_\s-]?(?:key|secret|token)['"`‘’“”]?[\s:=]+['"`‘’“”]?(?<secret>[A-Za-z0-9]{20,})/gi, "PAYTM_KEY"],
+  [/\b(?:merchant[_\s-]?key|merchant[_\s-]?id)['"`‘’“”]?[\s:=]+['"`‘’“”]?(?<secret>[A-Za-z0-9]{20,})/gi, "PAYTM_MERCHANT"],
 
   // === COMMUNICATION & MESSAGING ===
   // Twilio
   [/\bAC[a-f0-9]{32}\b/g, "TWILIO_SID"],
-  [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi, "TWILIO_AUTH_TOKEN"],
+  [/\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)['"`‘’“”]?[\s:=]+['"`‘’“”]?(?<secret>[A-Za-z0-9]{32,})/gi, "TWILIO_AUTH_TOKEN"],
   // Slack (xoxb=bot, xoxp=user, xoxa=app, xoxr=refresh, xoxs=session, xoxe=expiring)
   [/\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/gi, "SLACK_TOKEN"],
   [/\bhttps:\/\/hooks\.slack\.com\/(?:services|workflows|triggers)\/[A-Za-z0-9_\/\-]+/gi, "SLACK_WEBHOOK"],
@@ -71,7 +71,7 @@ const SHARED_PATTERNS = [
   // SendGrid
   [/\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/gi, "SENDGRID_KEY"],
   // Mailgun (contextual to avoid "key-value" false positives)
-  [/(?:mailgun|MAILGUN_API_KEY)\s*[=:]\s*['"]?key-[a-z0-9]{32,}['"]?/gi, "MAILGUN_KEY"],
+  [/(?:mailgun|MAILGUN_API_KEY)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>key-[a-z0-9]{32,})/gi, "MAILGUN_KEY"],
 
   // === AI & ML PLATFORMS ===
   [/\bsk-ant-[A-Za-z0-9\-_]{32,}\b/gi, "ANTHROPIC_KEY"],
@@ -83,7 +83,7 @@ const SHARED_PATTERNS = [
   // Firebase
   [/\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/gi, "FIREBASE_KEY"],
   // Heroku (contextual — only near heroku/api keywords to avoid UUID false positives)
-  [/(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)\s*[=:]\s*['"]?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}['"]?/gi, "HEROKU_API_KEY"],
+  [/(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/gi, "HEROKU_API_KEY"],
   // Vercel (vc prefixed tokens)
   [/\bvc[pcirka]_[A-Za-z0-9_\-]{24,}\b/gi, "VERCEL_TOKEN"],
   // DigitalOcean
@@ -92,9 +92,9 @@ const SHARED_PATTERNS = [
   // Supabase
   [/\bsbp_[a-f0-9]{40,}\b/gi, "SUPABASE_TOKEN"],
   // Cloudflare (contextual — no distinct prefix, so require keyword context)
-  [/(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{37,}['"]?/gi, "CLOUDFLARE_TOKEN"],
+  [/(?:cloudflare|CF_API_TOKEN|CF_API_KEY)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>[A-Za-z0-9\-_]{37,})/gi, "CLOUDFLARE_TOKEN"],
   // Datadog (contextual — only near datadog/dd keywords to avoid hex false positives)
-  [/(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)\s*[=:]\s*['"]?[a-f0-9]{32,}['"]?/gi, "DATADOG_KEY"],
+  [/(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>[a-f0-9]{32,})/gi, "DATADOG_KEY"],
 
   // === E-COMMERCE ===
   // Shopify
@@ -107,7 +107,7 @@ const SHARED_PATTERNS = [
   // === INDIAN PII ===
   [/\b[2-9]\d{3}[\s-]?\d{4}[\s-]?\d{4}\b/g, "AADHAAR"],
   [/\b[A-Z]{3}[PCHFATBLJG][A-Z]\d{4}[A-Z]\b/g, "PAN"],
-  [/(?:\+91[\s-]?|(?:phone|mobile|cell|contact|mob|tel|whatsapp)[\s:=]+['"]?)\b[6-9]\d{9}\b/gi, "INDIAN_PHONE"],
+  [/(?:\+91[\s-]?|(?:phone|mobile|cell|contact|mob|tel|whatsapp)['"`‘’“”]?[\s:=]+['"`‘’“”]?)\b(?<secret>[6-9]\d{9})\b/gi, "INDIAN_PHONE"],
   [/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}Z[A-Z\d]{1}\b/gi, "GSTIN"],
   [/\b[A-Z]{4}0[A-Z0-9]{6}\b/g, "IFSC"],
   [/\b[\w.-]{1,64}@(?:oksbi|okaxis|okhdfcbank|okicici|oksbp|ybl|apl|airtel)\b/gi, "UPI_ID"],
@@ -115,32 +115,32 @@ const SHARED_PATTERNS = [
   [/\b(?:success|failure|test)@(?:upi|razorpay|payu)\b/gi, "UPI_TEST_ID"],
   [/\b[\w.-]{1,64}@(?:razorpay|payu|paytm)\b/gi, "PAYMENT_UPI_ID"],
   [/\b[A-Z]{2}[0-9]{2}[\s-]?[0-9]{4}[\s-]?[0-9]{7}\b/gi, "DRIVING_LICENSE"],
-  [/(?:voter[\s-]?id|epic|election[\s-]?id)[\s:=]+['"]?\b[A-Z]{3}[0-9]{7}\b['"]?/gi, "VOTER_ID"],
-  [/(?:passport)[\s:=_-]{0,8}(?:no|number|num|#)?[\s:=_-]{1,8}['"]?\b[A-PR-V][1-9]\d{6}\b['"]?/gi, "PASSPORT"],
-  [/(?:vehicle|registration|reg[\s-]?no|number[\s-]?plate|license[\s-]?plate)[\s:=]+['"]?\b[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}\b['"]?/gi, "VEHICLE_REG"],
+  [/(?:voter[\s_-]?id|epic|election[\s_-]?id)['"`‘’“”]?[\s:=]+['"`‘’“”]?\b(?<secret>[A-Z]{3}[0-9]{7})\b/gi, "VOTER_ID"],
+  [/(?:passport)[\s:=_-]{0,8}(?:no|number|num|#)?['"`‘’“”]?[\s:=_-]{1,8}['"`‘’“”]?\b(?<secret>[A-PR-V][1-9]\d{6})\b/gi, "PASSPORT"],
+  [/(?:vehicle|registration|reg[\s-]?no|number[\s-]?plate|license[\s-]?plate)['"`‘’“”]?[\s:=]+['"`‘’“”]?\b(?<secret>[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4})\b/gi, "VEHICLE_REG"],
 
   // === SENSITIVE CONTEXT PATTERNS ===
   // Bare "code" is deliberately excluded ("exit code 1234", "error code 5001")
-  [/\b(?:otp|pin|passcode|verification(?:\s+code)?|security\s+code|auth(?:entication)?\s+code|login\s+code|one[\s-]time\s+(?:password|code|pin))\b(?:\s+is)?\s{0,8}[:=]?\s{0,8}['"]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
-  [/\b(?:enter|use|your)\s+(?:the\s+)?(?:otp|pin|code)(?:\s+is)?[\s:]+(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
-  [/(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi, "EMAIL_IN_SECRET"],
+  [/\b(?:otp|pin|passcode|verification(?:\s+code)?|security\s+code|auth(?:entication)?\s+code|login\s+code|one[\s-]time\s+(?:password|code|pin))\b['"`‘’“”]?(?:\s+is)?\s{0,8}[:=]?\s{0,8}['"`‘’“”]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
+  [/\b(?:enter|use|your)\s+(?:the\s+)?(?:otp|pin|code)(?:\s+is)?[\s:]+['"`‘’“”]?(?<secret>\d{4,8})\b/gi, "OTP_CODE"],
+  [/(?:password|passwd|pwd|secret|key|token|api)['"`‘’“”]?(?:\s+is)?[\s:=]+['"`‘’“”]?(?<secret>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi, "EMAIL_IN_SECRET"],
   // Masks only the value. Any non-space characters, 6+ long. Skips obvious non-values:
   // template/env references ($X, <x>, {x}, %s), redactions (****), paths (PWD=/home/..),
   // function calls (getenv(...)), references (creds.password, process.env.X) and type/doc words (password: string).
-  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"`]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:process\.env|os\.environ)\b)(?!(?:[\w$]+\.)+_?(?:password|passwd|pwd|pass|secret)['"]?(?:[\s,;)}\]]|$))(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
-  [/(?:パスワード|暗証番号)(?:\s{0,8}[:=：]\s{0,8}|は\s{0,8})['"「]?(?<secret>(?![$<{%*\[(\/~.])[!-~]{6,})/g, "PASSWORD_HINT"],
+  [/(?:password|passwd|passphrase|pwd)['"`‘’“”]?(?:\s+is\s+|\s*[:=]\s*)['"`‘’“”]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:process\.env|os\.environ)\b)(?!(?:[\w$]+\.)+_?(?:password|passwd|pwd|pass|secret)['"]?(?:[\s,;)}\]]|$))(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`‘’“”]{5,}[^\s'"`‘’“”,;])/gi, "PASSWORD_HINT"],
+  [/(?:パスワード|暗証番号)['"`’”」]?(?:\s{0,8}[:=：]\s{0,8}|は\s{0,8})['"`‘“「]?(?<secret>(?![$<{%*\[(\/~.])[!-~]{6,})/g, "PASSWORD_HINT"],
   // Value-only, so "Bearer " stays readable and a specific pattern on the same value (JWT)
   // wins the overlap. The negative lookahead skips values with a known specific prefix.
   [/\b(?:bearer|token)[\s:]+(?<secret>(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_|x{8})[A-Za-z0-9\-_.]{20,})\b/gi, "BEARER_TOKEN"],
-  [/\bauthorization['"]?\s{0,8}[:=]\s{0,8}['"]?basic\s{1,8}(?<secret>[A-Za-z0-9+\/]{8,}={0,2})/gi, "BASIC_AUTH"],
+  [/\bauthorization['"`‘’“”]?\s{0,8}[:=]\s{0,8}['"`‘’“”]?basic\s{1,8}(?<secret>[A-Za-z0-9+\/]{8,}={0,2})/gi, "BASIC_AUTH"],
 
   // === KEY=VALUE FORMAT PATTERNS ===
   // Value-only, so the key name stays readable and a more specific pattern matching the
   // same value (e.g. OPENAI_KEY in OPENAI_API_KEY=sk-...) wins the overlap. Skips sample values.
-  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
-  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
-  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
-  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
+  [/(?:api[_-]?key|apikey)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
+  [/(?:secret[_-]?key|secretkey)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
+  [/(?:access[_-]?key|accesskey)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
+  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)['"`‘’“”]?\s*[=:]\s*['"`‘’“”]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
 
   // === PRIVATE KEYS ===
   // A key cut off before its END line is still masked, through to the end of the paste.
@@ -150,7 +150,7 @@ const SHARED_PATTERNS = [
 
   // === GENERIC FALLBACKS (order matters — these are last resort) ===
   // detector.js validators decide whether each candidate looks machine-generated.
-  [/['"](?<secret>[A-Za-z0-9]{20,})['"]/g, "QUOTED_SECRET"],
+  [/['"`‘’“”](?<secret>[A-Za-z0-9]{20,})['"`‘’“”]/g, "QUOTED_SECRET"],
   [/\b[A-Za-z0-9]{40,}\b/g, "LONG_RANDOM_STRING"],
   [/\b[A-Za-z0-9+/]{40,}={0,2}\b/g, "BASE64_SECRET"]
 ];

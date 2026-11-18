@@ -222,8 +222,8 @@ const QUERY_SECRET_NAME_RE = /^(?:key|code|sig|sid|pass|state|nonce)$/i;
 const PUBLIC_QUERY_NAME_RE = /^(?:id|v|list|playlist|q|query|search|page|ref|lang|locale|utm_\w+|gclid|fbclid|msclkid)$/i;
 const HASH_NAME_RE = /(?:hash|digest|checksum|etag|integrity|fingerprint|commit|revision|sha\d{0,3}|md5|traceparent|tracestate)$/i;
 
-// Backticks too: values in chat messages are often Markdown inline code (KEY=`value`).
-const QUOTES = "'\"`";
+// Backticks (Markdown inline code: KEY=`value`) and curly quotes (Slack, Docs, macOS) too.
+const QUOTES = "'\"`‘’“”";
 const isNameChar = (c) => c !== undefined && /[\w.\-]/.test(c);
 const skipBack = (text, i, chars) => {
   for (let n = 0; n < 8 && chars.includes(text[i]) && i >= 0; n++) i--;
