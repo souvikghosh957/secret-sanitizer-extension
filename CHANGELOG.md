@@ -2,10 +2,11 @@
 
 All notable changes to Secret Sanitizer are documented here.
 
-## [2.4.3] - 2026-11-17
+## [2.4.3] - 2026-11-18
 
 ### Fixed
 - **A tab could open without masking.** When the browser started, and whenever a site was added, removed or granted permission, the extension briefly took masking off every protected site and then set it up again. A chat tab that loaded in that moment, for example when the browser reopened your tabs, stayed unmasked until it was reloaded, with no warning. Sites whose setup hasn't changed now stay protected the whole time
+- **Chrome extension IDs are no longer masked.** An ID like `genolcmpopiemhpbdnhkaefllchgekja` pasted on its own was masked as a random-looking secret. Extension IDs are public, so they now stay readable. The same text after a secret-sounding name (`SESSION_SECRET=…`) is still masked
 
 ### Docs
 - SECURITY.md now also lists what isn't covered: typed, uploaded and dragged-in text, tabs that were already open when the extension was installed, and editors inside an embedded frame

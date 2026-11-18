@@ -119,6 +119,13 @@ const UNMASKED = {
     `src/main/java/com/example1/myapp/service2/impl/ConfirmationServiceImplementation.java`,
     `const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";`,
   ],
+  "chrome extension ids": [
+    `genolcmpopiemhpbdnhkaefllchgekja`,
+    `Extension ID: genolcmpopiemhpbdnhkaefllchgekja`,
+    `"extensionId": "genolcmpopiemhpbdnhkaefllchgekja"`,
+    `chrome.runtime.sendMessage("genolcmpopiemhpbdnhkaefllchgekja", msg)`,
+    `https://chromewebstore.google.com/detail/secret-sanitizer-%E2%80%93-paste/genolcmpopiemhpbdnhkaefllchgekja`,
+  ],
   "japanese (no spaces between words)": [
     `trade_idとconfirmation_referenceをorder_tableから取得しようとするとエラーになります`,
     `XceptorConfirmationPublisherImplクラスのpublishメソッドでNullPointerExceptionが発生しました`,
@@ -140,6 +147,9 @@ const STILL_MASKED = [
   ["12-char token under a secret name", `webhook_secret: Zq8xW3vR7tY2`, "Zq8xW3vR7tY2"],
   ["dashed serial", `license aB3d-eF5g-hI7j-kL9m-nO1p`, "aB3d-eF5g-hI7j-kL9m-nO1p"],
   ["token with a readable prefix", `prod-Zq8xW3vR7tY2uI9oP4aS6dF1`, "Zq8xW3vR7tY2uI9oP4aS6dF1"],
+  ["extension-id shape under a secret name", `SESSION_SECRET=genolcmpopiemhpbdnhkaefllchgekja`, "genolcmpopiemhpbdnhkaefllchgekja"],
+  ["quoted extension-id shape under a secret name", `"client_secret": "genolcmpopiemhpbdnhkaefllchgekja"`, "genolcmpopiemhpbdnhkaefllchgekja"],
+  ["lowercase token one letter past p", `here it is genolcmpopiemhpbdnhkaefllchgekjz thanks`, "genolcmpopiemhpbdnhkaefllchgekjz"],
   // Hex: only a name makes it a secret
   ["hex under a secret name", `webhook_secret: 5f4dcc3b5aa765d61d8327deb882cf99`, "5f4dcc3b5aa765d61d8327deb882cf99"],
   ["64-hex token assigned", `TOKEN=4bc453b53cb3d914b45f4b250294236adba2c0e09ff6f03793949e7e39fd4cc1`, "4bc453b53cb3d914b45f4b250294236adba2c0e09ff6f03793949e7e39fd4cc1"],

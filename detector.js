@@ -166,6 +166,9 @@ const onlyAlnum = (s) => s.replace(/[^A-Za-z0-9]/g, "");
 const isHex = (s) => /^[0-9a-f]+$/i.test(s);
 // Timestamps, phone numbers, long numeric ids: at most one letter in five.
 const isMostlyDigits = (s) => s.replace(/\D/g, "").length / s.length > 0.8;
+// Chrome extension ids are always 32 letters a-p and public (store links, chrome://extensions).
+// Skipped only without a secret-sounding name: SESSION_SECRET=<that shape> is still masked.
+const isExtensionId = (s) => /^[a-p]{32}$/.test(s);
 
 // True when a value looks machine-generated rather than words glued together. Bare hex is
 // handled separately (hashes, commit ids), so it never qualifies here.
@@ -266,7 +269,7 @@ const PATTERN_VALIDATORS = {
   // A quoted literal under a secret-sounding name is masked even if it reads like words.
   QUOTED_SECRET: (v, text, s) => {
     const context = valueContext(text, s);
-    return context !== VALUE_PLAIN && (context === VALUE_SECRET || looksRandom(v));
+    return context !== VALUE_PLAIN && (context === VALUE_SECRET || (looksRandom(v) && !isExtensionId(v)));
   },
   // Bare hex is a hash or commit id unless it's being assigned (OLD_TOKEN=<hex>).
   LONG_RANDOM_STRING: (v, text, s) => {
@@ -426,7 +429,7 @@ function findRandomTokens(text, excluded) {
 
     const valueKind = valueContext(text, start);
     if (valueKind === VALUE_PLAIN) continue;
-    if (valueKind === VALUE_SECRET ? !isNamedSecretValue(trimmed) : !isRandomToken(trimmed)) continue;
+    if (valueKind === VALUE_SECRET ? !isNamedSecretValue(trimmed) : isExtensionId(trimmed) || !isRandomToken(trimmed)) continue;
 
     candidates.push({ start, end, label: RANDOM_TOKEN_LABEL, original: trimmed });
   }
