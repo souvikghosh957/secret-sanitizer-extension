@@ -127,7 +127,7 @@ const SHARED_PATTERNS = [
   // Masks only the value. Any non-space characters, 6+ long. Skips obvious non-values:
   // template/env references ($X, <x>, {x}, %s), redactions (****), paths (PWD=/home/..),
   // function calls (getenv(...)), references (creds.password, process.env.X) and type/doc words (password: string).
-  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:process\.env|os\.environ)\b)(?!(?:[\w$]+\.)+_?(?:password|passwd|pwd|pass|secret)['"]?(?:[\s,;)}\]]|$))(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
+  [/(?:password|passwd|passphrase|pwd)['"]?(?:\s+is\s+|\s*[:=]\s*)['"`]?(?<secret>(?![$<{%*\[(\/~.])(?![\w.]*\()(?!(?:process\.env|os\.environ)\b)(?!(?:[\w$]+\.)+_?(?:password|passwd|pwd|pass|secret)['"]?(?:[\s,;)}\]]|$))(?!(?:string|required|optional|undefined|null|none|true|false|empty|invalid|incorrect|changeme)\b)[^\s'"`]{5,}[^\s'"`,;])/gi, "PASSWORD_HINT"],
   [/(?:パスワード|暗証番号)(?:\s{0,8}[:=：]\s{0,8}|は\s{0,8})['"「]?(?<secret>(?![$<{%*\[(\/~.])[!-~]{6,})/g, "PASSWORD_HINT"],
   // Value-only, so "Bearer " stays readable and a specific pattern on the same value (JWT)
   // wins the overlap. The negative lookahead skips values with a known specific prefix.
@@ -137,10 +137,10 @@ const SHARED_PATTERNS = [
   // === KEY=VALUE FORMAT PATTERNS ===
   // Value-only, so the key name stays readable and a more specific pattern matching the
   // same value (e.g. OPENAI_KEY in OPENAI_API_KEY=sk-...) wins the overlap. Skips sample values.
-  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
-  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
-  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
-  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
+  [/(?:api[_-]?key|apikey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "API_KEY_FORMAT"],
+  [/(?:secret[_-]?key|secretkey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "SECRET_KEY_FORMAT"],
+  [/(?:access[_-]?key|accesskey)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "ACCESS_KEY_FORMAT"],
+  [/(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"`]?(?<secret>(?!your[_-]|example|placeholder|xxxx)[A-Za-z0-9\-_]{20,})/gi, "AUTH_SECRET_FORMAT"],
 
   // === PRIVATE KEYS ===
   // A key cut off before its END line is still masked, through to the end of the paste.

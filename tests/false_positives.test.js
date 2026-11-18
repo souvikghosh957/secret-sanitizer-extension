@@ -104,6 +104,9 @@ const UNMASKED = {
     `public_key: 5f4dcc3b5aa765d61d8327deb882cf99`,
     `session_id: 5f4dcc3b5aa765d61d8327deb882cf99`,
     `token: xxxxxxxxxxxxxxxxxxxxxxxx`,
+    "password: `string`",
+    "password: `${DB_PASSWORD}`",
+    "request_id: `Zq8xW3vR7tY2uI9oP4aS6dF1`",
   ],
   "code and logs": [
     `SELECT id, created_at FROM trade_confirmations WHERE status = 'PENDING' ORDER BY created_at DESC;`,
@@ -149,6 +152,9 @@ const STILL_MASKED = [
   ["token with a readable prefix", `prod-Zq8xW3vR7tY2uI9oP4aS6dF1`, "Zq8xW3vR7tY2uI9oP4aS6dF1"],
   ["extension-id shape under a secret name", `SESSION_SECRET=genolcmpopiemhpbdnhkaefllchgekja`, "genolcmpopiemhpbdnhkaefllchgekja"],
   ["quoted extension-id shape under a secret name", `"client_secret": "genolcmpopiemhpbdnhkaefllchgekja"`, "genolcmpopiemhpbdnhkaefllchgekja"],
+  ["extension-id shape in backticks under a secret name", "SESSION_SECRET=`genolcmpopiemhpbdnhkaefllchgekja`", "genolcmpopiemhpbdnhkaefllchgekja"],
+  ["hex in backticks under a secret name", "webhook_secret: `5f4dcc3b5aa765d61d8327deb882cf99`", "5f4dcc3b5aa765d61d8327deb882cf99"],
+  ["password in backticks", "password: `hunter2xyz`", "hunter2xyz"],
   ["lowercase token one letter past p", `here it is genolcmpopiemhpbdnhkaefllchgekjz thanks`, "genolcmpopiemhpbdnhkaefllchgekjz"],
   // Hex: only a name makes it a secret
   ["hex under a secret name", `webhook_secret: 5f4dcc3b5aa765d61d8327deb882cf99`, "5f4dcc3b5aa765d61d8327deb882cf99"],

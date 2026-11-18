@@ -222,6 +222,8 @@ const QUERY_SECRET_NAME_RE = /^(?:key|code|sig|sid|pass|state|nonce)$/i;
 const PUBLIC_QUERY_NAME_RE = /^(?:id|v|list|playlist|q|query|search|page|ref|lang|locale|utm_\w+|gclid|fbclid|msclkid)$/i;
 const HASH_NAME_RE = /(?:hash|digest|checksum|etag|integrity|fingerprint|commit|revision|sha\d{0,3}|md5|traceparent|tracestate)$/i;
 
+// Backticks too: values in chat messages are often Markdown inline code (KEY=`value`).
+const QUOTES = "'\"`";
 const isNameChar = (c) => c !== undefined && /[\w.\-]/.test(c);
 const skipBack = (text, i, chars) => {
   for (let n = 0; n < 8 && chars.includes(text[i]) && i >= 0; n++) i--;
@@ -231,13 +233,13 @@ const skipBack = (text, i, chars) => {
 // Classifies a value by the name in front of it (name = value, "name": "value", name => value,
 // name := value). A plain backward scan: this runs for every long token in the paste.
 function valueContext(text, start) {
-  let i = skipBack(text, skipBack(text, start - 1, `'"`), " \t");
+  let i = skipBack(text, skipBack(text, start - 1, QUOTES), " \t");
   const op = text[i];
   if (op === ">" && text[i - 1] === "=") i -= 2;
   else if (op === "=") i -= text[i - 1] === ":" ? 2 : 1;
   else if (op === ":" || op === "：") i--;
   else return VALUE_BARE;
-  const end = skipBack(text, skipBack(text, i, " \t"), `'"`) + 1;
+  const end = skipBack(text, skipBack(text, i, " \t"), QUOTES) + 1;
 
   let nameStart = end;
   while (nameStart > 0 && end - nameStart < 64 && isNameChar(text[nameStart - 1])) nameStart--;
