@@ -196,6 +196,20 @@ test("a script missing from an earlier run is added without touching the rest", 
   assert.deepEqual(removed, []);
 });
 
+// Chrome keeps registered scripts across restarts, so one left by an older version under the
+// same id is replaced when its settings differ, and dropped when its id is no longer used.
+test("scripts registered by an older version are replaced or removed", async () => {
+  const { chrome, context } = loadBackground();
+  const files = ["i18n.js", "sites.js", "patterns.js", "detector.js", "content_script.js"];
+  const defaults = ["*://chatgpt.com/*", "*://claude.ai/*", "*://gemini.google.com/*", "*://grok.com/*"];
+  chrome.registered.set("ss-iso-defaults", { id: "ss-iso-defaults", matches: defaults, js: files, runAt: "document_idle" });
+  chrome.registered.set("secret-sanitizer", { id: "secret-sanitizer", matches: ["*://chatgpt.com/*"], js: ["content_script.js"], runAt: "document_idle" });
+  await vm.runInContext("registerContentScripts()", context);
+  const iso = chrome.registered.get("ss-iso-defaults");
+  assert.equal(iso.runAt, "document_start");
+  assert.ok(!chrome.registered.has("secret-sanitizer"));
+});
+
 test("getWeekStart crosses month and year boundaries correctly", () => {
   const { context } = loadBackground();
   const weekStart = (y, m, d) => vm.runInContext(`getWeekStart(new Date(${y}, ${m}, ${d}))`, context);

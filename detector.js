@@ -166,6 +166,9 @@ const onlyAlnum = (s) => s.replace(/[^A-Za-z0-9]/g, "");
 const isHex = (s) => /^[0-9a-f]+$/i.test(s);
 // Timestamps, phone numbers, long numeric ids: at most one letter in five.
 const isMostlyDigits = (s) => s.replace(/\D/g, "").length / s.length > 0.8;
+// Chrome extension ids are always 32 letters a-p and public (store links, chrome://extensions).
+// Skipped only without a secret-sounding name: SESSION_SECRET=<that shape> is still masked.
+const isExtensionId = (s) => /^[a-p]{32}$/.test(s);
 
 // True when a value looks machine-generated rather than words glued together. Bare hex is
 // handled separately (hashes, commit ids), so it never qualifies here.
@@ -219,6 +222,8 @@ const QUERY_SECRET_NAME_RE = /^(?:key|code|sig|sid|pass|state|nonce)$/i;
 const PUBLIC_QUERY_NAME_RE = /^(?:id|v|list|playlist|q|query|search|page|ref|lang|locale|utm_\w+|gclid|fbclid|msclkid)$/i;
 const HASH_NAME_RE = /(?:hash|digest|checksum|etag|integrity|fingerprint|commit|revision|sha\d{0,3}|md5|traceparent|tracestate)$/i;
 
+// Backticks (Markdown inline code: KEY=`value`) and curly quotes (Slack, Docs, macOS) too.
+const QUOTES = "'\"`‘’“”";
 const isNameChar = (c) => c !== undefined && /[\w.\-]/.test(c);
 const skipBack = (text, i, chars) => {
   for (let n = 0; n < 8 && chars.includes(text[i]) && i >= 0; n++) i--;
@@ -228,13 +233,13 @@ const skipBack = (text, i, chars) => {
 // Classifies a value by the name in front of it (name = value, "name": "value", name => value,
 // name := value). A plain backward scan: this runs for every long token in the paste.
 function valueContext(text, start) {
-  let i = skipBack(text, skipBack(text, start - 1, `'"`), " \t");
+  let i = skipBack(text, skipBack(text, start - 1, QUOTES), " \t");
   const op = text[i];
   if (op === ">" && text[i - 1] === "=") i -= 2;
   else if (op === "=") i -= text[i - 1] === ":" ? 2 : 1;
   else if (op === ":" || op === "：") i--;
   else return VALUE_BARE;
-  const end = skipBack(text, skipBack(text, i, " \t"), `'"`) + 1;
+  const end = skipBack(text, skipBack(text, i, " \t"), QUOTES) + 1;
 
   let nameStart = end;
   while (nameStart > 0 && end - nameStart < 64 && isNameChar(text[nameStart - 1])) nameStart--;
@@ -266,7 +271,7 @@ const PATTERN_VALIDATORS = {
   // A quoted literal under a secret-sounding name is masked even if it reads like words.
   QUOTED_SECRET: (v, text, s) => {
     const context = valueContext(text, s);
-    return context !== VALUE_PLAIN && (context === VALUE_SECRET || looksRandom(v));
+    return context !== VALUE_PLAIN && (context === VALUE_SECRET || (looksRandom(v) && !isExtensionId(v)));
   },
   // Bare hex is a hash or commit id unless it's being assigned (OLD_TOKEN=<hex>).
   LONG_RANDOM_STRING: (v, text, s) => {
@@ -426,7 +431,7 @@ function findRandomTokens(text, excluded) {
 
     const valueKind = valueContext(text, start);
     if (valueKind === VALUE_PLAIN) continue;
-    if (valueKind === VALUE_SECRET ? !isNamedSecretValue(trimmed) : !isRandomToken(trimmed)) continue;
+    if (valueKind === VALUE_SECRET ? !isNamedSecretValue(trimmed) : isExtensionId(trimmed) || !isRandomToken(trimmed)) continue;
 
     candidates.push({ start, end, label: RANDOM_TOKEN_LABEL, original: trimmed });
   }
